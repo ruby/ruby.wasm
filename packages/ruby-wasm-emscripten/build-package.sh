@@ -19,7 +19,6 @@ cp "$package_dir/package.json" "$dist_dir/package.json"
 
 cp "$ruby_root/usr/local/bin/ruby.wasm" "$dist_dir/ruby.wasm"
 cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/ruby.js"
-echo "export const createRubyModule = Module;" >> "$dist_dir/ruby.js"
 
 file_packager="$(dirname $(which emcc))/tools/file_packager"
 if [ ! -f "$file_packager" ]; then
@@ -28,7 +27,7 @@ if [ ! -f "$file_packager" ]; then
 fi
 
 ruby_stdlib_js="$dist_dir/ruby_stdlib.js"
-rm "$ruby_stdlib_js"
+rm -f "$ruby_stdlib_js"
 echo "export function loadRubyStdlib() {" >> "$ruby_stdlib_js"
 "$file_packager" "$dist_dir/ruby_stdlib.data" \
     --export-name=globalThis.__ruby_module \
@@ -36,4 +35,4 @@ echo "export function loadRubyStdlib() {" >> "$ruby_stdlib_js"
     --exclude '*.gem' --exclude "libruby-static.a" >> "$ruby_stdlib_js"
 echo "}" >> "$ruby_stdlib_js"
 
-(cd "$package_dir" && npx rollup "$package_dir/index.js" -o "$dist_dir/index.js")
+(cd "$package_dir" && npx rollup -c rollup.config.js)

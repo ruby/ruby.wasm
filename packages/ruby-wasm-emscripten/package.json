@@ -2,7 +2,7 @@
   "name": "ruby-wasm-emscripten",
   "version": "1.0.0",
   "description": "WebAssembly port of CRuby by Emscripten",
-  "type": "module",
+  "type": "commonjs",
   "main": "index.js",
   "license": "MIT",
   "files": [
@@ -11,6 +11,7 @@
     "ruby_stdlib.data"
   ],
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.1",
     "rollup": "^2.62.0"
   }
 }
