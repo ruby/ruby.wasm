@@ -10,7 +10,6 @@
     "ruby_stdlib.data"
   ],
   "devDependencies": {
-    "@types/emscripten": "^1.39.6",
     "rollup": "^2.62.0"
   }
 }
