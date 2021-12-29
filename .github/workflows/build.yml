@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: kateinoigakukun/ruby
-          ref: d620ce0c464e51383bfbf3cd5fa32f16dc13ee34
+          ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
       - run: ./autogen.sh
       - run: |
           ./configure LDFLAGS="${{ matrix.entry.ldflags }}" \
@@ -82,7 +82,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: kateinoigakukun/ruby
-          ref: d620ce0c464e51383bfbf3cd5fa32f16dc13ee34
+          ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
       - run: ./autogen.sh
       - run: |
           ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="${{ matrix.entry.ldflags }}" \
