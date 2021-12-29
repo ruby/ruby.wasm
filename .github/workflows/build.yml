@@ -59,7 +59,7 @@ jobs:
       - run: |
           # Binaryen 104 has insufficient stack-size issue due to musl libc while asyncify.
           # -DOPT_THREADED_CODE=2 is a workaround to avoid too much stack consumption for asyncify pass
-          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" cppflags="-DOPT_THREADED_CODE=2" \
+          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" cppflags="-DOPT_THREADED_CODE=2" debugflags="-g0" \
             --host wasm32-unknown-wasi --build x86_64-pc-linux-gnu \
             --with-destdir=./wasm32-unknown-wasi-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
@@ -87,7 +87,7 @@ jobs:
           ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
       - run: ./autogen.sh
       - run: |
-          ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="-s MODULARIZE=1 ${{ matrix.entry.ldflags }}" \
+          ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="-s MODULARIZE=1 ${{ matrix.entry.ldflags }}" debugflags="-g0" \
             --host wasm32-unknown-emscripten --build x86_64-pc-linux-gnu \
             --with-destdir=./wasm32-unknown-emscripten-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
