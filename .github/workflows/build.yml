@@ -38,3 +38,31 @@ jobs:
       - run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  build-wasm32-unknown-wasi:
+    strategy:
+      fail-fast: false
+      matrix:
+        entry:
+          - { flavor: minimal, configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
+    needs: [build-builder-image]
+    runs-on: ubuntu-20.04
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:wasm32-unknown-wasi
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: kateinoigakukun/ruby
+          ref: 9922097f16ec07d6cd06210710b873cdcf377246
+      - run: ./autogen.sh
+      - run: |
+          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" \
+            --host wasm32-unknown-wasi \
+            --with-destdir=./wasm32-unknown-wasi-${{ matrix.entry.flavor }} \
+            ${{ matrix.entry.configure_args }}
+      - run: make install
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wasm32-unknown-wasi-${{ matrix.entry.flavor }}
+          path: wasm32-unknown-wasi-${{ matrix.entry.flavor }}
+
