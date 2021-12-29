@@ -10,6 +10,7 @@ jobs:
       matrix:
         entry:
           - { tag: wasm32-unknown-wasi }
+          - { tag: wasm32-unknown-emscripten }
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -66,4 +67,32 @@ jobs:
         with:
           name: wasm32-unknown-wasi-${{ matrix.entry.flavor }}
           path: wasm32-unknown-wasi-${{ matrix.entry.flavor }}.tar.gz
+
+  build-wasm32-unknown-emscripten:
+    strategy:
+      fail-fast: false
+      matrix:
+        entry:
+          - { flavor: minimal, configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "" }
+    needs: [build-builder-image]
+    runs-on: ubuntu-20.04
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:wasm32-unknown-emscripten
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: kateinoigakukun/ruby
+          ref: 9922097f16ec07d6cd06210710b873cdcf377246
+      - run: ./autogen.sh
+      - run: |
+          ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="${{ matrix.entry.ldflags }}" \
+            --host wasm32-unknown-emscripten \
+            --with-destdir=./wasm32-unknown-emscripten-${{ matrix.entry.flavor }} \
+            ${{ matrix.entry.configure_args }}
+      - run: make install
+      - run: tar cfz wasm32-unknown-emscripten-${{ matrix.entry.flavor }}.tar.gz wasm32-unknown-emscripten-${{ matrix.entry.flavor }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wasm32-unknown-emscripten-${{ matrix.entry.flavor }}
+          path: wasm32-unknown-emscripten-${{ matrix.entry.flavor }}.tar.gz
 
