@@ -90,6 +90,9 @@ jobs:
             --with-destdir=./wasm32-unknown-emscripten-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
       - run: make install
+      # Install ruby.wasm manually because rbinstall.rb doesn't recognize ruby.wasm for now
+      # cf. https://github.com/ruby/ruby/blob/4e4c4fab3c25a056688939ae8e003a049fc401ee/tool/rbinstall.rb#L375
+      - run: cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm
       - run: tar cfz wasm32-unknown-emscripten-${{ matrix.entry.flavor }}.tar.gz wasm32-unknown-emscripten-${{ matrix.entry.flavor }}
       - uses: actions/upload-artifact@v2
         with:
