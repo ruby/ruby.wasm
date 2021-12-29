@@ -57,7 +57,9 @@ jobs:
           ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
       - run: ./autogen.sh
       - run: |
-          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" \
+          # Binaryen 104 has insufficient stack-size issue due to musl libc while asyncify.
+          # -DOPT_THREADED_CODE=2 is a workaround to avoid too much stack consumption for asyncify pass
+          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" cppflags="-DOPT_THREADED_CODE=2" \
             --host wasm32-unknown-wasi --build x86_64-pc-linux-gnu \
             --with-destdir=./wasm32-unknown-wasi-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
