@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 usage() {
     echo "Usage: $(basename $0) ruby_root dist_dir"
