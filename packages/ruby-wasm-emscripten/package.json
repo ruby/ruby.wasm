@@ -1,0 +1,16 @@
+{
+  "name": "ruby-wasm-emscripten",
+  "version": "1.0.0",
+  "description": "WebAssembly port of CRuby by Emscripten",
+  "main": "index.js",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "ruby.wasm",
+    "ruby_stdlib.data"
+  ],
+  "devDependencies": {
+    "@types/emscripten": "^1.39.6",
+    "rollup": "^2.62.0"
+  }
+}
