@@ -87,7 +87,7 @@ jobs:
           ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
       - run: ./autogen.sh
       - run: |
-          ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="-s MODULARIZE=1 ${{ matrix.entry.ldflags }}" debugflags="-g0" \
+          ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="-s MODULARIZE=1 -s EXPORT_ES6=1 ${{ matrix.entry.ldflags }}" debugflags="-g0" \
             --host wasm32-unknown-emscripten --build x86_64-pc-linux-gnu \
             --with-destdir=./wasm32-unknown-emscripten-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
