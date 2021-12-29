@@ -2,7 +2,9 @@ FROM debian:buster
 
 ARG WASI_SDK_VERSION_MAJOR=14
 ARG WASI_SDK_VERSION_MINOR=0
-ARG BINARYEN_VERSION=104
+# Binaryen 100 and later have insufficient stack-size issue due to musl libc
+# cf. https://github.com/WebAssembly/binaryen/issues/4401
+ARG BINARYEN_VERSION=99
 
 ENV WASI_SDK_PATH="/opt/wasi-sdk" 
 
