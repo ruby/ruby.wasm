@@ -1,13 +1,13 @@
 {
   "name": "ruby-wasm-emscripten-example",
   "scripts": {
-    "build": "rollup -c rollup.config.js",
-    "start": ""
+    "build": "rollup -c rollup.config.js"
   },
   "dependencies": {
     "ruby-wasm-emscripten": "../../packages/ruby-wasm-emscripten/dist"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.1.1",
     "@rollup/plugin-commonjs": "^21.0.1",
     "rollup": "^2.62.0"
   }

@@ -1,4 +1,5 @@
 import commonjs from '@rollup/plugin-commonjs';
+import resolve from "@rollup/plugin-node-resolve";
 
 export default {
   input: "index.js",
@@ -7,5 +8,5 @@ export default {
     format: "umd",
     name: "index.js"
   },
-  plugins: [commonjs()]
+  plugins: [commonjs(), resolve()]
 };
