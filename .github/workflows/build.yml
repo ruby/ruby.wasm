@@ -58,7 +58,7 @@ jobs:
       - run: ./autogen.sh
       - run: |
           ./configure LDFLAGS="${{ matrix.entry.ldflags }}" \
-            --host wasm32-unknown-wasi \
+            --host wasm32-unknown-wasi --build x86_64-pc-linux-gnu \
             --with-destdir=./wasm32-unknown-wasi-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
       - run: make install
@@ -86,7 +86,7 @@ jobs:
       - run: ./autogen.sh
       - run: |
           ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="${{ matrix.entry.ldflags }}" \
-            --host wasm32-unknown-emscripten \
+            --host wasm32-unknown-emscripten --build x86_64-pc-linux-gnu \
             --with-destdir=./wasm32-unknown-emscripten-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
       - run: make install
