@@ -2,6 +2,7 @@
   "name": "ruby-wasm-emscripten",
   "version": "1.0.0",
   "description": "WebAssembly port of CRuby by Emscripten",
+  "type": "module",
   "main": "index.js",
   "license": "MIT",
   "files": [
