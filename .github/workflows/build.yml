@@ -29,7 +29,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: builder/${{ matrix.entry.tag }}
+          context: builders/${{ matrix.entry.tag }}
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
