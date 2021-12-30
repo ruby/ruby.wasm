@@ -40,17 +40,19 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-  build-wasm32-unknown-wasi:
+  build-ruby-release:
     strategy:
       fail-fast: false
       matrix:
         entry:
-          - { flavor: minimal,             configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
-          - { flavor: full,                configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
+          - { flavor: minimal, target: wasm32-unknown-wasi,       configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
+          - { flavor: full,    target: wasm32-unknown-wasi,       configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
+          - { flavor: minimal, target: wasm32-unknown-emscripten, configure_args: '--with-ext="" --with-static-linked-ext CC=emcc LD=emcc AR=emar RANLIB=emranlib', ldflags: "-s MODULARIZE=1 -s EXPORT_ES6=1 -Xlinker -zstack-size=16777216" }
+          - { flavor: full,    target: wasm32-unknown-emscripten, configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext CC=emcc LD=emcc AR=emar RANLIB=emranlib', ldflags: "-s MODULARIZE=1 -s EXPORT_ES6=1 -Xlinker -zstack-size=16777216" }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:wasm32-unknown-wasi
+      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.target }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -58,48 +60,18 @@ jobs:
           ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
       - run: ./autogen.sh
       - run: |
-          # Binaryen 104 has insufficient stack-size issue due to musl libc while asyncify.
-          # -DOPT_THREADED_CODE=2 is a workaround to avoid too much stack consumption for asyncify pass
-          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" cflags="-DOPT_THREADED_CODE=2" debugflags="-g0" \
-            --host wasm32-unknown-wasi --build x86_64-pc-linux-gnu \
-            --with-destdir=./wasm32-unknown-wasi-${{ matrix.entry.flavor }} \
-            ${{ matrix.entry.configure_args }}
-      - run: make install
-      - run: tar cfz wasm32-unknown-wasi-${{ matrix.entry.flavor }}.tar.gz wasm32-unknown-wasi-${{ matrix.entry.flavor }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: wasm32-unknown-wasi-${{ matrix.entry.flavor }}
-          path: wasm32-unknown-wasi-${{ matrix.entry.flavor }}.tar.gz
-
-  build-wasm32-unknown-emscripten:
-    strategy:
-      fail-fast: false
-      matrix:
-        entry:
-          - { flavor: minimal, configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "" }
-          - { flavor: full,    configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
-    needs: [build-builder-image]
-    runs-on: ubuntu-20.04
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:wasm32-unknown-emscripten
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: kateinoigakukun/ruby
-          ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
-      - run: ./autogen.sh
-      - run: |
-          ./configure CC=emcc LD=emcc AR=emar RANLIB=emranlib LDFLAGS="-s MODULARIZE=1 -s EXPORT_ES6=1 ${{ matrix.entry.ldflags }}" debugflags="-g0" \
-            --host wasm32-unknown-emscripten --build x86_64-pc-linux-gnu \
-            --with-destdir=./wasm32-unknown-emscripten-${{ matrix.entry.flavor }} \
+          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" debugflags="-g0" \
+            --host ${{ matrix.entry.target }} --build x86_64-pc-linux-gnu \
+            --with-destdir=./${{ matrix.entry.target }}-${{ matrix.entry.flavor }} \
             ${{ matrix.entry.configure_args }}
       - run: make install
       # Install ruby.wasm manually because rbinstall.rb doesn't recognize ruby.wasm for now
       # cf. https://github.com/ruby/ruby/blob/4e4c4fab3c25a056688939ae8e003a049fc401ee/tool/rbinstall.rb#L375
       - run: cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm
-      - run: tar cfz wasm32-unknown-emscripten-${{ matrix.entry.flavor }}.tar.gz wasm32-unknown-emscripten-${{ matrix.entry.flavor }}
+        if: ${{ startsWith(matrix.entry.target, 'macos-') }}
+      - run: tar cfz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
       - uses: actions/upload-artifact@v2
         with:
-          name: wasm32-unknown-emscripten-${{ matrix.entry.flavor }}
-          path: wasm32-unknown-emscripten-${{ matrix.entry.flavor }}.tar.gz
+          name: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
+          path: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
 
