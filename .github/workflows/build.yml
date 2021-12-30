@@ -45,7 +45,8 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { flavor: minimal, configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
+          - { flavor: minimal,             configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
+          - { flavor: full,                configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     container:
@@ -76,6 +77,7 @@ jobs:
       matrix:
         entry:
           - { flavor: minimal, configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "" }
+          - { flavor: full,    configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     container:
