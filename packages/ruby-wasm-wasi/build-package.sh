@@ -2,17 +2,17 @@
 set -eu
 
 usage() {
-    echo "Usage: $(basename $0) ruby_root dist_dir"
+    echo "Usage: $(basename $0) ruby_root"
     exit 1
 }
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 1 ]; then
     usage
 fi
 
 ruby_root="$1"
-dist_dir="$2"
 package_dir="$(cd "$(dirname "$0")" && pwd)"
+dist_dir="$package_dir/dist"
 
 mkdir -p "$dist_dir"
 cp "$package_dir/package.json" "$dist_dir/package.json"
