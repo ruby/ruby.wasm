@@ -95,7 +95,7 @@ jobs:
           docker run -v $(pwd):/work -w /work \
             "ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.target }}" \
             "./packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.target }}-${{ matrix.entry.flavor }}" ./dist
-      - run: npm --no-git-tag-version version 0.0.0-latest-main && npm pack
+      - run: sudo npm --no-git-tag-version version 0.0.0-latest-main && sudo npm pack
         working-directory: ./packages/${{ matrix.entry.package }}/dist
       - uses: actions/upload-artifact@v2
         with:
