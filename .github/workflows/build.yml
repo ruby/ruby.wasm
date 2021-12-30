@@ -100,4 +100,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.entry.package }}
-          path: ./packages/${{ matrix.entry.package }}/dist/${{ matrix.entry.package }}-0.0.0-latest-main.tar.gz
+          path: ./packages/${{ matrix.entry.package }}/dist/${{ matrix.entry.package }}-0.0.0-latest-main.tgz
