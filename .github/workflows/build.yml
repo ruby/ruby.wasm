@@ -75,3 +75,28 @@ jobs:
           name: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
           path: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
 
+  build-npm-packages:
+    strategy:
+      fail-fast: false
+      matrix:
+        entry:
+          - { package: ruby-wasm-emscripten, target: wasm32-unknown-emscripten, flavor: full }
+          - { package: ruby-wasm-wasi,       target: wasm32-unknown-wasi      , flavor: full }
+    needs: [build-ruby-release]
+    runs-on: ubuntu-20.04
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.target }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
+      - run: tar xfz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
+      - run: |
+          "./packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.target }}-${{ matrix.entry.flavor }}" ./dist
+      - run: npm --no-git-tag-version version 0.0.0-latest-main && npm pack
+        working-directory: ./dist
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.entry.package }}
+          path: dist/${{ matrix.entry.package }}-0.0.0-latest-main.tar.gz
