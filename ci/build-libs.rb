@@ -37,7 +37,7 @@ end
 make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{$ruby_src_dir}/include -I#{$ruby_build_dir}/.ext/include/wasm32-wasi")
 
 $libs.each do |lib|
-    make_cmd = %Q(make -C "#{$ruby_wasm_dir}/ext/#{lib}" obj #{make_args.join(" ")})
+    make_cmd = %Q(make -C "#{$ruby_wasm_dir}/ext/#{lib}" obj link.filelist #{make_args.join(" ")})
     puts make_cmd
     `#{make_cmd}`
 end

@@ -33,7 +33,7 @@ else
 end
 
 ($libs || []).each do |lib|
-    xldflags << "#{$ruby_wasm_dir}/ext/#{lib}/#{lib}.o"
+    xldflags << "@#{$ruby_wasm_dir}/ext/#{lib}/link.filelist"
 end
 xldflags << "#{$ruby_wasm_dir}/ext/extinit.o"
 

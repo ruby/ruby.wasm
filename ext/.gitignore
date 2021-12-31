@@ -1,3 +1,4 @@
 *.o
 */bindgen/*.c
 */bindgen/*.h
+link.filelist
