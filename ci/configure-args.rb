@@ -39,5 +39,6 @@ xldflags << "#{$ruby_wasm_dir}/ext/extinit.o"
 
 configure_args << %Q(LDFLAGS="#{ldflags.join(" ")}")
 configure_args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
+configure_args << %Q(debugflags="-g0")
 
 print configure_args.join(" ")
