@@ -1,3 +1,10 @@
+FROM rust:1.57-buster as wit-bindgen-builder
+
+ARG WIT_BINDGEN_REV=dab589f579b980c81b39c8348400b88a8c4d175a
+RUN cargo install --git https://github.com/bytecodealliance/wit-bindgen \
+  --rev $WIT_BINDGEN_REV \
+  --root /tmp/install wit-bindgen-cli
+
 FROM debian:buster
 
 ARG WASI_SDK_VERSION_MAJOR=14
@@ -27,3 +34,4 @@ RUN set -eux pipefail; \
 
 ENV PATH="$BINARYEN_DIR:$PATH"
 
+COPY --from=wit-bindgen-builder /tmp/install/wit-bindgen /usr/local/bin/wit-bindgen
