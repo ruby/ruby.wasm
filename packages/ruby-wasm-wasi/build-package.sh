@@ -29,3 +29,4 @@ cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/bin/ruby.wasm"
         --export "$package_dir/../../ext/js/bindgen/rb-js-abi-host.wit" \
         --out-dir "$package_dir/bindgen" && \
     npx rollup -c rollup.config.js
+)
