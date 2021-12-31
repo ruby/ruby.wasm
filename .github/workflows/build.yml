@@ -45,7 +45,8 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { flavor: minimal, target: wasm32-unknown-wasi       }
+          - { flavor: minimal, target: wasm32-unknown-wasi           }
+          - { flavor: minimal, target: wasm32-unknown-wasi, libs: js }
           # - { flavor: full,    target: wasm32-unknown-wasi       }
           - { flavor: minimal, target: wasm32-unknown-emscripten }
           # - { flavor: full,    target: wasm32-unknown-emscripten }
