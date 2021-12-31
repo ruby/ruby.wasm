@@ -45,10 +45,10 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { flavor: minimal, target: wasm32-unknown-wasi,       configure_args: '--with-ext="" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
-          - { flavor: full,    target: wasm32-unknown-wasi,       configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext', ldflags: "-Xlinker -zstack-size=16777216" }
-          - { flavor: minimal, target: wasm32-unknown-emscripten, configure_args: '--with-ext="" --with-static-linked-ext CC=emcc LD=emcc AR=emar RANLIB=emranlib', ldflags: "-s MODULARIZE=1 -Xlinker -zstack-size=16777216" }
-          - { flavor: full,    target: wasm32-unknown-emscripten, configure_args: '--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor" --with-static-linked-ext CC=emcc LD=emcc AR=emar RANLIB=emranlib', ldflags: "-s MODULARIZE=1 -Xlinker -zstack-size=16777216" }
+          - { flavor: minimal, target: wasm32-unknown-wasi       }
+          - { flavor: full,    target: wasm32-unknown-wasi       }
+          - { flavor: minimal, target: wasm32-unknown-emscripten }
+          - { flavor: full,    target: wasm32-unknown-emscripten }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     container:
@@ -56,24 +56,47 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          path: ./ruby.wasm
+      - uses: actions/checkout@v2
+        with:
           repository: kateinoigakukun/ruby
           ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
+          path: ./ruby
       - run: ./autogen.sh
-      - run: |
-          ./configure LDFLAGS="${{ matrix.entry.ldflags }}" debugflags="-g0" \
-            --host ${{ matrix.entry.target }} --build x86_64-pc-linux-gnu \
+        working-directory: ./ruby
+      - name: Configure Ruby
+        run: |
+          CONFIGURE_ARGS=$(ruby ./../ruby.wasm/ci/configure-args.rb \
+            --flavor "${{ matrix.entry.flavor }}" \
+            --target "${{ matrix.entry.target }}" \
+            --libs "${{ matrix.entry.libs }}" \
+            --ruby-wasm-dir "../ruby.wasm/")
+          CONFIGURE_ARGS=" \
+            --build x86_64-pc-linux-gnu \
             --with-destdir=./${{ matrix.entry.target }}-${{ matrix.entry.flavor }} \
-            ${{ matrix.entry.configure_args }}
+            $CONFIGURE_ARGS"
+          echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+          bash -c "./configure $CONFIGURE_ARGS"
+        working-directory: ./ruby
+      - name: Build ruby.wasm libraries
+        run: |
+          ruby ./ruby.wasm/ci/build-libs.rb \
+            --libs "${{ matrix.entry.libs }}" \
+            --target "${{ matrix.entry.target }}" \
+            --ruby-src-dir "./ruby"
       - run: make install
+        working-directory: ./ruby
       # Install ruby.wasm manually because rbinstall.rb doesn't recognize ruby.wasm for now
       # cf. https://github.com/ruby/ruby/blob/4e4c4fab3c25a056688939ae8e003a049fc401ee/tool/rbinstall.rb#L375
       - run: cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm
+        working-directory: ./ruby
         if: ${{ matrix.entry.target == 'wasm32-unknown-emscripten' }}
       - run: tar cfz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
+        working-directory: ./ruby
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
-          path: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
+          path: ./ruby/${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
 
   build-npm-packages:
     strategy:
