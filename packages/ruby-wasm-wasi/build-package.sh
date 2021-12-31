@@ -21,3 +21,7 @@ cp "$package_dir/package.json" "$dist_dir/package.json"
 
 mkdir -p "$dist_dir/bin"
 cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/bin/ruby.wasm"
+
+(cd "$package_dir" && npx tsc "$package_dir/index.ts" --outDir "$dist_dir")
+rm -rf "$dist_dir/bindgen"
+cp -R "$package_dir/bindgen" "$dist_dir/bindgen"

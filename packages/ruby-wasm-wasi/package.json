@@ -2,5 +2,8 @@
   "name": "ruby-wasm-wasi",
   "version": "1.0.0",
   "description": "WebAssembly port of CRuby with WASI",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.5.4"
+  }
 }

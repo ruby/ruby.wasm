@@ -21,7 +21,7 @@ when "wasm32-unknown-wasi"
     raise "missing WASI_SDK_PATH" unless wasi_sdk_path
     cc = "#{wasi_sdk_path}/bin/clang"
     make_args << "CC=#{cc}"
-    make_args << "LD=#{wasi_sdk_path}/bin/clang"
+    make_args << "LD=#{wasi_sdk_path}/bin/wasm-ld"
     make_args << "AR=#{wasi_sdk_path}/bin/llvm-ar"
     make_args << "RANLIB=#{wasi_sdk_path}/bin/llvm-ranlib"
 when "wasm32-unknown-emscripten"
