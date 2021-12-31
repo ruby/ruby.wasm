@@ -7,7 +7,7 @@ RUN cargo install --git https://github.com/bytecodealliance/wit-bindgen \
 
 FROM emscripten/emsdk:2.0.13
 
-COPY --from=wit-bindgen-builder /tmp/install/wit-bindgen /usr/local/bin/wit-bindgen
+COPY --from=wit-bindgen-builder /tmp/install/bin/wit-bindgen /usr/local/bin/wit-bindgen
 
 RUN set -eux; \
   apt-get update; \

@@ -34,4 +34,4 @@ RUN set -eux pipefail; \
 
 ENV PATH="$BINARYEN_DIR:$PATH"
 
-COPY --from=wit-bindgen-builder /tmp/install/wit-bindgen /usr/local/bin/wit-bindgen
+COPY --from=wit-bindgen-builder /tmp/install/bin/wit-bindgen /usr/local/bin/wit-bindgen
