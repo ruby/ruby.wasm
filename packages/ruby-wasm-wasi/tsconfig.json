@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "importHelpers": true,
+        "module": "ES2015",
+        "outDir": "dist",
+        "target": "es2017",
+    },
+    "include": ["./index.ts", "./bindgen/*"],
+    "exclude": ["node_modules"]
+}
