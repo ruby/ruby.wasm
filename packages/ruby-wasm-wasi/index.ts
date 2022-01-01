@@ -2,7 +2,7 @@ import { RbJsAbiGuest } from "./bindgen/rb-js-abi-guest";
 import { addRbJsAbiHostToImports } from "./bindgen/rb-js-abi-host";
 
 export class RubyVM {
-  private guest: RbJsAbiGuest;
+  guest: RbJsAbiGuest;
   private instance: WebAssembly.Instance | null = null;
   constructor() {
     this.guest = new RbJsAbiGuest();

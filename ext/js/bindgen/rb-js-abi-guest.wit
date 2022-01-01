@@ -1,5 +1,5 @@
 resource rb-iseq
-resource rb-value
+type rb-value = u32
 type errno = s32
 
 ruby-init: function()

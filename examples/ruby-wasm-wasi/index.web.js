@@ -1,9 +1,9 @@
 import { WASI } from "./node_modules/@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
+import { RubyVM } from "../../packages/ruby-wasm-wasi";
 
 const main = async () => {
   // Setup WASI emulation
-  const args = ["ruby.wasm", "--disable-gems", "-e", "puts 'Hello :)'"];
   const wasmFs = new WasmFs();
   const originalWriteSync = wasmFs.fs.writeSync;
   wasmFs.fs.writeSync = (fd, buffer, offset, length, position) => {
@@ -19,7 +19,6 @@ const main = async () => {
     return originalWriteSync(fd, buffer, offset, length, position);
   };
   const wasi = new WASI({
-    args,
     bindings: {
       ...WASI.defaultBindings,
       fs: wasmFs.fs,
@@ -28,12 +27,19 @@ const main = async () => {
   // Fetch and instntiate WebAssembly binary
   const response = await fetch("./node_modules/ruby-wasm-wasi/bin/ruby.wasm");
   const buffer = await response.arrayBuffer();
-  const { instance } = await WebAssembly.instantiate(buffer, {
+  const vm = new RubyVM();
+  const imports = {
     wasi_snapshot_preview1: wasi.wasiImport,
-  });
+  };
+  vm.addToImports(imports);
+
+  const { instance } = await WebAssembly.instantiate(buffer, imports);
+  await vm.init(instance);
   // Start WASI application
-  console.log(`$ ${args.join(" ")}`)
-  wasi.start(instance);
+  wasi.setMemory(instance.exports.memory);
+  vm.guest.rubyInit();
+  const ret = vm.guest.rbEvalString("p 1\0");
+  console.log(ret);
 };
 
 main();
