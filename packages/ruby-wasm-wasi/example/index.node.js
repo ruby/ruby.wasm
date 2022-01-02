@@ -1,4 +1,4 @@
-import { WASI } from "wasi"
+import { WASI } from "wasi";
 import fs from "fs/promises";
 import { RubyVM } from "ruby-wasm-wasi";
 
@@ -6,7 +6,9 @@ import { RubyVM } from "ruby-wasm-wasi";
 
 const main = async () => {
   const wasi = new WASI();
-  const binary = await fs.readFile("./node_modules/ruby-wasm-wasi/bin/ruby.wasm");
+  const binary = await fs.readFile(
+    "./node_modules/ruby-wasm-wasi/bin/ruby.wasm"
+  );
   const vm = new RubyVM();
   const imports = {
     wasi_snapshot_preview1: wasi.wasiImport,
@@ -21,31 +23,32 @@ const main = async () => {
   const args = ["ruby.wasm\0", "-e\0", "_=0\0"];
   vm.guest.rubySysinit(args);
   vm.guest.rubyInit();
-  vm.guest.rubyOptions(args)
+  vm.guest.rubyOptions(args);
   const a = vm.eval(`
   class A
     def foo(arg)
       puts "yay: #{arg}"
     end
   end
-  A.new
-  `)
-  console.log(`${a}`)
+  $a = A.new
+  `);
+  console.log(`${a}`);
+  a.call("foo", vm.eval("2"));
   try {
-    a.call("bar")
+    a.call("bar");
   } catch (error) {
-    console.log("caught", error)
+    console.log("caught", error);
   }
   vm.eval("puts 'Hey!'");
   vm.eval("puts 'Hey!'");
   vm.eval("puts 'Hey!'");
   vm.eval("puts $a");
   try {
-    vm.eval("raise 'panic!'")
+    vm.eval("raise 'panic!'");
   } catch (error) {
-    console.log("caught", error)
+    console.log("caught", error);
   }
-  console.log(a.toString())
+  console.log(a.toString());
 };
 
-main()
+main();

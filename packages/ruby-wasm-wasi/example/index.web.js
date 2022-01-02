@@ -5,17 +5,14 @@ import { RubyVM } from "ruby-wasm-wasi";
 const main = async () => {
   // Setup WASI emulation
   const wasmFs = new WasmFs();
-  const originalWriteSync = wasmFs.fs.writeSync;
+  const originalWriteSync = wasmFs.fs.writeSync.bind(wasmFs.fs);
   wasmFs.fs.writeSync = (fd, buffer, offset, length, position) => {
     const text = new TextDecoder("utf-8").decode(buffer);
-    switch (fd) {
-      case 1:
-        console.log(text);
-        break;
-      case 2:
-        console.warn(text);
-        break;
-    }
+    const handlers = {
+      1: (line) => console.log(line),
+      2: (line) => console.warn(line),
+    };
+    if (handlers[fd]) handlers[fd](text);
     return originalWriteSync(fd, buffer, offset, length, position);
   };
   const wasi = new WASI({
@@ -37,9 +34,26 @@ const main = async () => {
   await vm.init(instance);
   // Start WASI application
   wasi.setMemory(instance.exports.memory);
+  const args = ["ruby.wasm\0", "-e\0", "_=0\0"];
+  vm.guest.rubySysinit(args);
   vm.guest.rubyInit();
-  const ret = vm.guest.rbEvalStringProtect("p 1\0");
-  console.log(ret);
+  vm.guest.rubyOptions(args);
+
+  vm.printVersion();
+
+  runRubyScriptsInHtml(vm);
+};
+
+const runRubyScriptsInHtml = (vm) => {
+  const tags = document.getElementsByTagName("script");
+  for (var i = 0, len = tags.length; i < len; i++) {
+    const tag = tags[i];
+    if (tag.type === "text/ruby") {
+      if (tag.innerHTML) {
+        vm.eval(tag.innerHTML);
+      }
+    }
+  }
 };
 
 main();

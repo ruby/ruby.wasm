@@ -1,0 +1,19 @@
+<html>
+  <script src="./dist/index.web.js"></script>
+  <script type="text/ruby">
+    require "js"
+    luckiness = ["Lucky", "Unlucky"].sample
+    JS::ABI::eval_js("document.body.innerText = '#{luckiness}'")
+  </script>
+  <style>
+    body {
+      font-size: 5rem;
+      text-align: center;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+  <body></body>
+</html>
