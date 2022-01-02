@@ -122,7 +122,11 @@ struct rb_funcallv_thunk_ctx {
 
 VALUE rb_funcallv_thunk(VALUE arg) {
   struct rb_funcallv_thunk_ctx *ctx = (struct rb_funcallv_thunk_ctx *)arg;
-  return rb_funcallv(ctx->recv, ctx->mid, ctx->args->len, (VALUE *)ctx->args->ptr);
+  VALUE *c_argv = alloca(sizeof(VALUE) * ctx->args->len);
+  for (size_t i = 0; i < ctx->args->len; i++) {
+    c_argv[i] = (VALUE)rb_js_abi_guest_rb_value_get(&ctx->args->ptr[i]);
+  }
+  return rb_funcallv(ctx->recv, ctx->mid, ctx->args->len, c_argv);
 }
 
 void rb_js_abi_guest_rb_funcallv_protect(rb_js_abi_guest_rb_value_t recv, rb_js_abi_guest_rb_id_t mid, rb_js_abi_guest_list_rb_value_t *args, rb_js_abi_guest_rb_value_t *ret0, int32_t *ret1) {

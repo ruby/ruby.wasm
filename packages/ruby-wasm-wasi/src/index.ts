@@ -54,6 +54,10 @@ class RbError extends Error {
   }
 }
 
+const formatException = (klass: string, message: string, backtrace: [string, string]) => {
+  return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`
+}
+
 const checkStatusTag = (rawTag: number, guest: RbAbi.RbJsAbiGuest) => {
   switch (rawTag & ruby_tag_type.Mask) {
     case ruby_tag_type.None:
@@ -72,31 +76,36 @@ const checkStatusTag = (rawTag: number, guest: RbAbi.RbJsAbiGuest) => {
       throw new RbError("unexpected throw");
     case ruby_tag_type.Raise:
     case ruby_tag_type.Fatal:
-      const error = RbValue.createProxy(guest.rbErrinfo(), guest);
-      throw new RbError(`${error}`)
+      const error = new RbValue(guest.rbErrinfo(), guest);
+      const newLine = evalRbCode(guest, `"\n"`);
+      const backtrace = error.call("backtrace")
+      const firstLine = backtrace.call("at", evalRbCode(guest, "0"))
+      const restLines = backtrace.call("drop", evalRbCode(guest, "1")).call("join", newLine)
+      throw new RbError(formatException(error.call("class").toString(), error.toString(), [firstLine.toString(), restLines.toString()]))
     default:
       throw new RbError(`unknown error tag: ${rawTag}`)
   }
 }
 
 const projectRbRawValue = (v: RbAbi.RbValue) => (v as any)._wasm_val as number;
-const callRbMethod = (guest: RbAbi.RbJsAbiGuest, recv: RbAbi.RbValue, callee: string, args: any[]) => {
+const callRbMethod = (guest: RbAbi.RbJsAbiGuest, recv: RbAbi.RbValue, callee: string, args: RbAbi.RbValue[]) => {
   const mid = guest.rbIntern(callee + "\0");
   const [value, status] = guest.rbFuncallvProtect(recv, mid, args);
   checkStatusTag(status, guest);
   return value;
 }
+const evalRbCode = (guest: RbAbi.RbJsAbiGuest, code: string) => {
+  const [value, status] = guest.rbEvalStringProtect(code + "\0");
+  checkStatusTag(status, guest);
+  return new RbValue(value, guest);
+}
 
 export class RbValue {
-  private constructor(public inner: RbAbi.RbValue, private guest: RbAbi.RbJsAbiGuest) {}
+  constructor(public inner: RbAbi.RbValue, private guest: RbAbi.RbJsAbiGuest) {}
 
-  static createProxy(abiValue: RbAbi.RbValue, guest: RbAbi.RbJsAbiGuest): RbValue {
-    return new RbValue(abiValue, guest);
-  }
-
-  call(prop: string): RbValue {
-    const args = Array(arguments).slice(1);
-    return RbValue.createProxy(callRbMethod(this.guest, this.inner, prop, args), this.guest)
+  call(prop: string, ...args: RbValue[]): RbValue {
+    const innerArgs = args.map(arg => arg.inner);
+    return new RbValue(callRbMethod(this.guest, this.inner, prop, innerArgs), this.guest)
   }
 
   rawValue(): number {
@@ -152,8 +161,6 @@ export class RubyVM {
    * Returns the result of the last expression
    */
   eval(code: string): RbValue {
-    const [value, status] = this.guest.rbEvalStringProtect(code + "\0");
-    checkStatusTag(status, this.guest);
-    return RbValue.createProxy(value, this.guest);
+    return evalRbCode(this.guest, code);
   }
 }
