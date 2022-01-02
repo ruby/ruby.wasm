@@ -1,6 +1,6 @@
 import { WASI } from "./node_modules/@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
-import { RubyVM } from "../../packages/ruby-wasm-wasi";
+import { RubyVM } from "ruby-wasm-wasi";
 
 const main = async () => {
   // Setup WASI emulation
