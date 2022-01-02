@@ -58,6 +58,15 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
     }                                                                          \
   }
 
+#define c_strings_from_abi(list, new_args) \
+  { \
+    new_args = alloca(sizeof(char *) * ((list)->len + 1)); \
+    for (size_t i = 0; i < (list)->len; i++) { \
+      new_args[i] = (list)->ptr[i].ptr; \
+    } \
+  }
+
+
 // MARK: - Exported functions
 // NOTE: Assume that callers always pass null terminated string by rb_js_abi_guest_string_t
 
@@ -68,10 +77,19 @@ void rb_js_abi_guest_ruby_show_version(void) {
 void rb_js_abi_guest_ruby_init(void) {
   RB_WASM_LIB_RT(ruby_init())
 }
+#include <stdio.h>
+void rb_js_abi_guest_ruby_sysinit(rb_js_abi_guest_list_string_t *args) {
+  char **c_args;
+  int argc = args->len;
+  c_strings_from_abi(args, c_args);
+  RB_WASM_LIB_RT(ruby_sysinit(&argc, &c_args))
+}
 rb_js_abi_guest_rb_iseq_t
 rb_js_abi_guest_ruby_options(rb_js_abi_guest_list_string_t *args) {
-  void * result;
-  RB_WASM_LIB_RT(result = ruby_options(args->len, (char **)args->ptr))
+  void *result;
+  char **c_args;
+  c_strings_from_abi(args, c_args);
+  RB_WASM_LIB_RT(result = ruby_options(args->len, c_args))
   return rb_js_abi_guest_rb_iseq_new(result);
 }
 rb_js_abi_guest_rb_errno_t

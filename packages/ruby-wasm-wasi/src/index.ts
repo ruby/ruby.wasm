@@ -91,7 +91,12 @@ export class RbValue {
   private constructor(public inner: RbAbi.RbValue, private guest: RbAbi.RbJsAbiGuest) {}
 
   static createProxy(abiValue: RbAbi.RbValue, guest: RbAbi.RbJsAbiGuest): RbValue {
-    return new Proxy(new RbValue(abiValue, guest), new RbValueProxyHandler(guest));
+    return new RbValue(abiValue, guest);
+  }
+
+  call(prop: string): RbValue {
+    const args = Array(arguments).slice(1);
+    return RbValue.createProxy(callRbMethod(this.guest, this.inner, prop, args), this.guest)
   }
 
   rawValue(): number {
@@ -108,20 +113,6 @@ export class RbValue {
   toString(): string {
     const rbString = callRbMethod(this.guest, this.inner, "to_s", []);
     return this.guest.rstringPtr(rbString);
-  }
-}
-
-class RbValueProxyHandler implements ProxyHandler<RbValue> {
-  constructor(private guest: RbAbi.RbJsAbiGuest) {}
-  get(target: RbValue, p: string | symbol): any {
-    if (p in target) {
-      return target[p];
-    }
-    const guest = this.guest;
-    return function() {
-      const args = [...arguments];
-      return callRbMethod(guest, target.inner, p.toString(), args)
-    }
   }
 }
 

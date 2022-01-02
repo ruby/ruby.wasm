@@ -5,6 +5,7 @@ type rb-id = u32
 
 ruby-show-version: function()
 ruby-init: function()
+ruby-sysinit: function(args: list<string>)
 ruby-options: function(args: list<string>) -> rb-iseq
 ruby-script: function(name: string)
 ruby-init-loadpath: function()

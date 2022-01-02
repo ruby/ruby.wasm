@@ -22,6 +22,9 @@ const initRubyVM = async () => {
   await vm.init(instance);
   wasi.initialize(instance);
   vm.guest.rubyInit();
+  const args = ["ruby.wasm\0", "--disable-gems", "-e\0", "_=0\0"];
+  vm.guest.rubySysinit(args);
+  vm.guest.rubyOptions(args)
   return vm;
 };
 
@@ -67,5 +70,17 @@ describe("RubyVM", () => {
     expect(() => {
       vm.eval(`redo`);
     }).toThrowError("Can't escape from eval with redo");
+  });
+
+  test("protect exported Ruby objects", async () => {
+    const vm = await initRubyVM();
+    const initialGCCount = Number(vm.eval("GC.count").toString())
+    const robj = vm.eval("Object.new");
+    const robjId = robj.call("object_id").toString();
+    expect(robjId).not.toEqual("");
+
+    vm.eval("GC.start");
+    expect(robj.call("object_id").toString()).toBe(robjId);
+    expect(Number(vm.eval("GC.count").toString())).toEqual(initialGCCount + 1)
   });
 });
