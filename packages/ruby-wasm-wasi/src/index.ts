@@ -100,6 +100,8 @@ export class RbValue {
   [Symbol.toPrimitive](hint: string) {
     if (hint === "string" || hint === "default") {
       return this.toString();
+    } else if (hint === "number") {
+      return null;
     }
     return null;
   }

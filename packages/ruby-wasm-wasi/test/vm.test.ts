@@ -36,4 +36,18 @@ describe("RubyVM", () => {
     const result = vm.eval("nil");
     expect(result.toString()).toBe("");
   });
+  test("nil toPrimitive", async () => {
+    const vm = await initRubyVM();
+    const result = vm.eval("nil");
+    expect(result[Symbol.toPrimitive]("string")).toBe("");
+    expect(result + "x").toBe("x");
+    expect(`${result}`).toBe("");
+    expect(result[Symbol.toPrimitive]("number")).toBe(null);
+    expect(+result).toBe(0);
+  });
+  test("null continued string", async () => {
+    const vm = await initRubyVM();
+    const result = vm.eval("1\u00002");
+    expect(result.toString()).toBe("1");
+  });
 });
