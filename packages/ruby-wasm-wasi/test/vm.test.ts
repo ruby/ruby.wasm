@@ -24,7 +24,7 @@ const initRubyVM = async () => {
   vm.guest.rubyInit();
   const args = ["ruby.wasm\0", "--disable-gems", "-e\0", "_=0\0"];
   vm.guest.rubySysinit(args);
-  vm.guest.rubyOptions(args)
+  vm.guest.rubyOptions(args);
   return vm;
 };
 
@@ -93,14 +93,14 @@ describe("RubyVM", () => {
 
   test("protect exported Ruby objects", async () => {
     const vm = await initRubyVM();
-    const initialGCCount = Number(vm.eval("GC.count").toString())
+    const initialGCCount = Number(vm.eval("GC.count").toString());
     const robj = vm.eval("Object.new");
     const robjId = robj.call("object_id").toString();
     expect(robjId).not.toEqual("");
 
     vm.eval("GC.start");
     expect(robj.call("object_id").toString()).toBe(robjId);
-    expect(Number(vm.eval("GC.count").toString())).toEqual(initialGCCount + 1)
+    expect(Number(vm.eval("GC.count").toString())).toEqual(initialGCCount + 1);
   });
 
   test("method call with args", async () => {
@@ -115,16 +115,20 @@ describe("RubyVM", () => {
         end
     end
     X
-    `)
+    `);
     expect(X.call("identical", vm.eval("1")).toString()).toEqual("1");
-    expect(X.call("take_two", vm.eval("1"), vm.eval("1")).toString()).toEqual("2");
-    expect(X.call("take_two", vm.eval(`"x"`), vm.eval(`"y"`)).toString()).toEqual("xy");
+    expect(X.call("take_two", vm.eval("1"), vm.eval("1")).toString()).toEqual(
+      "2"
+    );
+    expect(
+      X.call("take_two", vm.eval(`"x"`), vm.eval(`"y"`)).toString()
+    ).toEqual("xy");
   });
 
   test("exception backtrace", async () => {
     const vm = await initRubyVM();
     const throwError = () => {
-        vm.eval(`
+      vm.eval(`
         def foo
             bar
         end
@@ -135,11 +139,12 @@ describe("RubyVM", () => {
             raise "fizz raised"
         end
         foo
-        `)
+        `);
     };
-    expect(throwError).toThrowError(`eval:9:in \`fizz': fizz raised (RuntimeError)
+    expect(throwError)
+      .toThrowError(`eval:9:in \`fizz': fizz raised (RuntimeError)
 eval:6:in \`bar'
 eval:3:in \`foo'
-eval:11:in \`<main>'`)
-  })
+eval:11:in \`<main>'`);
+  });
 });

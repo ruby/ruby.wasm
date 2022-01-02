@@ -6,7 +6,7 @@ import { addRbJsAbiHostToImports } from "./bindgen/rb-js-abi-host";
  */
 export class RbError extends Error {
   constructor(message: string) {
-    super(message)
+    super(message);
   }
 }
 
@@ -14,7 +14,7 @@ export class RbError extends Error {
  * A Ruby VM instance
  *
  * ## Example
- * 
+ *
  * ```javascript
  * const wasi = new WASI();
  * const vm = new RubyVM();
@@ -85,7 +85,6 @@ export class RubyVM {
   }
 }
 
-
 /**
  * A RbValue is an object that represents a value in Ruby
  */
@@ -96,8 +95,11 @@ export class RbValue {
    * Call a given method with given arguments
    */
   call(callee: string, ...args: RbValue[]): RbValue {
-    const innerArgs = args.map(arg => arg.inner);
-    return new RbValue(callRbMethod(this.guest, this.inner, callee, innerArgs), this.guest)
+    const innerArgs = args.map((arg) => arg.inner);
+    return new RbValue(
+      callRbMethod(this.guest, this.inner, callee, innerArgs),
+      this.guest
+    );
   }
 
   [Symbol.toPrimitive](hint: string) {
@@ -115,22 +117,25 @@ export class RbValue {
 }
 
 enum ruby_tag_type {
-  None	  = 0x0,
-  Return	= 0x1,
-  Break	= 0x2,
-  Next	  = 0x3,
-  Retry	= 0x4,
-  Redo	  = 0x5,
-  Raise	= 0x6,
-  Throw	= 0x7,
-  Fatal	= 0x8,
-  Mask	  = 0xf
-};
-
-
-const formatException = (klass: string, message: string, backtrace: [string, string]) => {
-  return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`
+  None = 0x0,
+  Return = 0x1,
+  Break = 0x2,
+  Next = 0x3,
+  Retry = 0x4,
+  Redo = 0x5,
+  Raise = 0x6,
+  Throw = 0x7,
+  Fatal = 0x8,
+  Mask = 0xf,
 }
+
+const formatException = (
+  klass: string,
+  message: string,
+  backtrace: [string, string]
+) => {
+  return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
+};
 
 const checkStatusTag = (rawTag: number, guest: RbAbi.RbJsAbiGuest) => {
   switch (rawTag & ruby_tag_type.Mask) {
@@ -152,23 +157,35 @@ const checkStatusTag = (rawTag: number, guest: RbAbi.RbJsAbiGuest) => {
     case ruby_tag_type.Fatal:
       const error = new RbValue(guest.rbErrinfo(), guest);
       const newLine = evalRbCode(guest, `"\n"`);
-      const backtrace = error.call("backtrace")
-      const firstLine = backtrace.call("at", evalRbCode(guest, "0"))
-      const restLines = backtrace.call("drop", evalRbCode(guest, "1")).call("join", newLine)
-      throw new RbError(formatException(error.call("class").toString(), error.toString(), [firstLine.toString(), restLines.toString()]))
+      const backtrace = error.call("backtrace");
+      const firstLine = backtrace.call("at", evalRbCode(guest, "0"));
+      const restLines = backtrace
+        .call("drop", evalRbCode(guest, "1"))
+        .call("join", newLine);
+      throw new RbError(
+        formatException(error.call("class").toString(), error.toString(), [
+          firstLine.toString(),
+          restLines.toString(),
+        ])
+      );
     default:
-      throw new RbError(`unknown error tag: ${rawTag}`)
+      throw new RbError(`unknown error tag: ${rawTag}`);
   }
-}
+};
 
-const callRbMethod = (guest: RbAbi.RbJsAbiGuest, recv: RbAbi.RbValue, callee: string, args: RbAbi.RbValue[]) => {
+const callRbMethod = (
+  guest: RbAbi.RbJsAbiGuest,
+  recv: RbAbi.RbValue,
+  callee: string,
+  args: RbAbi.RbValue[]
+) => {
   const mid = guest.rbIntern(callee + "\0");
   const [value, status] = guest.rbFuncallvProtect(recv, mid, args);
   checkStatusTag(status, guest);
   return value;
-}
+};
 const evalRbCode = (guest: RbAbi.RbJsAbiGuest, code: string) => {
   const [value, status] = guest.rbEvalStringProtect(code + "\0");
   checkStatusTag(status, guest);
   return new RbValue(value, guest);
-}
+};

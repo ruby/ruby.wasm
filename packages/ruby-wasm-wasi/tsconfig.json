@@ -1,11 +1,11 @@
 {
-    "compilerOptions": {
-        "declaration": true,
-        "importHelpers": true,
-        "module": "ES2015",
-        "outDir": "dist",
-        "target": "es2017",
-    },
-    "include": ["src/index.ts", "./src/bindgen/*"],
-    "exclude": ["node_modules"]
+  "compilerOptions": {
+    "declaration": true,
+    "importHelpers": true,
+    "module": "ES2015",
+    "outDir": "dist",
+    "target": "es2017"
+  },
+  "include": ["src/index.ts", "./src/bindgen/*"],
+  "exclude": ["node_modules"]
 }
