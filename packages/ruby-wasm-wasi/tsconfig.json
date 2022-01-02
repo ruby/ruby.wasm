@@ -6,6 +6,6 @@
         "outDir": "dist",
         "target": "es2017",
     },
-    "include": ["./index.ts", "./bindgen/*"],
+    "include": ["src/index.ts", "./src/bindgen/*"],
     "exclude": ["node_modules"]
 }

@@ -31,4 +31,9 @@ describe("RubyVM", () => {
     const result = vm.eval("");
     expect(result.rawValue()).toBe(/* Qnil */ 4);
   });
+  test("nil toString", async () => {
+    const vm = await initRubyVM();
+    const result = vm.eval("nil");
+    expect(result.toString()).toBe("");
+  });
 });
