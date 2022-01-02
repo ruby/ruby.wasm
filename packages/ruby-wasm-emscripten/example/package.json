@@ -4,7 +4,7 @@
     "build": "rollup -c rollup.config.js"
   },
   "dependencies": {
-    "ruby-wasm-emscripten": "../../packages/ruby-wasm-emscripten/dist"
+    "ruby-wasm-emscripten": "../dist"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.1.1",
