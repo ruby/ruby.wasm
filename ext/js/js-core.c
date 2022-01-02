@@ -1,4 +1,5 @@
 #include <stdlib.h>
+
 #include "ruby.h"
 
 #include "bindgen/rb-js-abi-guest.h"
@@ -18,77 +19,76 @@ void *rb_wasm_handle_scan_unwind(void);
 void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
                                   void **arg0, void **arg1, bool *is_new_fiber_started);
 
-VALUE rb_wasm_lib_rt(VALUE (main)(void *arg0, void *arg1), void *main_arg0, void *main_arg1) {
-  VALUE result;
-  void *asyncify_buf;
-
-  bool new_fiber_started = false;
-  void *arg0 = NULL, *arg1 = NULL;
-  void (*fiber_entry_point)(void *, void *) = NULL;
-
-  while (1) {
-    if (fiber_entry_point) {
-      fiber_entry_point(arg0, arg1);
-    } else {
-      result = main(main_arg0, main_arg1);
-    }
-
-    // NOTE: it's important to call 'asyncify_stop_unwind' here instead in rb_wasm_handle_jmp_unwind
-    // because unless that, Asyncify inserts another unwind check here and it unwinds to the root frame.
-    asyncify_stop_unwind();
-
-    if ((asyncify_buf = rb_wasm_handle_jmp_unwind()) != NULL) {
-      asyncify_start_rewind(asyncify_buf);
-      continue;
-    }
-    if ((asyncify_buf = rb_wasm_handle_scan_unwind()) != NULL) {
-      asyncify_start_rewind(asyncify_buf);
-      continue;
-    }
-
-    asyncify_buf = rb_wasm_handle_fiber_unwind(&fiber_entry_point, &arg0, &arg1, &new_fiber_started);
-    // Newly starting fiber doesn't have asyncify buffer yet, so don't rewind it for the first time entry
-    if (asyncify_buf) {
-      asyncify_start_rewind(asyncify_buf);
-      continue;
-    } else if (new_fiber_started) {
-      continue;
-    }
-
-    break;
+#define RB_WASM_LIB_RT(MAIN_ENTRY)                                             \
+  {                                                                            \
+                                                                               \
+    void *arg0 = NULL, *arg1 = NULL;                                           \
+    void (*fiber_entry_point)(void *, void *) = NULL;                          \
+                                                                               \
+    while (1) {                                                                \
+      if (fiber_entry_point) {                                                 \
+        fiber_entry_point(arg0, arg1);                                         \
+      } else {                                                                 \
+        MAIN_ENTRY;                                                            \
+      }                                                                        \
+                                                                               \
+      bool new_fiber_started = false;                                          \
+      void *asyncify_buf;                                                      \
+      asyncify_stop_unwind();                                                  \
+                                                                               \
+      if ((asyncify_buf = rb_wasm_handle_jmp_unwind()) != NULL) {              \
+        asyncify_start_rewind(asyncify_buf);                                   \
+        continue;                                                              \
+      }                                                                        \
+      if ((asyncify_buf = rb_wasm_handle_scan_unwind()) != NULL) {             \
+        asyncify_start_rewind(asyncify_buf);                                   \
+        continue;                                                              \
+      }                                                                        \
+                                                                               \
+      asyncify_buf = rb_wasm_handle_fiber_unwind(&fiber_entry_point, &arg0,    \
+                                                 &arg1, &new_fiber_started);   \
+      if (asyncify_buf) {                                                      \
+        asyncify_start_rewind(asyncify_buf);                                   \
+        continue;                                                              \
+      } else if (new_fiber_started) {                                          \
+        continue;                                                              \
+      }                                                                        \
+                                                                               \
+      break;                                                                   \
+    }                                                                          \
   }
-  return result;
-}
-
 
 // MARK: - Exported functions
 // NOTE: Assume that callers always pass null terminated string by rb_js_abi_guest_string_t
 
-static VALUE ruby_init_thunk(void *arg0, void *arg1) {
-  ruby_init();
-  return Qnil;
-}
 void rb_js_abi_guest_ruby_init(void) {
-  rb_wasm_lib_rt(ruby_init_thunk, NULL, NULL);
+  RB_WASM_LIB_RT(ruby_init())
 }
-rb_js_abi_guest_rb_iseq_t rb_js_abi_guest_ruby_options(rb_js_abi_guest_list_string_t *args) {
-  return rb_js_abi_guest_rb_iseq_new(ruby_options(args->len, (char **)args->ptr));
+rb_js_abi_guest_rb_iseq_t
+rb_js_abi_guest_ruby_options(rb_js_abi_guest_list_string_t *args) {
+  void * result;
+  RB_WASM_LIB_RT(result = ruby_options(args->len, (char **)args->ptr))
+  return rb_js_abi_guest_rb_iseq_new(result);
 }
-rb_js_abi_guest_errno_t rb_js_abi_guest_ruby_run_node(rb_js_abi_guest_rb_iseq_t node) {
-  return ruby_run_node(rb_js_abi_guest_rb_iseq_get(&node));
+rb_js_abi_guest_errno_t
+rb_js_abi_guest_ruby_run_node(rb_js_abi_guest_rb_iseq_t node) {
+  int result;
+  void *iseq = rb_js_abi_guest_rb_iseq_get(&node);
+  RB_WASM_LIB_RT(ruby_run_node(iseq))
+  return result;
 }
 void rb_js_abi_guest_ruby_script(rb_js_abi_guest_string_t *name) {
-  ruby_script(name->ptr);
+  RB_WASM_LIB_RT(ruby_script(name->ptr))
 }
 void rb_js_abi_guest_ruby_init_loadpath(void) {
-  ruby_init_loadpath();
+  RB_WASM_LIB_RT(ruby_init_loadpath())
 }
 
-static VALUE rb_eval_string_thunk(void *arg0, void *arg1) {
-  return rb_eval_string(arg0);
-}
-rb_js_abi_guest_rb_value_t rb_js_abi_guest_rb_eval_string(rb_js_abi_guest_string_t *str) {
-  return rb_wasm_lib_rt(rb_eval_string_thunk, str->ptr, NULL);
+rb_js_abi_guest_rb_value_t
+rb_js_abi_guest_rb_eval_string(rb_js_abi_guest_string_t *str) {
+  rb_js_abi_guest_rb_value_t result;
+  RB_WASM_LIB_RT(result = rb_eval_string(str->ptr));
+  return result;
 }
 
 // MARK: - Ruby extension
@@ -103,9 +103,7 @@ static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
   return Qnil;
 }
 
-void
-Init_js(void)
-{
+void Init_js(void) {
   rb_mJS = rb_define_module("JS");
   VALUE rb_mABI = rb_define_class_under(rb_mJS, "ABI", rb_cObject);
 
