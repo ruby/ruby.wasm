@@ -38,7 +38,7 @@ const main = async () => {
   // Start WASI application
   wasi.setMemory(instance.exports.memory);
   vm.guest.rubyInit();
-  const ret = vm.guest.rbEvalString("p 1\0");
+  const ret = vm.guest.rbEvalStringProtect("p 1\0");
   console.log(ret);
 };
 
