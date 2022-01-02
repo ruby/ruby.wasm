@@ -42,6 +42,6 @@ $libs.each do |lib|
     `#{make_cmd}`
 end
 
-extinit_cmd = %Q(ruby #{$ruby_wasm_dir}/ext/extinit.rb #{$libs.join(" ")} | #{cc} -c -x c - -o #{$ruby_wasm_dir}/ext/extinit.o)
+extinit_cmd = %Q(ruby #{$ruby_wasm_dir}/ext/extinit.c.erb #{$libs.join(" ")} | #{cc} -c -x c - -o #{$ruby_wasm_dir}/ext/extinit.o)
 puts extinit_cmd
 `#{extinit_cmd}`

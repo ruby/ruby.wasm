@@ -1,9 +1,10 @@
 require "erb"
 
 exts = ARGV
+puts ERB.new(DATA.read).run
 
-template = %q{
-#define init(func, name) {	\
+__END__
+#define init(func, name) { \
     extern void func(void);	\
     ruby_init_ext(name".so", func); \
 }
@@ -15,6 +16,3 @@ void Init_extra_exts(void) {
   init(<%= "Init_#{ext}" %>, "<%= ext %>");
 <% end %>
 }
-}
-
-puts ERB.new(template).run
