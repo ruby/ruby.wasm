@@ -74,7 +74,7 @@ rb_js_abi_guest_ruby_options(rb_js_abi_guest_list_string_t *args) {
   RB_WASM_LIB_RT(result = ruby_options(args->len, (char **)args->ptr))
   return rb_js_abi_guest_rb_iseq_new(result);
 }
-rb_js_abi_guest_errno_t
+rb_js_abi_guest_rb_errno_t
 rb_js_abi_guest_ruby_run_node(rb_js_abi_guest_rb_iseq_t node) {
   int result;
   void *iseq = rb_js_abi_guest_rb_iseq_get(&node);
@@ -92,7 +92,47 @@ void rb_js_abi_guest_rb_eval_string_protect(rb_js_abi_guest_string_t *str, rb_js
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
   // TODO(katei): protect the value from GC
+  rb_gc_register_mark_object(retval);
   *result = rb_js_abi_guest_rb_value_new((void *)retval);
+}
+
+struct rb_funcallv_thunk_ctx {
+  VALUE recv;
+  ID mid;
+  rb_js_abi_guest_list_rb_value_t *args;
+};
+
+VALUE rb_funcallv_thunk(VALUE arg) {
+  struct rb_funcallv_thunk_ctx *ctx = (struct rb_funcallv_thunk_ctx *)arg;
+  return rb_funcallv(ctx->recv, ctx->mid, ctx->args->len, (VALUE *)ctx->args->ptr);
+}
+
+void rb_js_abi_guest_rb_funcallv_protect(rb_js_abi_guest_rb_value_t recv, rb_js_abi_guest_rb_id_t mid, rb_js_abi_guest_list_rb_value_t *args, rb_js_abi_guest_rb_value_t *ret0, int32_t *ret1) {
+  VALUE retval;
+  VALUE abi_recv = (VALUE)rb_js_abi_guest_rb_value_get(&recv);
+  struct rb_funcallv_thunk_ctx ctx = {.recv = abi_recv, .mid = mid, .args = args};
+  RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
+  // TODO(katei): protect the value from GC
+  rb_gc_register_mark_object(retval);
+  *ret0 = rb_js_abi_guest_rb_value_new((void *)retval);
+}
+
+rb_js_abi_guest_rb_id_t rb_js_abi_guest_rb_intern(rb_js_abi_guest_string_t *name) {
+  return rb_intern(name->ptr);
+}
+
+rb_js_abi_guest_rb_value_t rb_js_abi_guest_rb_errinfo(void) {
+  VALUE retval;
+  RB_WASM_LIB_RT(retval = rb_errinfo());
+  // TODO(katei): protect the value from GC
+  rb_gc_register_mark_object(retval);
+  return rb_js_abi_guest_rb_value_new((void *)retval);
+}
+
+void rb_js_abi_guest_rstring_ptr(rb_js_abi_guest_rb_value_t value, rb_js_abi_guest_string_t *ret0) {
+  VALUE abi_value = (VALUE)rb_js_abi_guest_rb_value_get(&value);
+  const char *str_ptr = (const char *)RSTRING_PTR(abi_value);
+  rb_js_abi_guest_string_set(ret0, str_ptr);
 }
 
 void rb_js_abi_guest_rb_value_dtor(void *data) {

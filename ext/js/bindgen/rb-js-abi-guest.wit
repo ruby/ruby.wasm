@@ -1,6 +1,7 @@
 resource rb-iseq
 resource rb-value
-type errno = s32
+type rb-errno = s32
+type rb-id = u32
 
 ruby-show-version: function()
 ruby-init: function()
@@ -8,3 +9,8 @@ ruby-options: function(args: list<string>) -> rb-iseq
 ruby-script: function(name: string)
 ruby-init-loadpath: function()
 rb-eval-string-protect: function(str: string) -> tuple<rb-value, s32>
+rb-funcallv-protect: function(recv: rb-value, mid: rb-id, args: list<rb-value>) -> tuple<rb-value, s32>
+rb-intern: function(name: string) -> rb-id
+rb-errinfo: function() -> rb-value
+
+rstring-ptr: function(value: rb-value) -> string

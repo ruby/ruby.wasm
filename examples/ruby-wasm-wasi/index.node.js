@@ -19,9 +19,23 @@ const main = async () => {
   wasi.initialize(instance);
   vm.guest.rubyShowVersion();
   vm.guest.rubyInit();
-  vm.guest.rbEvalStringProtect("puts 'Hey!'\0");
-  vm.guest.rbEvalStringProtect("puts 'Hey!'\0");
-  vm.guest.rbEvalStringProtect("puts 'Hey!'\0");
+  const a = vm.eval(`
+  class A
+    def foo(arg)
+      puts "yay: #{arg}"
+    end
+  end
+  A.new
+  `)
+  // console.log(`${a}`)
+  a.bar()
+  vm.eval("puts 'Hey!'");
+  vm.eval("puts 'Hey!'");
+  vm.eval("puts 'Hey!'");
+  // vm.eval("puts $a");
+  console.log(a.toString())
+  // console.log(a.toString())
+  // vm.eval("raise 'panic!'")
 };
 
 main()

@@ -31,7 +31,3 @@ wit-bindgen js \
     cd "$package_dir" && \
     npx rollup -c rollup.config.js
 )
-
-rm -rf "$dist_dir/bindgen"
-mkdir "$dist_dir/bindgen"
-cp $(find "$package_dir/bindgen" -name "*.d.ts") "$dist_dir/bindgen"
