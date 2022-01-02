@@ -22,11 +22,15 @@ cp "$package_dir/package.json" "$dist_dir/package.json"
 mkdir -p "$dist_dir/bin"
 cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/bin/ruby.wasm"
 
+wit-bindgen js \
+    --import "$package_dir/../../ext/js/bindgen/rb-js-abi-guest.wit" \
+    --export "$package_dir/../../ext/js/bindgen/rb-js-abi-host.wit" \
+    --out-dir "$package_dir/bindgen" && \
+
 (
     cd "$package_dir" && \
-    wit-bindgen js \
-        --import "$package_dir/../../ext/js/bindgen/rb-js-abi-guest.wit" \
-        --export "$package_dir/../../ext/js/bindgen/rb-js-abi-host.wit" \
-        --out-dir "$package_dir/bindgen" && \
-    npx rollup -c rollup.config.js
+    npx tsc index.ts --declaration --outDir "$dist_dir/"
 )
+
+rm -rf "$dist_dir/bindgen"
+cp -R "$package_dir/bindgen" "$dist_dir/"

@@ -4,8 +4,6 @@
   "description": "WebAssembly port of CRuby with WASI",
   "license": "MIT",
   "devDependencies": {
-    "@rollup/plugin-typescript": "^8.3.0",
-    "rollup": "^2.62.0",
     "typescript": "^4.5.4"
   }
 }
