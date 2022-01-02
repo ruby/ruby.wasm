@@ -50,4 +50,22 @@ describe("RubyVM", () => {
     const result = vm.eval("1\u00002");
     expect(result.toString()).toBe("1");
   });
+  test("non-local exits", async () => {
+    const vm = await initRubyVM();
+    expect(() => {
+      vm.eval(`raise "panic!"`);
+    }).toThrowError("panic!");
+    expect(() => {
+      vm.eval(`throw "panic!"`);
+    }).toThrowError("panic!");
+    expect(() => {
+      vm.eval(`return`);
+    }).toThrowError("unexpected return");
+    expect(() => {
+      vm.eval(`next`);
+    }).toThrowError("Can't escape from eval with next");
+    expect(() => {
+      vm.eval(`redo`);
+    }).toThrowError("Can't escape from eval with redo");
+  });
 });
