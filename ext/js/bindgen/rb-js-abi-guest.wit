@@ -1,10 +1,10 @@
 resource rb-iseq
-type rb-value = u32
+resource rb-value
 type errno = s32
 
+ruby-show-version: function()
 ruby-init: function()
 ruby-options: function(args: list<string>) -> rb-iseq
-ruby-run-node: function(node: rb-iseq) -> errno
 ruby-script: function(name: string)
 ruby-init-loadpath: function()
-rb-eval-string: function(str: string) -> rb-value
+rb-eval-string-protect: function(str: string) -> tuple<rb-value, s32>

@@ -17,10 +17,11 @@ const main = async () => {
   await vm.init(instance);
   // Start WASI application
   wasi.initialize(instance);
+  vm.guest.rubyShowVersion();
   vm.guest.rubyInit();
-  vm.guest.rbEvalString("puts 'Hey!'\0");
-  vm.guest.rbEvalString("puts 'Hey!'\0");
-  vm.guest.rbEvalString("puts 'Hey!'\0");
+  vm.guest.rbEvalStringProtect("puts 'Hey!'\0");
+  vm.guest.rbEvalStringProtect("puts 'Hey!'\0");
+  vm.guest.rbEvalStringProtect("puts 'Hey!'\0");
 };
 
 main()

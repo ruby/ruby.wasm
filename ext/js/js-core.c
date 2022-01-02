@@ -61,6 +61,10 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
 // MARK: - Exported functions
 // NOTE: Assume that callers always pass null terminated string by rb_js_abi_guest_string_t
 
+void rb_js_abi_guest_ruby_show_version(void) {
+  ruby_show_version();
+}
+
 void rb_js_abi_guest_ruby_init(void) {
   RB_WASM_LIB_RT(ruby_init())
 }
@@ -84,11 +88,15 @@ void rb_js_abi_guest_ruby_init_loadpath(void) {
   RB_WASM_LIB_RT(ruby_init_loadpath())
 }
 
-rb_js_abi_guest_rb_value_t
-rb_js_abi_guest_rb_eval_string(rb_js_abi_guest_string_t *str) {
-  rb_js_abi_guest_rb_value_t result;
-  RB_WASM_LIB_RT(result = rb_eval_string(str->ptr));
-  return result;
+void rb_js_abi_guest_rb_eval_string_protect(rb_js_abi_guest_string_t *str, rb_js_abi_guest_rb_value_t *result, int32_t *state) {
+  VALUE retval;
+  RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
+  // TODO(katei): protect the value from GC
+  *result = rb_js_abi_guest_rb_value_new((void *)retval);
+}
+
+void rb_js_abi_guest_rb_value_dtor(void *data) {
+  // TODO(katei): unprotect the value from GC
 }
 
 // MARK: - Ruby extension
