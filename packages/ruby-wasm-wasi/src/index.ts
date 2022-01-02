@@ -45,7 +45,7 @@ export class RubyVM {
    * The `instance` must be instantiated from a Ruby built with JS
    * extension, and built with Reactor ABI instead of command line.
    */
-  async init(instance: WebAssembly.Instance) {
+  async initInstance(instance: WebAssembly.Instance) {
     this.instance = instance;
     await this.guest.instantiate(instance);
   }

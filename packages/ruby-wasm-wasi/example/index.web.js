@@ -31,7 +31,7 @@ const main = async () => {
   vm.addToImports(imports);
 
   const { instance } = await WebAssembly.instantiate(buffer, imports);
-  await vm.init(instance);
+  await vm.initInstance(instance);
   // Start WASI application
   wasi.setMemory(instance.exports.memory);
   const args = ["ruby.wasm\0", "-e\0", "_=0\0"];

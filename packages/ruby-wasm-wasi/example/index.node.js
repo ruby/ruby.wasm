@@ -16,7 +16,7 @@ const main = async () => {
   vm.addToImports(imports);
 
   const { instance } = await WebAssembly.instantiate(binary.buffer, imports);
-  await vm.init(instance);
+  await vm.initInstance(instance);
   // Start WASI application
   wasi.initialize(instance);
   vm.guest.rubyShowVersion();
