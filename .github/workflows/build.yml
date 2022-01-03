@@ -26,11 +26,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
-      - name: Build and push
+      - name: Build
         uses: docker/build-push-action@v2
         with:
           context: builders/${{ matrix.entry.tag }}
-          push: true
+          outputs: type=oci,dest=/tmp/image.tar
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ruby.wasm-builder-${{ matrix.entry.tag }}
+          path: /tmp/image.tar
+      - name: Push
+        uses: docker/build-push-action@v2
+        with:
+          context: builders/${{ matrix.entry.tag }}
+          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -52,9 +64,11 @@ jobs:
           # - { flavor: full,    target: wasm32-unknown-emscripten }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.target }}
     steps:
+      # Clone repositories (side by side)
+      # ./
+      # ├── ruby.wasm/
+      # └── ruby/
       - uses: actions/checkout@v2
         with:
           path: ./ruby.wasm
@@ -63,30 +77,38 @@ jobs:
           repository: kateinoigakukun/ruby
           ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
           path: ./ruby
-      - run: ./autogen.sh
-        working-directory: ./ruby
+
+      - name: Fetch builder image
+        uses: actions/download-artifact@v2
+        with:
+          name: ruby.wasm-builder-${{ matrix.entry.target }}
+      - name: Load builder image
+        id: load-image
+        run: |
+          docker load --input image.tar | tee image-info.txt
+          echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
+      - run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID ./autogen.sh
       - name: Configure Ruby
         run: |
-          CONFIGURE_ARGS=$(ruby ./../ruby.wasm/ci/configure-args.rb \
+          CONFIGURE_ARGS=$(docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID \
+            bash -c 'ruby ./ruby.wasm/ci/configure-args.rb \
             --flavor "${{ matrix.entry.flavor }}" \
             --target "${{ matrix.entry.target }}" \
-            --libs "${{ matrix.entry.libs }}" \
-            --ruby-wasm-dir "../ruby.wasm/")
+            --libs "${{ matrix.entry.libs }}"')
           CONFIGURE_ARGS=" \
             --build x86_64-pc-linux-gnu \
             --with-destdir=./${{ matrix.entry.target }}-${{ matrix.entry.flavor }} \
             $CONFIGURE_ARGS"
           echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
-          bash -c "./configure $CONFIGURE_ARGS"
-        working-directory: ./ruby
+          docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID bash -c "./configure $CONFIGURE_ARGS"
       - name: Build ruby.wasm libraries
         run: |
-          ruby ./ruby.wasm/ci/build-libs.rb \
+          docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID ruby ./ruby.wasm/ci/build-libs.rb \
             --libs "${{ matrix.entry.libs }}" \
             --target "${{ matrix.entry.target }}" \
             --ruby-src-dir "./ruby"
-      - run: make install
-        working-directory: ./ruby
+      - name: Build ruby.wasm
+        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID make install
       # Install ruby.wasm manually because rbinstall.rb doesn't recognize ruby.wasm for now
       # cf. https://github.com/ruby/ruby/blob/4e4c4fab3c25a056688939ae8e003a049fc401ee/tool/rbinstall.rb#L375
       - run: cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm

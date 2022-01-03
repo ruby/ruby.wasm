@@ -25,7 +25,7 @@ cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/bin/ruby.wasm"
 wit-bindgen js \
     --import "$package_dir/../../ext/js/bindgen/rb-js-abi-guest.wit" \
     --export "$package_dir/../../ext/js/bindgen/rb-js-abi-host.wit" \
-    --out-dir "$package_dir/src/bindgen" && \
+    --out-dir "$package_dir/src/bindgen"
 
 (
     cd "$package_dir" && \

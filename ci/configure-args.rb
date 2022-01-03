@@ -4,9 +4,10 @@ opt = OptionParser.new
 opt.on("--flavor FLAVOR") { |v| $flavor = v }
 opt.on("--target TARGET") { |v| $target = v }
 opt.on("--libs LIBRARIES", Array) { |v| $libs = v }
-opt.on("--ruby-wasm-dir DIR") { |v| $ruby_wasm_dir = v }
 
 opt.parse!(ARGV)
+
+$ruby_wasm_dir = File.dirname(File.dirname(File.expand_path(__FILE__)))
 
 ldflags = %w(-Xlinker -zstack-size=16777216)
 xldflags = []
