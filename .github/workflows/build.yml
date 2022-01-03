@@ -112,7 +112,7 @@ jobs:
         run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID make install
       # Install ruby.wasm manually because rbinstall.rb doesn't recognize ruby.wasm for now
       # cf. https://github.com/ruby/ruby/blob/4e4c4fab3c25a056688939ae8e003a049fc401ee/tool/rbinstall.rb#L375
-      - run: cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm
+      - run: sudo cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm
         working-directory: ./ruby
         if: ${{ matrix.entry.target == 'wasm32-unknown-emscripten' }}
       - run: tar cfz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
