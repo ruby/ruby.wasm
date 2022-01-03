@@ -16,9 +16,9 @@ configure_args = ["--host", $target]
 configure_args << "--with-static-linked-ext"
 
 case $flavor
-when "minimal"
+when /^minimal/
     configure_args << %Q(--with-ext="")
-when "full"
+when /^full/
     configure_args << %Q(--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor")
 else
     raise "unknown flavor: #{$flavor}"
