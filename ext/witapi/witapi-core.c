@@ -171,21 +171,4 @@ void rb_js_abi_guest_rb_value_dtor(void *data) {
   // TODO(katei): unprotect the value from GC
 }
 
-// MARK: - Ruby extension
-
-static VALUE rb_mJS;
-
-static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
-  const char *code_str_ptr = (const char *)RSTRING_PTR(code_str);
-  rb_js_abi_host_string_t abi_str;
-  rb_js_abi_host_string_set(&abi_str, code_str_ptr);
-  rb_js_abi_host_eval_js(&abi_str);
-  return Qnil;
-}
-
-void Init_js(void) {
-  rb_mJS = rb_define_module("JS");
-  VALUE rb_mABI = rb_define_class_under(rb_mJS, "ABI", rb_cObject);
-
-  rb_define_module_function(rb_mABI, "eval_js", _rb_js_eval_js, 1);
-}
+void Init_witapi(void) {}

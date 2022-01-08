@@ -1,5 +1,5 @@
-TARGET = js
-OBJS = js-core.o bindgen/rb-js-abi-host.o bindgen/rb-js-abi-guest.o
+TARGET = witapi
+OBJS = witapi-core.o bindgen/rb-js-abi-host.o bindgen/rb-js-abi-guest.o
 
 RM = rm -f
 CFLAGS = -O0 -Ibindgen $(RUBY_INCLUDE_FLAGS)
@@ -21,7 +21,7 @@ bindgen/rb-js-abi-guest.h bindgen/rb-js-abi-guest.c: bindgen/rb-js-abi-guest.wit
 bindgen/rb-js-abi-host.h bindgen/rb-js-abi-host.c: bindgen/rb-js-abi-host.wit
 	wit-bindgen c --import bindgen/rb-js-abi-host.wit --out-dir bindgen
 
-js-core.o: bindgen/rb-js-abi-guest.h bindgen/rb-js-abi-host.h
+witapi-core.o: bindgen/rb-js-abi-guest.h bindgen/rb-js-abi-host.h
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
