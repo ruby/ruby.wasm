@@ -38,14 +38,14 @@ export class RubyVM {
   }
 
   /**
-   * Initialize a given instance to interact JavaScript and Ruby's
+   * Set a given instance to interact JavaScript and Ruby's
    * WebAssembly instance. This method must be called before calling
    * Ruby API.
    *
    * The `instance` must be instantiated from a Ruby built with JS
    * extension, and built with Reactor ABI instead of command line.
    */
-  async initInstance(instance: WebAssembly.Instance) {
+  async setInstance(instance: WebAssembly.Instance) {
     this.instance = instance;
     await this.guest.instantiate(instance);
   }
