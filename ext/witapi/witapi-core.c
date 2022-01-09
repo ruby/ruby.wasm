@@ -163,7 +163,7 @@ void rb_js_abi_guest_rstring_ptr(rb_js_abi_guest_rb_value_t value,
                                  rb_js_abi_guest_string_t *ret0) {
   VALUE abi_value = (VALUE)rb_js_abi_guest_rb_value_get(&value);
   const char *str_ptr = (const char *)RSTRING_PTR(abi_value);
-  rb_js_abi_guest_string_set(ret0, str_ptr);
+  rb_js_abi_guest_string_dup(ret0, str_ptr);
 }
 
 void rb_js_abi_guest_rb_value_dtor(void *data) {

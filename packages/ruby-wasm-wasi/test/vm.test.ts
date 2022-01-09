@@ -39,6 +39,11 @@ describe("RubyVM", () => {
     expect(result[Symbol.toPrimitive]("number")).toBe(null);
     expect(+result).toBe(0);
   });
+  test("Boolean toPrimitive", async () => {
+    const vm = await initRubyVM();
+    expect(vm.eval("true").toString()).toBe("true");
+    expect(vm.eval("false").toString()).toBe("false");
+  });
   test("null continued string", async () => {
     const vm = await initRubyVM();
     const result = vm.eval("1\u00002");
