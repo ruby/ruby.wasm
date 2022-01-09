@@ -81,7 +81,46 @@ export class RubyVM {
           } else {
             return false;
           }
-        }
+        },
+        reflectApply: function (target, thisArgument, args) {
+          throw new Error("Function not implemented.");
+        },
+        reflectConstruct: function (target, args) {
+          throw new Error("Function not implemented.");
+        },
+        reflectDeleteProperty: function (target, propertyKey: string): boolean {
+          throw new Error("Function not implemented.");
+        },
+        reflectGet: function (target, propertyKey: string) {
+          return Reflect.get(target, propertyKey);
+        },
+        reflectGetOwnPropertyDescriptor: function (
+          target,
+          propertyKey: string
+        ) {
+          throw new Error("Function not implemented.");
+        },
+        reflectGetPrototypeOf: function (target) {
+          throw new Error("Function not implemented.");
+        },
+        reflectHas: function (target, propertyKey: string): boolean {
+          throw new Error("Function not implemented.");
+        },
+        reflectIsExtensible: function (target): boolean {
+          throw new Error("Function not implemented.");
+        },
+        reflectOwnKeys: function (target) {
+          throw new Error("Function not implemented.");
+        },
+        reflectPreventExtensions: function (target): boolean {
+          throw new Error("Function not implemented.");
+        },
+        reflectSet: function (target, propertyKey: string, value): boolean {
+          throw new Error("Function not implemented.");
+        },
+        reflectSetPrototypeOf: function (target, prototype): boolean {
+          throw new Error("Function not implemented.");
+        },
       },
       (name) => {
         return this.instance.exports[name];

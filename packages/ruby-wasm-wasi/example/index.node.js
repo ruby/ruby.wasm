@@ -49,6 +49,10 @@ const main = async () => {
     console.log("caught", error);
   }
   console.log(a.toString());
+  vm.eval(`
+    require "js"
+    puts JS.global
+  `);
 };
 
 main();

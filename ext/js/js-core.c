@@ -10,6 +10,11 @@
 #define RBOOL(v) ((v) ? Qtrue : Qfalse)
 #endif
 
+extern VALUE rb_mKernel;
+
+static VALUE rb_mJS;
+static VALUE rb_mJS_Object;
+
 static ID i_to_js;
 
 struct jsvalue {
@@ -38,6 +43,14 @@ static VALUE jsvalue_s_allocate(VALUE klass) {
   struct jsvalue *p;
   VALUE obj =
       TypedData_Make_Struct(klass, struct jsvalue, &jsvalue_data_type, p);
+  return obj;
+}
+
+static VALUE jsvalue_s_new(rb_js_abi_host_js_value_t abi) {
+  struct jsvalue *p;
+  VALUE obj = TypedData_Make_Struct(rb_mJS_Object, struct jsvalue,
+                                    &jsvalue_data_type, p);
+  p->abi = abi;
   return obj;
 }
 
@@ -83,20 +96,42 @@ static VALUE _rb_js_is_kind_of(VALUE klass, VALUE obj, VALUE c) {
   return RBOOL(rb_js_abi_host_instance_of(val->abi, js_klass->abi));
 }
 
-extern VALUE rb_mKernel;
+static VALUE _rb_js_global_this(VALUE _) {
+  return jsvalue_s_new(rb_js_abi_host_global_this());
+}
 
-static VALUE rb_mJS;
-static VALUE rb_mJS_Object;
+static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
+  struct jsvalue *p = check_jsvalue(obj);
+  key = rb_obj_as_string(key);
+  const char *key_cstr = (const char *)RSTRING_PTR(key);
+  rb_js_abi_host_string_t key_abi_str;
+  rb_js_abi_host_string_dup(&key_abi_str, key_cstr);
+  return jsvalue_s_new(rb_js_abi_host_reflect_get(p->abi, &key_abi_str));
+}
+
+static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
+  struct jsvalue *p = check_jsvalue(obj);
+  struct jsvalue *v = check_jsvalue(val);
+  key = rb_obj_as_string(key);
+  const char *key_cstr = (const char *)RSTRING_PTR(key);
+  rb_js_abi_host_string_t key_abi_str;
+  rb_js_abi_host_string_dup(&key_abi_str, key_cstr);
+  rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi);
+  return val;
+}
 
 void Init_js() {
   rb_mJS = rb_define_module("JS");
   rb_define_module_function(rb_mJS, "is_a?", _rb_js_is_kind_of, 2);
   rb_define_module_function(rb_mJS, "try_convert", _rb_js_try_convert, 2);
   rb_define_module_function(rb_mJS, "eval", _rb_js_eval_js, 1);
+  rb_define_module_function(rb_mJS, "global", _rb_js_global_this, 0);
 
   rb_define_module_function(rb_mKernel, "js?", _rb_js_is_js, 1);
 
   i_to_js = rb_intern("to_js");
   rb_mJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cObject);
   rb_define_alloc_func(rb_mJS_Object, jsvalue_s_allocate);
+  rb_define_method(rb_mJS_Object, "[]", _rb_js_obj_aref, 1);
+  rb_define_method(rb_mJS_Object, "[]=", _rb_js_obj_aset, 2);
 }

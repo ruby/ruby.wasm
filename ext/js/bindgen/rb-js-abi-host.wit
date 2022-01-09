@@ -4,3 +4,16 @@ eval-js: function(code: string)
 is-js: function(value: js-value) -> bool
 instance-of: function(value: js-value, klass: js-value) -> bool
 global-this: function() -> js-value
+
+reflect-apply: function(target: js-value, this-argument: js-value, arguments: list<js-value>) -> js-value
+reflect-construct: function(target: js-value, arguments: list<js-value>) -> js-value
+reflect-delete-property: function(target: js-value, property-key: string) -> bool
+reflect-get: function(target: js-value, property-key: string) -> js-value
+reflect-get-own-property-descriptor: function(target: js-value, property-key: string) -> js-value
+reflect-get-prototype-of: function(target: js-value) -> js-value
+reflect-has: function(target: js-value, property-key: string) -> bool
+reflect-is-extensible: function(target: js-value) -> bool
+reflect-own-keys: function(target: js-value) -> list<js-value>
+reflect-prevent-extensions: function(target: js-value) -> bool
+reflect-set: function(target: js-value, property-key: string, value: js-value) -> bool
+reflect-set-prototype-of: function(target: js-value, prototype: js-value) -> bool
