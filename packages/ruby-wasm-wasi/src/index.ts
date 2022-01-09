@@ -1,4 +1,4 @@
-import * as RbAbi from "./bindgen/rb-js-abi-guest";
+import * as RbAbi from "./bindgen/rb-abi-guest";
 import { addRbJsAbiHostToImports } from "./bindgen/rb-js-abi-host";
 
 /**
@@ -30,11 +30,11 @@ export class RbError extends Error {
  * ```
  */
 export class RubyVM {
-  guest: RbAbi.RbJsAbiGuest;
+  guest: RbAbi.RbAbiGuest;
   private instance: WebAssembly.Instance | null = null;
 
   constructor() {
-    this.guest = new RbAbi.RbJsAbiGuest();
+    this.guest = new RbAbi.RbAbiGuest();
   }
 
   /**
@@ -148,7 +148,7 @@ export class RubyVM {
  * A RbValue is an object that represents a value in Ruby
  */
 export class RbValue {
-  constructor(public inner: RbAbi.RbValue, private guest: RbAbi.RbJsAbiGuest) {}
+  constructor(public inner: RbAbi.RbValue, private guest: RbAbi.RbAbiGuest) {}
 
   /**
    * Call a given method with given arguments
@@ -196,7 +196,7 @@ const formatException = (
   return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
 };
 
-const checkStatusTag = (rawTag: number, guest: RbAbi.RbJsAbiGuest) => {
+const checkStatusTag = (rawTag: number, guest: RbAbi.RbAbiGuest) => {
   switch (rawTag & ruby_tag_type.Mask) {
     case ruby_tag_type.None:
       break;
@@ -233,7 +233,7 @@ const checkStatusTag = (rawTag: number, guest: RbAbi.RbJsAbiGuest) => {
 };
 
 const callRbMethod = (
-  guest: RbAbi.RbJsAbiGuest,
+  guest: RbAbi.RbAbiGuest,
   recv: RbAbi.RbValue,
   callee: string,
   args: RbAbi.RbValue[]
@@ -243,7 +243,7 @@ const callRbMethod = (
   checkStatusTag(status, guest);
   return value;
 };
-const evalRbCode = (guest: RbAbi.RbJsAbiGuest, code: string) => {
+const evalRbCode = (guest: RbAbi.RbAbiGuest, code: string) => {
   const [value, status] = guest.rbEvalStringProtect(code + "\0");
   checkStatusTag(status, guest);
   return new RbValue(value, guest);

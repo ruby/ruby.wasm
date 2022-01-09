@@ -23,7 +23,7 @@ mkdir -p "$dist_dir/bin"
 cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/bin/ruby.wasm"
 
 wit-bindgen js \
-    --import "$package_dir/../../ext/witapi/bindgen/rb-js-abi-guest.wit" \
+    --import "$package_dir/../../ext/witapi/bindgen/rb-abi-guest.wit" \
     --export "$package_dir/../../ext/js/bindgen/rb-js-abi-host.wit" \
     --out-dir "$package_dir/src/bindgen"
 
