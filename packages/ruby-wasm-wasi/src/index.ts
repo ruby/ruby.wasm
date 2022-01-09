@@ -202,7 +202,7 @@ export class RbValue {
 
   toJS(): JsValue {
     const JS = this.vm.eval("JS");
-    const jsValue = JS.call("try_convert", this, this.vm.eval("nil"));
+    const jsValue = JS.call("try_convert", this);
     if (jsValue.call("nil?").toString() === "true") {
       return null;
     }
