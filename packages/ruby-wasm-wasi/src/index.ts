@@ -62,6 +62,26 @@ export class RubyVM {
         evalJs: (code) => {
           new Function(code)();
         },
+        isJs: (value) => {
+          return value == null || !(value instanceof RbValue);
+        },
+        globalThis: () => {
+          if (typeof globalThis !== "undefined") {
+            return globalThis;
+          } else if (typeof global !== "undefined") {
+            return global;
+          } else if (typeof window !== "undefined") {
+            return window;
+          }
+          throw new Error("unable to locate global object");
+        },
+        instanceOf: (value, klass) => {
+          if (typeof klass === "function") {
+            return value instanceof klass;
+          } else {
+            return false;
+          }
+        }
       },
       (name) => {
         return this.instance.exports[name];

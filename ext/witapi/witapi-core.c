@@ -3,7 +3,6 @@
 #include "ruby.h"
 
 #include "bindgen/rb-js-abi-guest.h"
-#include "bindgen/rb-js-abi-host.h"
 
 __attribute__((import_module("asyncify"), import_name("start_unwind"))) void
 asyncify_start_unwind(void *buf);
