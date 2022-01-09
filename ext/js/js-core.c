@@ -25,6 +25,7 @@ static void jsvalue_mark(void *p) {}
 
 static void jsvalue_free(void *p) {
   struct jsvalue *ptr = p;
+  rb_js_abi_host_js_value_free(&ptr->abi);
   ruby_xfree(ptr);
 }
 
