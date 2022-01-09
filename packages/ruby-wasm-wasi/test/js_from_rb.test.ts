@@ -5,7 +5,7 @@ describe("Manipulation of JS from Ruby", () => {
   test(`require "js"`, async () => {
     const vm = await initRubyVM();
     const result = vm.eval(`require "js"`);
-    expect((result.inner as any)._wasm_val).toBe(Qtrue);
+    expect((result as any).inner._wasm_val).toBe(Qtrue);
   });
 
   test.each([
@@ -16,26 +16,24 @@ describe("Manipulation of JS from Ruby", () => {
     { object: "JS.global", klass: "JS.global", result: false },
     // globalThis is an instance of Object
     { object: "JS.global", klass: "JS.global[:Object]", result: true },
-  ])(
-    "JS.is_a? %s",
-    async (props) => {
-      const vm = await initRubyVM();
-      const code = `require "js"; JS.is_a?(${props.object}, ${props.klass})`;
-      expect(vm.eval(code).toString()).toBe(String(props.result));
-    }
-  );
+  ])("JS.is_a? %s", async (props) => {
+    const vm = await initRubyVM();
+    const code = `require "js"; JS.is_a?(${props.object}, ${props.klass})`;
+    expect(vm.eval(code).toString()).toBe(String(props.result));
+  });
 
   test.each([
-    "[:Object]",
-    "[:Object][:keys]",
-    "[:Object][:__proto__]",
-    "[:Reflect]",
-  ])(`JS::Object#%s`, async (key) => {
+    { expr: "JS.global[:Object]", result: Object },
+    { expr: "JS.global[:Object][:keys]", result: Object.keys },
+    { expr: "JS.global[:Object][:unknown_key]", result: undefined },
+    // reflect `Reflect` itself
+    { expr: "JS.global[:Reflect]", result: Reflect },
+  ])(`JS::Object#[] (%s)`, async (props) => {
     const vm = await initRubyVM();
     const result = vm.eval(`
       require "js"
-      JS.global${key}
+      ${props.expr}
     `);
-    expect(result.toString()).toMatch("<JS::Object:0x");
+    expect(result.toJS()).toBe(props.result);
   });
 });

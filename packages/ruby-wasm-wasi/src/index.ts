@@ -1,5 +1,5 @@
 import * as RbAbi from "./bindgen/rb-abi-guest";
-import { addRbJsAbiHostToImports } from "./bindgen/rb-js-abi-host";
+import { addRbJsAbiHostToImports, JsValue } from "./bindgen/rb-js-abi-host";
 
 /**
  * Error class thrown by Ruby execution
@@ -32,9 +32,11 @@ export class RbError extends Error {
 export class RubyVM {
   guest: RbAbi.RbAbiGuest;
   private instance: WebAssembly.Instance | null = null;
+  private exporter: JsValueExporter;
 
   constructor() {
     this.guest = new RbAbi.RbAbiGuest();
+    this.exporter = new JsValueExporter();
   }
 
   /**
@@ -75,6 +77,9 @@ export class RubyVM {
           }
           throw new Error("unable to locate global object");
         },
+        takeJsValue: (value) => {
+          this.exporter.takeJsValue(value);
+        },
         instanceOf: (value, klass) => {
           if (typeof klass === "function") {
             return value instanceof klass;
@@ -88,10 +93,10 @@ export class RubyVM {
         reflectConstruct: function (target, args) {
           throw new Error("Function not implemented.");
         },
-        reflectDeleteProperty: function (target, propertyKey: string): boolean {
+        reflectDeleteProperty: function (target, propertyKey): boolean {
           throw new Error("Function not implemented.");
         },
-        reflectGet: function (target, propertyKey: string) {
+        reflectGet: function (target, propertyKey) {
           return Reflect.get(target, propertyKey);
         },
         reflectGetOwnPropertyDescriptor: function (
@@ -103,7 +108,7 @@ export class RubyVM {
         reflectGetPrototypeOf: function (target) {
           throw new Error("Function not implemented.");
         },
-        reflectHas: function (target, propertyKey: string): boolean {
+        reflectHas: function (target, propertyKey): boolean {
           throw new Error("Function not implemented.");
         },
         reflectIsExtensible: function (target): boolean {
@@ -115,7 +120,7 @@ export class RubyVM {
         reflectPreventExtensions: function (target): boolean {
           throw new Error("Function not implemented.");
         },
-        reflectSet: function (target, propertyKey: string, value): boolean {
+        reflectSet: function (target, propertyKey, value): boolean {
           throw new Error("Function not implemented.");
         },
         reflectSetPrototypeOf: function (target, prototype): boolean {
@@ -140,7 +145,17 @@ export class RubyVM {
    * Returns the result of the last expression
    */
   eval(code: string): RbValue {
-    return evalRbCode(this.guest, code);
+    return evalRbCode(this, this.exporter, code);
+  }
+}
+
+class JsValueExporter {
+  private _takenJsValues: JsValue | null = null;
+  takeJsValue(value) {
+    this._takenJsValues = value;
+  }
+  exportJsValue(): JsValue {
+    return this._takenJsValues;
   }
 }
 
@@ -148,7 +163,11 @@ export class RubyVM {
  * A RbValue is an object that represents a value in Ruby
  */
 export class RbValue {
-  constructor(public inner: RbAbi.RbValue, private guest: RbAbi.RbAbiGuest) {}
+  constructor(
+    private inner: RbAbi.RbValue,
+    private vm: RubyVM,
+    private exporter: JsValueExporter
+  ) {}
 
   /**
    * Call a given method with given arguments
@@ -156,8 +175,9 @@ export class RbValue {
   call(callee: string, ...args: RbValue[]): RbValue {
     const innerArgs = args.map((arg) => arg.inner);
     return new RbValue(
-      callRbMethod(this.guest, this.inner, callee, innerArgs),
-      this.guest
+      callRbMethod(this.vm, this.exporter, this.inner, callee, innerArgs),
+      this.vm,
+      this.exporter
     );
   }
 
@@ -170,8 +190,24 @@ export class RbValue {
     return null;
   }
   toString(): string {
-    const rbString = callRbMethod(this.guest, this.inner, "to_s", []);
-    return this.guest.rstringPtr(rbString);
+    const rbString = callRbMethod(
+      this.vm,
+      this.exporter,
+      this.inner,
+      "to_s",
+      []
+    );
+    return this.vm.guest.rstringPtr(rbString);
+  }
+
+  toJS(): JsValue {
+    const JS = this.vm.eval("JS");
+    const jsValue = JS.call("try_convert", this, this.vm.eval("nil"));
+    if (jsValue.call("nil?").toString() === "true") {
+      return null;
+    }
+    jsValue.call("__export_to_js");
+    return this.exporter.exportJsValue();
   }
 }
 
@@ -196,7 +232,11 @@ const formatException = (
   return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
 };
 
-const checkStatusTag = (rawTag: number, guest: RbAbi.RbAbiGuest) => {
+const checkStatusTag = (
+  rawTag: number,
+  vm: RubyVM,
+  exporter: JsValueExporter
+) => {
   switch (rawTag & ruby_tag_type.Mask) {
     case ruby_tag_type.None:
       break;
@@ -214,12 +254,12 @@ const checkStatusTag = (rawTag: number, guest: RbAbi.RbAbiGuest) => {
       throw new RbError("unexpected throw");
     case ruby_tag_type.Raise:
     case ruby_tag_type.Fatal:
-      const error = new RbValue(guest.rbErrinfo(), guest);
-      const newLine = evalRbCode(guest, `"\n"`);
+      const error = new RbValue(vm.guest.rbErrinfo(), vm, exporter);
+      const newLine = evalRbCode(vm, exporter, `"\n"`);
       const backtrace = error.call("backtrace");
-      const firstLine = backtrace.call("at", evalRbCode(guest, "0"));
+      const firstLine = backtrace.call("at", evalRbCode(vm, exporter, "0"));
       const restLines = backtrace
-        .call("drop", evalRbCode(guest, "1"))
+        .call("drop", evalRbCode(vm, exporter, "1"))
         .call("join", newLine);
       throw new RbError(
         formatException(error.call("class").toString(), error.toString(), [
@@ -233,18 +273,19 @@ const checkStatusTag = (rawTag: number, guest: RbAbi.RbAbiGuest) => {
 };
 
 const callRbMethod = (
-  guest: RbAbi.RbAbiGuest,
+  vm: RubyVM,
+  exporter: JsValueExporter,
   recv: RbAbi.RbValue,
   callee: string,
   args: RbAbi.RbValue[]
 ) => {
-  const mid = guest.rbIntern(callee + "\0");
-  const [value, status] = guest.rbFuncallvProtect(recv, mid, args);
-  checkStatusTag(status, guest);
+  const mid = vm.guest.rbIntern(callee + "\0");
+  const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, args);
+  checkStatusTag(status, vm, exporter);
   return value;
 };
-const evalRbCode = (guest: RbAbi.RbAbiGuest, code: string) => {
-  const [value, status] = guest.rbEvalStringProtect(code + "\0");
-  checkStatusTag(status, guest);
-  return new RbValue(value, guest);
+const evalRbCode = (vm: RubyVM, exporter: JsValueExporter, code: string) => {
+  const [value, status] = vm.guest.rbEvalStringProtect(code + "\0");
+  checkStatusTag(status, vm, exporter);
+  return new RbValue(value, vm, exporter);
 };

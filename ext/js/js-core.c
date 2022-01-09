@@ -120,6 +120,14 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   return val;
 }
 
+// workaround to transfer js value to js by using wit.
+// wit doesn't allow to communicate a resource to guest and host for now.
+static VALUE _rb_js_export_to_js(VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  rb_js_abi_host_take_js_value(p->abi);
+  return Qnil;
+}
+
 void Init_js() {
   rb_mJS = rb_define_module("JS");
   rb_define_module_function(rb_mJS, "is_a?", _rb_js_is_kind_of, 2);
@@ -134,4 +142,5 @@ void Init_js() {
   rb_define_alloc_func(rb_mJS_Object, jsvalue_s_allocate);
   rb_define_method(rb_mJS_Object, "[]", _rb_js_obj_aref, 1);
   rb_define_method(rb_mJS_Object, "[]=", _rb_js_obj_aset, 2);
+  rb_define_method(rb_mJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
 }

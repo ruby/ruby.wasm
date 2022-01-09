@@ -17,7 +17,7 @@ link.filelist:
 bindgen/rb-js-abi-host.h bindgen/rb-js-abi-host.c: bindgen/rb-js-abi-host.wit
 	wit-bindgen c --import bindgen/rb-js-abi-host.wit --out-dir bindgen
 
-js-core.o: bindgen/rb-js-abi-host.h bindgen/rb-js-abi-host.h
+js-core.o: bindgen/rb-js-abi-host.h
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<

@@ -170,4 +170,9 @@ void rb_abi_guest_rb_value_dtor(void *data) {
   // TODO(katei): unprotect the value from GC
 }
 
+uint32_t rb_abi_guest_rb_value_data_ptr(rb_abi_guest_rb_value_t self) {
+  VALUE obj = (VALUE)rb_abi_guest_rb_value_get(&self);
+  return (uint32_t)DATA_PTR(obj);
+}
+
 void Init_witapi(void) {}

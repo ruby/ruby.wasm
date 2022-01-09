@@ -4,6 +4,7 @@ eval-js: function(code: string)
 is-js: function(value: js-value) -> bool
 instance-of: function(value: js-value, klass: js-value) -> bool
 global-this: function() -> js-value
+take-js-value: function(value: js-value)
 
 reflect-apply: function(target: js-value, this-argument: js-value, arguments: list<js-value>) -> js-value
 reflect-construct: function(target: js-value, arguments: list<js-value>) -> js-value
