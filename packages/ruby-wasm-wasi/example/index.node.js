@@ -19,11 +19,9 @@ const main = async () => {
   await vm.setInstance(instance);
   // Start WASI application
   wasi.initialize(instance);
+  vm.initialize();
   vm.guest.rubyShowVersion();
-  const args = ["ruby.wasm\0", "-e\0", "_=0\0"];
-  vm.guest.rubySysinit(args);
-  vm.guest.rubyInit();
-  vm.guest.rubyOptions(args);
+
   const a = vm.eval(`
   class A
     def foo(arg)

@@ -34,10 +34,7 @@ const main = async () => {
   await vm.setInstance(instance);
   // Start WASI application
   wasi.setMemory(instance.exports.memory);
-  const args = ["ruby.wasm\0", "-e\0", "_=0\0"];
-  vm.guest.rubySysinit(args);
-  vm.guest.rubyInit();
-  vm.guest.rubyOptions(args);
+  vm.initialize();
 
   vm.printVersion();
 

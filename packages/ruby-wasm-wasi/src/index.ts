@@ -39,6 +39,13 @@ export class RubyVM {
     this.exporter = new JsValueExporter();
   }
 
+  initialize(args: string[] = ["ruby.wasm", "--disable-gems", "-e_=0"]) {
+    const c_args = args.map((arg) => arg + "\0")
+    this.guest.rubyInit();
+    this.guest.rubySysinit(c_args);
+    this.guest.rubyOptions(c_args);
+  }
+
   /**
    * Set a given instance to interact JavaScript and Ruby's
    * WebAssembly instance. This method must be called before calling

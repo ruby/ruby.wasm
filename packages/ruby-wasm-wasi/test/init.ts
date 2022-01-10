@@ -21,9 +21,6 @@ export const initRubyVM = async () => {
   const instance = await WebAssembly.instantiate(await rubyModule, imports);
   await vm.setInstance(instance);
   wasi.initialize(instance);
-  vm.guest.rubyInit();
-  const args = ["ruby.wasm\0", "--disable-gems", "-e\0", "_=0\0"];
-  vm.guest.rubySysinit(args);
-  vm.guest.rubyOptions(args);
+  vm.initialize();
   return vm;
 };

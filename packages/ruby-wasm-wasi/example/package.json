@@ -2,7 +2,8 @@
   "name": "ruby-wasm-wasi-example",
   "type": "module",
   "scripts": {
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js",
+    "serve": "ruby -run -ehttpd"
   },
   "dependencies": {
     "@wasmer/wasi": "^0.12.0",

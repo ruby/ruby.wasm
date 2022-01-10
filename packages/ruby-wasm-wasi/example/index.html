@@ -3,7 +3,7 @@
   <script type="text/ruby">
     require "js"
     luckiness = ["Lucky", "Unlucky"].sample
-    JS::ABI::eval_js("document.body.innerText = '#{luckiness}'")
+    JS::eval("document.body.innerText = '#{luckiness}'")
   </script>
   <style>
     body {
