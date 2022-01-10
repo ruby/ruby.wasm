@@ -86,6 +86,9 @@ export class RubyVM {
         boolToJsBool: (value) => {
           return value;
         },
+        jsValueToString: (value) => {
+          return value.toString();
+        },
         takeJsValue: (value) => {
           this.exporter.takeJsValue(value);
         },

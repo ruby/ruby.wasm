@@ -119,15 +119,30 @@ describe("Manipulation of JS from Ruby", () => {
     expect(result.toJS()).toEqual(props.result);
   });
 
-  test.each([`Object.new`])(
-    "invalid RbValue.toJS(%s)",
-    async (expr) => {
-      const vm = await initRubyVM();
-      const result = vm.eval(`
+  test.each([`Object.new`])("invalid RbValue.toJS(%s)", async (expr) => {
+    const vm = await initRubyVM();
+    const result = vm.eval(`
       require "js"
       ${expr}
       `);
-      expect(result.toJS()).toEqual(null);
+    expect(result.toJS()).toEqual(null);
+  });
+
+  test.each([
+    { expr: `JS.global`, expected: "[object Object]" },
+    { expr: `1.to_js`, expected: "1" },
+    { expr: `JS.eval("return {}")`, expected: "[object Object]" },
+    { expr: `JS.eval("class X {}; return new X()")`, expected: "[object Object]" },
+    { expr: `JS.eval("return console")`, expected: "[object console]" },
+  ])(
+    "invalid RbValue.toJS(%s)",
+    async ({ expr, expected }) => {
+      const vm = await initRubyVM();
+      const result = vm.eval(`
+      require "js"
+      ${expr}.inspect
+      `);
+      expect(result.toJS()).toEqual(expected);
     }
   );
 });

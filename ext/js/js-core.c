@@ -217,6 +217,20 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
 }
 
 /*
+ * call-seq:
+ *   inspect -> string
+ *
+ *  Returns a printable version of +self+:
+ *   p JS.global # => [object global]
+ */
+static VALUE _rb_js_obj_inspect(VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  rb_js_abi_host_string_t ret0;
+  rb_js_abi_host_js_value_to_string(p->abi, &ret0);
+  return rb_str_new(ret0.ptr, ret0.len);
+}
+
+/*
  * :nodoc: all
  * workaround to transfer js value to js by using wit.
  * wit doesn't allow to communicate a resource to guest and host for now.
@@ -290,6 +304,7 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
+  rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);
 
   rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);
   rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
