@@ -1,4 +1,4 @@
-import { RbValue } from "../dist/index";
+import { RbValue } from "../dist/index.umd.js";
 import { initRubyVM } from "./init";
 
 describe("RubyVM", () => {

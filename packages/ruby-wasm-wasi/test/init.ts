@@ -1,7 +1,7 @@
 import { WASI } from "wasi";
 import fs from "fs/promises";
 import path from "path";
-import { RubyVM } from "../dist/index";
+import { RubyVM } from "../dist/index.umd.js";
 
 const rubyModule = (async () => {
   const binary = await fs.readFile(
