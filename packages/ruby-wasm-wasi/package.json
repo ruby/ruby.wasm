@@ -1,6 +1,6 @@
 {
   "name": "ruby-wasm-wasi",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "WebAssembly port of CRuby with WASI",
   "license": "MIT",
   "scripts": {
