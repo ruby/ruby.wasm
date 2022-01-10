@@ -93,8 +93,8 @@ static VALUE _rb_js_is_js(VALUE _, VALUE obj) {
  * call-seq:
  *   JS.try_convert(obj) -> JS::Object or nil
  *
- *  Try to convert the given object to a JS::Object using <code>to_js</code> method.
- *  Returns <code>nil</code> if the object cannot be converted.
+ *  Try to convert the given object to a JS::Object using <code>to_js</code>
+ *  method. Returns <code>nil</code> if the object cannot be converted.
  *
  *   p JS.try_convert(1)          # => 1
  *   p JS.try_convert("foo")      # => "foo"
@@ -119,7 +119,7 @@ VALUE _rb_js_try_convert(VALUE klass, VALUE obj) {
  *  Comparison is done using the <code>instanceof</code> in JavaScript.
  *
  *   p JS.global.is_a?(JS.global[:Object]) #=> true
- *   p JS.global.is_a?(Object)             #=> false 
+ *   p JS.global.is_a?(Object)             #=> false
  */
 static VALUE _rb_js_is_kind_of(VALUE klass, VALUE obj, VALUE c) {
   if (!IS_JSVALUE(obj)) {
@@ -193,7 +193,7 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
 static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   if (argc == 0) {
-      rb_raise(rb_eArgError, "no method name given");
+    rb_raise(rb_eArgError, "no method name given");
   }
   VALUE method = _rb_js_obj_aref(obj, argv[0]);
   struct jsvalue *abi_method = check_jsvalue(method);
@@ -204,11 +204,13 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   for (int i = 1; i < argc; i++) {
     VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);
     if (arg == Qnil) {
-      rb_raise(rb_eTypeError, "argument %d is not a JS::Object like object", 1 + i);
+      rb_raise(rb_eTypeError, "argument %d is not a JS::Object like object",
+               1 + i);
     }
     abi_args.ptr[i - 1] = check_jsvalue(arg)->abi;
   }
-  return jsvalue_s_new(rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args));
+  return jsvalue_s_new(
+      rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args));
 }
 
 /*
@@ -291,5 +293,4 @@ void Init_js() {
   rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
   rb_define_method(rb_cTrueClass, "to_js", _rb_js_true_to_js, 0);
   rb_define_method(rb_cFalseClass, "to_js", _rb_js_false_to_js, 0);
-
 }
