@@ -13,7 +13,7 @@
 extern VALUE rb_mKernel;
 
 static VALUE rb_mJS;
-static VALUE rb_mJS_Object;
+static VALUE rb_cJS_Object;
 
 static ID i_to_js;
 
@@ -49,7 +49,7 @@ static VALUE jsvalue_s_allocate(VALUE klass) {
 
 static VALUE jsvalue_s_new(rb_js_abi_host_js_value_t abi) {
   struct jsvalue *p;
-  VALUE obj = TypedData_Make_Struct(rb_mJS_Object, struct jsvalue,
+  VALUE obj = TypedData_Make_Struct(rb_cJS_Object, struct jsvalue,
                                     &jsvalue_data_type, p);
   p->abi = abi;
   return obj;
@@ -229,10 +229,10 @@ void Init_js() {
   rb_define_module_function(rb_mJS, "global", _rb_js_global_this, 0);
 
   i_to_js = rb_intern("to_js");
-  rb_mJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cObject);
-  rb_define_alloc_func(rb_mJS_Object, jsvalue_s_allocate);
-  rb_define_method(rb_mJS_Object, "[]", _rb_js_obj_aref, 1);
-  rb_define_method(rb_mJS_Object, "[]=", _rb_js_obj_aset, 2);
-  rb_define_method(rb_mJS_Object, "call", _rb_js_obj_call, -1);
-  rb_define_method(rb_mJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
+  rb_cJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cObject);
+  rb_define_alloc_func(rb_cJS_Object, jsvalue_s_allocate);
+  rb_define_method(rb_cJS_Object, "[]", _rb_js_obj_aref, 1);
+  rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
+  rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
+  rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
 }
