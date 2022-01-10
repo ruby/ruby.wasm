@@ -67,15 +67,14 @@ static struct jsvalue *check_jsvalue(VALUE obj) {
  *
  *  Evaluates the given JavaScript code, returning the result as a JS::Object.
  *
- *   p JS.eval("1 + 1").to_i                             # => 2
- *   p JS.eval("new Object()").is_a?(JS.global[:Object]) # => true
+ *   p JS.eval("return 1 + 1").to_i                             # => 2
+ *   p JS.eval("return new Object()").is_a?(JS.global[:Object]) # => true
  */
 static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
   const char *code_str_ptr = (const char *)RSTRING_PTR(code_str);
   rb_js_abi_host_string_t abi_str;
   rb_js_abi_host_string_set(&abi_str, code_str_ptr);
-  rb_js_abi_host_eval_js(&abi_str);
-  return Qnil;
+  return jsvalue_s_new(rb_js_abi_host_eval_js(&abi_str));
 }
 
 static VALUE _rb_js_is_js(VALUE _, VALUE obj) {

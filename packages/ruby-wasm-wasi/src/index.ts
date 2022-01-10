@@ -62,7 +62,7 @@ export class RubyVM {
       imports,
       {
         evalJs: (code) => {
-          new Function(code)();
+          return Function(code)();
         },
         isJs: (value) => {
           return value == null || !(value instanceof RbValue);

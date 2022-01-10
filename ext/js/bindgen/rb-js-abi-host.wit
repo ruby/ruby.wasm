@@ -1,6 +1,6 @@
 resource js-value
 
-eval-js: function(code: string)
+eval-js: function(code: string) -> js-value
 is-js: function(value: js-value) -> bool
 instance-of: function(value: js-value, klass: js-value) -> bool
 global-this: function() -> js-value

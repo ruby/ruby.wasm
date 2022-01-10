@@ -36,4 +36,18 @@ describe("Manipulation of JS from Ruby", () => {
     `);
     expect(result.toJS()).toBe(props.result);
   });
+
+  test.each([
+    { expr: "", result: undefined },
+    { expr: "return undefined", result: undefined },
+    { expr: "return null", result: null },
+    { expr: "return Object", result: Object },
+  ])(`JS.eval(%s)`, async (props) => {
+    const vm = await initRubyVM();
+    const result = vm.eval(`
+      require "js"
+      JS.eval("${props.expr}")
+    `);
+    expect(result.toJS()).toBe(props.result);
+  });
 });
