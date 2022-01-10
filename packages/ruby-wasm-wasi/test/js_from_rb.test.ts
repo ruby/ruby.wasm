@@ -87,4 +87,17 @@ describe("Manipulation of JS from Ruby", () => {
     `);
     expect(result.toJS()).toEqual(props.result);
   });
+
+  test("invalid JS::Object#call", async () => {
+    const vm = await initRubyVM();
+    vm.eval("require 'js'");
+
+    expect(() => {
+      vm.eval(`JS.global.call(:unknown)`);
+    }).toThrow("which is a undefined and not a function");
+
+    expect(() => {
+      vm.eval(`JS.global.call(:Object, Object.new)`);
+    }).toThrow("argument 2 is not a JS::Object like object");
+  });
 });
