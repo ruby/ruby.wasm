@@ -178,6 +178,36 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
 }
 
 /*
+ * call-seq:
+ *   js_value.call(name, *args) -> JS::Object
+ *
+ * Call a JavaScript method specified by the name with the arguments.
+ * Returns the result of the call as a JS::Object.
+ *   p JS.global.call(:parseInt, JS.eval("return '42'"))    # => 42
+ *   JS.global[:console].call(:log, JS.eval("return '42'")) # => undefined
+ */
+static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  if (argc == 0) {
+      rb_raise(rb_eArgError, "no method name given");
+  }
+  VALUE method = _rb_js_obj_aref(obj, argv[0]);
+  struct jsvalue *abi_method = check_jsvalue(method);
+
+  rb_js_abi_host_list_js_value_t abi_args;
+  abi_args.ptr = ALLOCA_N(rb_js_abi_host_js_value_t, argc - 1);
+  abi_args.len = argc - 1;
+  for (int i = 1; i < argc; i++) {
+    VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);
+    if (arg == Qnil) {
+      rb_raise(rb_eTypeError, "argument %d is not a JS::Object like object", 1 + i);
+    }
+    abi_args.ptr[i - 1] = check_jsvalue(arg)->abi;
+  }
+  return jsvalue_s_new(rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args));
+}
+
+/*
  * :nodoc: all
  * workaround to transfer js value to js by using wit.
  * wit doesn't allow to communicate a resource to guest and host for now.
@@ -203,5 +233,6 @@ void Init_js() {
   rb_define_alloc_func(rb_mJS_Object, jsvalue_s_allocate);
   rb_define_method(rb_mJS_Object, "[]", _rb_js_obj_aref, 1);
   rb_define_method(rb_mJS_Object, "[]=", _rb_js_obj_aset, 2);
+  rb_define_method(rb_mJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_mJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
 }

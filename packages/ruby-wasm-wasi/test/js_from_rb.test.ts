@@ -42,6 +42,8 @@ describe("Manipulation of JS from Ruby", () => {
     { expr: "return undefined", result: undefined },
     { expr: "return null", result: null },
     { expr: "return Object", result: Object },
+    { expr: "return 1", result: 1 },
+    { expr: "return 'x'", result: "x" },
   ])(`JS.eval(%s)`, async (props) => {
     const vm = await initRubyVM();
     const result = vm.eval(`
@@ -49,5 +51,26 @@ describe("Manipulation of JS from Ruby", () => {
       JS.eval("${props.expr}")
     `);
     expect(result.toJS()).toBe(props.result);
+  });
+
+  test.each([
+    { expr: `JS.global.call(:Array)`, result: [] },
+    { expr: `JS.global.call(:parseInt, JS.eval("return '42'"))`, result: 42 },
+    {
+      expr: `JS.global.call(:parseInt, JS.eval("return 'ff'"), JS.eval("return 16"))`,
+      result: 0xff,
+    },
+    { expr: `JS.global[:Math].call(:abs, JS.eval("return -1"))`, result: 1 },
+    {
+      expr: `JS.global[:Math].call(:min, JS.eval("return 1"), JS.eval("return 2"))`,
+      result: 1,
+    },
+  ])(`JS::Object#call (%s)`, async (props) => {
+    const vm = await initRubyVM();
+    const result = vm.eval(`
+      require "js"
+      ${props.expr}
+    `);
+    expect(result.toJS()).toEqual(props.result);
   });
 });
