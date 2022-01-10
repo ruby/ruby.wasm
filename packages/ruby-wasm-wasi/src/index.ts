@@ -88,7 +88,7 @@ export class RubyVM {
           }
         },
         reflectApply: function (target, thisArgument, args) {
-          throw new Error("Function not implemented.");
+          return Reflect.apply(target as any, thisArgument, args);
         },
         reflectConstruct: function (target, args) {
           throw new Error("Function not implemented.");
