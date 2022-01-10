@@ -15,7 +15,6 @@ package_dir="$(cd "$(dirname "$0")" && pwd)"
 dist_dir="$package_dir/dist"
 
 mkdir -p "$dist_dir"
-cp "$package_dir/package.json" "$dist_dir/package.json"
 
 cp "$ruby_root/usr/local/bin/ruby.wasm" "$dist_dir/ruby.wasm"
 cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/ruby.js"

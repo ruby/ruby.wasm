@@ -22,7 +22,7 @@ const main = async () => {
     },
   });
   // Fetch and instntiate WebAssembly binary
-  const response = await fetch("./node_modules/ruby-wasm-wasi/bin/ruby.wasm");
+  const response = await fetch("./node_modules/ruby-wasm-wasi/dist/ruby.wasm");
   const buffer = await response.arrayBuffer();
   const vm = new RubyVM();
   const imports = {

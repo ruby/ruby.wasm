@@ -4,7 +4,7 @@ const main = async () => {
   const args = ["--disable-gems", "-e", "puts 'Hello :)'"];
   console.log(`$ ruby.wasm ${args.join(" ")}`);
   const defaultModule = {
-    locateFile: (path) => "./node_modules/ruby-wasm-emscripten/" + path,
+    locateFile: (path) => "./node_modules/ruby-wasm-emscripten/dist/" + path,
     setStatus: (msg) => console.log(msg),
     print: (line) => {
       if (document) {

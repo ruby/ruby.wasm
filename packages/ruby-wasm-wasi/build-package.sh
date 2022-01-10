@@ -15,12 +15,11 @@ package_dir="$(cd "$(dirname "$0")" && pwd)"
 dist_dir="$package_dir/dist"
 
 mkdir -p "$dist_dir"
-cp "$package_dir/package.json" "$dist_dir/package.json"
 
 # TODO(katei): Embed stdlib by wasi-vfs after it's published
 
 mkdir -p "$dist_dir/bin"
-wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/bin/ruby.wasm"
+wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
 
 wit-bindgen js \
     --import "$package_dir/../../ext/witapi/bindgen/rb-abi-guest.wit" \
