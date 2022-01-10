@@ -11,6 +11,10 @@
 #endif
 
 extern VALUE rb_mKernel;
+extern VALUE rb_cInteger;
+extern VALUE rb_cString;
+extern VALUE rb_cTrueClass;
+extern VALUE rb_cFalseClass;
 
 static VALUE rb_mJS;
 static VALUE rb_cJS_Object;
@@ -219,6 +223,53 @@ static VALUE _rb_js_export_to_js(VALUE obj) {
 }
 
 /*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
+static VALUE _rb_js_integer_to_js(VALUE obj) {
+  if (FIXNUM_P(obj)) {
+    return jsvalue_s_new(rb_js_abi_host_int_to_js_number(FIX2LONG(obj)));
+  } else {
+    rb_raise(rb_eTypeError, "can't convert Bignum to JS::Object");
+  }
+}
+
+/*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
+static VALUE _rb_js_string_to_js(VALUE obj) {
+  rb_js_abi_host_string_t abi_str;
+  abi_str.len = RSTRING_LEN(obj);
+  abi_str.ptr = RSTRING_PTR(obj);
+  return jsvalue_s_new(rb_js_abi_host_string_to_js_string(&abi_str));
+}
+
+/*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
+static VALUE _rb_js_true_to_js(VALUE obj) {
+  return jsvalue_s_new(rb_js_abi_host_bool_to_js_bool(true));
+}
+
+/*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
+static VALUE _rb_js_false_to_js(VALUE obj) {
+  return jsvalue_s_new(rb_js_abi_host_bool_to_js_bool(false));
+}
+
+/*
  * JavaScript interoperations module
  */
 void Init_js() {
@@ -235,4 +286,10 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
+
+  rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);
+  rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
+  rb_define_method(rb_cTrueClass, "to_js", _rb_js_true_to_js, 0);
+  rb_define_method(rb_cFalseClass, "to_js", _rb_js_false_to_js, 0);
+
 }

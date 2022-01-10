@@ -100,4 +100,33 @@ describe("Manipulation of JS from Ruby", () => {
       vm.eval(`JS.global.call(:Object, Object.new)`);
     }).toThrow("argument 2 is not a JS::Object like object");
   });
+
+  test.each([
+    { expr: `JS.eval("return {}")`, result: {} },
+    { expr: `JS.eval("return 1")`, result: 1 },
+    { expr: `1`, result: 1 },
+    { expr: `true`, result: true },
+    { expr: `false`, result: false },
+    { expr: `"x"`, result: "x" },
+    { expr: `"x\\0x"`, result: "x\0x" },
+  ])("RbValue.toJS(%s)", async (props) => {
+    const vm = await initRubyVM();
+    const result = vm.eval(`
+      require "js"
+      ${props.expr}
+    `);
+    expect(result.toJS()).toEqual(props.result);
+  });
+
+  test.each([`Object.new`])(
+    "invalid RbValue.toJS(%s)",
+    async (expr) => {
+      const vm = await initRubyVM();
+      const result = vm.eval(`
+      require "js"
+      ${expr}
+      `);
+      expect(result.toJS()).toEqual(null);
+    }
+  );
 });

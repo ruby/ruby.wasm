@@ -77,6 +77,15 @@ export class RubyVM {
           }
           throw new Error("unable to locate global object");
         },
+        intToJsNumber: (value) => {
+          return value;
+        },
+        stringToJsString: (value) => {
+          return value;
+        },
+        boolToJsBool: (value) => {
+          return value;
+        },
         takeJsValue: (value) => {
           this.exporter.takeJsValue(value);
         },
