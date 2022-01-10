@@ -1,6 +1,6 @@
 import { WASI } from "wasi";
-import * as fs from "fs/promises";
-import * as path from "path";
+import fs from "fs/promises";
+import path from "path";
 import { RubyVM } from "../dist/index";
 
 const rubyModule = (async () => {
