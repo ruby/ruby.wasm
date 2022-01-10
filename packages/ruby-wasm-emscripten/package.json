@@ -8,7 +8,19 @@
   "files": [
     "dist/index.js",
     "dist/ruby.wasm",
-    "dist/ruby_stdlib.data"
+    "dist/ruby_stdlib.data",
+    "README.md"
+  ],
+  "repository": "https://github.com/kateinoigakukun/ruby.wasm",
+  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/ruby-wasm-emscripten",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "emscripten",
+    "ruby"
   ],
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
