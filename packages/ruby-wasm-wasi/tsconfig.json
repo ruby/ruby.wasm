@@ -3,7 +3,7 @@
     "declaration": true,
     "importHelpers": true,
     "module": "ES2015",
-    "outDir": "dist",
+    "outDir": "./",
     "target": "es2017",
     "esModuleInterop": true
   },

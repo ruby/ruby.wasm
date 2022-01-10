@@ -169,8 +169,8 @@ export class RubyVM {
 }
 
 class JsValueExporter {
-  private _takenJsValues: JsAbiValue | null = null;
-  takeJsValue(value) {
+  private _takenJsValues: JsAbiValue = null;
+  takeJsValue(value: JsAbiValue) {
     this._takenJsValues = value;
   }
   exportJsValue(): JsAbiValue {
