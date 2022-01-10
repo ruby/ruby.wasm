@@ -22,14 +22,14 @@ static VALUE rb_cJS_Object;
 static ID i_to_js;
 
 struct jsvalue {
-  rb_js_abi_host_js_value_t abi;
+  rb_js_abi_host_js_abi_value_t abi;
 };
 
 static void jsvalue_mark(void *p) {}
 
 static void jsvalue_free(void *p) {
   struct jsvalue *ptr = p;
-  rb_js_abi_host_js_value_free(&ptr->abi);
+  rb_js_abi_host_js_abi_value_free(&ptr->abi);
   ruby_xfree(ptr);
 }
 
@@ -51,7 +51,7 @@ static VALUE jsvalue_s_allocate(VALUE klass) {
   return obj;
 }
 
-static VALUE jsvalue_s_new(rb_js_abi_host_js_value_t abi) {
+static VALUE jsvalue_s_new(rb_js_abi_host_js_abi_value_t abi) {
   struct jsvalue *p;
   VALUE obj = TypedData_Make_Struct(rb_cJS_Object, struct jsvalue,
                                     &jsvalue_data_type, p);
@@ -201,8 +201,8 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   VALUE method = _rb_js_obj_aref(obj, argv[0]);
   struct jsvalue *abi_method = check_jsvalue(method);
 
-  rb_js_abi_host_list_js_value_t abi_args;
-  abi_args.ptr = ALLOCA_N(rb_js_abi_host_js_value_t, argc - 1);
+  rb_js_abi_host_list_js_abi_value_t abi_args;
+  abi_args.ptr = ALLOCA_N(rb_js_abi_host_js_abi_value_t, argc - 1);
   abi_args.len = argc - 1;
   for (int i = 1; i < argc; i++) {
     VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);

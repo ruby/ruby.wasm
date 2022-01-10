@@ -1,5 +1,5 @@
 import * as RbAbi from "./bindgen/rb-abi-guest";
-import { addRbJsAbiHostToImports, JsValue } from "./bindgen/rb-js-abi-host";
+import { addRbJsAbiHostToImports, JsAbiValue } from "./bindgen/rb-js-abi-host";
 
 /**
  * Error class thrown by Ruby execution
@@ -169,11 +169,11 @@ export class RubyVM {
 }
 
 class JsValueExporter {
-  private _takenJsValues: JsValue | null = null;
+  private _takenJsValues: JsAbiValue | null = null;
   takeJsValue(value) {
     this._takenJsValues = value;
   }
-  exportJsValue(): JsValue {
+  exportJsValue(): JsAbiValue {
     return this._takenJsValues;
   }
 }
@@ -183,7 +183,7 @@ class JsValueExporter {
  */
 export class RbValue {
   constructor(
-    private inner: RbAbi.RbValue,
+    private inner: RbAbi.RbAbiValue,
     private vm: RubyVM,
     private exporter: JsValueExporter
   ) {}
@@ -219,7 +219,7 @@ export class RbValue {
     return this.vm.guest.rstringPtr(rbString);
   }
 
-  toJS(): JsValue {
+  toJS(): JsAbiValue {
     const JS = this.vm.eval("JS");
     const jsValue = JS.call("try_convert", this);
     if (jsValue.call("nil?").toString() === "true") {
@@ -294,9 +294,9 @@ const checkStatusTag = (
 const callRbMethod = (
   vm: RubyVM,
   exporter: JsValueExporter,
-  recv: RbAbi.RbValue,
+  recv: RbAbi.RbAbiValue,
   callee: string,
-  args: RbAbi.RbValue[]
+  args: RbAbi.RbAbiValue[]
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
   const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, args);

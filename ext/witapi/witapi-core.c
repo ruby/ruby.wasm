@@ -79,11 +79,11 @@ static void rb_abi_lend_object(VALUE obj) {
   RB_WASM_LIB_RT(rb_abi_lend_object_internal(obj));
 }
 
-void rb_abi_guest_rb_value_dtor(void *data) {
+void rb_abi_guest_rb_abi_value_dtor(void *data) {
   VALUE obj = (VALUE)data;
   VALUE ref_count = rb_hash_lookup(rb_abi_guest_arena_hash, obj);
   if (NIL_P(ref_count)) {
-    rb_warning("rb_abi_guest_rb_value_dtor: double free detected");
+    rb_warning("rb_abi_guest_rb_abi_value_dtor: double free detected");
     return;
   }
   if (ref_count == INT2FIX(1)) {
@@ -139,65 +139,65 @@ void rb_abi_guest_ruby_init_loadpath(void) {
 }
 
 void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str,
-                                         rb_abi_guest_rb_value_t *result,
+                                         rb_abi_guest_rb_abi_value_t *result,
                                          int32_t *state) {
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
   rb_abi_lend_object(retval);
 
-  *result = rb_abi_guest_rb_value_new((void *)retval);
+  *result = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
 struct rb_funcallv_thunk_ctx {
   VALUE recv;
   ID mid;
-  rb_abi_guest_list_rb_value_t *args;
+  rb_abi_guest_list_rb_abi_value_t *args;
 };
 
 VALUE rb_funcallv_thunk(VALUE arg) {
   struct rb_funcallv_thunk_ctx *ctx = (struct rb_funcallv_thunk_ctx *)arg;
   VALUE *c_argv = alloca(sizeof(VALUE) * ctx->args->len);
   for (size_t i = 0; i < ctx->args->len; i++) {
-    c_argv[i] = (VALUE)rb_abi_guest_rb_value_get(&ctx->args->ptr[i]);
+    c_argv[i] = (VALUE)rb_abi_guest_rb_abi_value_get(&ctx->args->ptr[i]);
   }
   return rb_funcallv(ctx->recv, ctx->mid, ctx->args->len, c_argv);
 }
 
-void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_value_t recv,
+void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_abi_value_t recv,
                                       rb_abi_guest_rb_id_t mid,
-                                      rb_abi_guest_list_rb_value_t *args,
-                                      rb_abi_guest_rb_value_t *ret0,
+                                      rb_abi_guest_list_rb_abi_value_t *args,
+                                      rb_abi_guest_rb_abi_value_t *ret0,
                                       int32_t *ret1) {
   VALUE retval;
-  VALUE r_recv = (VALUE)rb_abi_guest_rb_value_get(&recv);
+  VALUE r_recv = (VALUE)rb_abi_guest_rb_abi_value_get(&recv);
   struct rb_funcallv_thunk_ctx ctx = {
       .recv = r_recv, .mid = mid, .args = args};
   RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
   rb_abi_lend_object(retval);
-  *ret0 = rb_abi_guest_rb_value_new((void *)retval);
+  *ret0 = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
 rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
   return rb_intern(name->ptr);
 }
 
-rb_abi_guest_rb_value_t rb_abi_guest_rb_errinfo(void) {
+rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_errinfo());
   rb_abi_lend_object(retval);
-  return rb_abi_guest_rb_value_new((void *)retval);
+  return rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
-void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_value_t value,
+void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_abi_value_t value,
                               rb_abi_guest_string_t *ret0) {
-  VALUE r_str = (VALUE)rb_abi_guest_rb_value_get(&value);
+  VALUE r_str = (VALUE)rb_abi_guest_rb_abi_value_get(&value);
   ret0->len = RSTRING_LEN(r_str);
   ret0->ptr = xmalloc(ret0->len);
   memcpy(ret0->ptr, RSTRING_PTR(r_str), ret0->len);
 }
 
-uint32_t rb_abi_guest_rb_value_data_ptr(rb_abi_guest_rb_value_t self) {
-  VALUE obj = (VALUE)rb_abi_guest_rb_value_get(&self);
+uint32_t rb_abi_guest_rb_abi_value_data_ptr(rb_abi_guest_rb_abi_value_t self) {
+  VALUE obj = (VALUE)rb_abi_guest_rb_abi_value_get(&self);
   return (uint32_t)DATA_PTR(obj);
 }
 
