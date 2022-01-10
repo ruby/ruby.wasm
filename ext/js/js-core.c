@@ -65,6 +65,12 @@ static struct jsvalue *check_jsvalue(VALUE obj) {
 
 #define IS_JSVALUE(obj) (rb_typeddata_is_kind_of((obj), &jsvalue_data_type))
 
+static inline void rstring_to_abi_string(VALUE rstr, rb_js_abi_host_string_t *abi_str) {
+  abi_str->len = RSTRING_LEN(rstr);
+  abi_str->ptr = xmalloc(abi_str->len);
+  memcpy(abi_str->ptr, RSTRING_PTR(rstr), abi_str->len);
+}
+
 /*
  * call-seq:
  *   JS.eval(code) -> JS::Object
@@ -75,9 +81,8 @@ static struct jsvalue *check_jsvalue(VALUE obj) {
  *   p JS.eval("return new Object()").is_a?(JS.global[:Object]) # => true
  */
 static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
-  const char *code_str_ptr = (const char *)RSTRING_PTR(code_str);
   rb_js_abi_host_string_t abi_str;
-  rb_js_abi_host_string_set(&abi_str, code_str_ptr);
+  rstring_to_abi_string(code_str, &abi_str);
   return jsvalue_s_new(rb_js_abi_host_eval_js(&abi_str));
 }
 
@@ -154,10 +159,9 @@ static VALUE _rb_js_global_this(VALUE _) {
  */
 static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
   struct jsvalue *p = check_jsvalue(obj);
-  key = rb_obj_as_string(key);
-  const char *key_cstr = (const char *)RSTRING_PTR(key);
   rb_js_abi_host_string_t key_abi_str;
-  rb_js_abi_host_string_dup(&key_abi_str, key_cstr);
+  key = rb_obj_as_string(key);
+  rstring_to_abi_string(key, &key_abi_str);
   return jsvalue_s_new(rb_js_abi_host_reflect_get(p->abi, &key_abi_str));
 }
 
@@ -173,10 +177,9 @@ static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
 static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   struct jsvalue *p = check_jsvalue(obj);
   struct jsvalue *v = check_jsvalue(val);
-  key = rb_obj_as_string(key);
-  const char *key_cstr = (const char *)RSTRING_PTR(key);
   rb_js_abi_host_string_t key_abi_str;
-  rb_js_abi_host_string_dup(&key_abi_str, key_cstr);
+  key = rb_obj_as_string(key);
+  rstring_to_abi_string(key, &key_abi_str);
   rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi);
   return val;
 }
@@ -246,8 +249,7 @@ static VALUE _rb_js_integer_to_js(VALUE obj) {
  */
 static VALUE _rb_js_string_to_js(VALUE obj) {
   rb_js_abi_host_string_t abi_str;
-  abi_str.len = RSTRING_LEN(obj);
-  abi_str.ptr = RSTRING_PTR(obj);
+  rstring_to_abi_string(obj, &abi_str);
   return jsvalue_s_new(rb_js_abi_host_string_to_js_string(&abi_str));
 }
 

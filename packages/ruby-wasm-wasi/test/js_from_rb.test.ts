@@ -58,6 +58,7 @@ describe("Manipulation of JS from Ruby", () => {
     { expr: "return Object", result: Object },
     { expr: "return 1", result: 1 },
     { expr: "return 'x'", result: "x" },
+    { expr: "return 'x\\\\0'", result: "x\0" },
   ])(`JS.eval(%s)`, async (props) => {
     const vm = await initRubyVM();
     const result = vm.eval(`

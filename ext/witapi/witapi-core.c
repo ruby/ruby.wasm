@@ -169,9 +169,9 @@ void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_value_t recv,
                                       rb_abi_guest_rb_value_t *ret0,
                                       int32_t *ret1) {
   VALUE retval;
-  VALUE abi_recv = (VALUE)rb_abi_guest_rb_value_get(&recv);
+  VALUE r_recv = (VALUE)rb_abi_guest_rb_value_get(&recv);
   struct rb_funcallv_thunk_ctx ctx = {
-      .recv = abi_recv, .mid = mid, .args = args};
+      .recv = r_recv, .mid = mid, .args = args};
   RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
   rb_abi_lend_object(retval);
   *ret0 = rb_abi_guest_rb_value_new((void *)retval);
@@ -190,9 +190,10 @@ rb_abi_guest_rb_value_t rb_abi_guest_rb_errinfo(void) {
 
 void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_value_t value,
                               rb_abi_guest_string_t *ret0) {
-  VALUE abi_value = (VALUE)rb_abi_guest_rb_value_get(&value);
-  const char *str_ptr = (const char *)RSTRING_PTR(abi_value);
-  rb_abi_guest_string_dup(ret0, str_ptr);
+  VALUE r_str = (VALUE)rb_abi_guest_rb_value_get(&value);
+  ret0->len = RSTRING_LEN(r_str);
+  ret0->ptr = xmalloc(ret0->len);
+  memcpy(ret0->ptr, RSTRING_PTR(r_str), ret0->len);
 }
 
 uint32_t rb_abi_guest_rb_value_data_ptr(rb_abi_guest_rb_value_t self) {
