@@ -20,7 +20,7 @@ cp "$package_dir/package.json" "$dist_dir/package.json"
 # TODO(katei): Embed stdlib by wasi-vfs after it's published
 
 mkdir -p "$dist_dir/bin"
-cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/bin/ruby.wasm"
+wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/bin/ruby.wasm"
 
 wit-bindgen js \
     --import "$package_dir/../../ext/witapi/bindgen/rb-abi-guest.wit" \
