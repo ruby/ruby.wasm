@@ -1,3 +1,4 @@
+import { RbValue } from "../dist/index";
 import { initRubyVM } from "./init";
 
 describe("RubyVM", () => {
@@ -69,6 +70,9 @@ describe("RubyVM", () => {
   });
 
   test("protect exported Ruby objects", async () => {
+    function dropRbValue(value: RbValue) {
+      (value as any).inner.drop()
+    }
     const vm = await initRubyVM();
     const initialGCCount = Number(vm.eval("GC.count").toString());
     const robj = vm.eval("$x = Object.new");
@@ -86,6 +90,19 @@ describe("RubyVM", () => {
     const robj3 = robj2.call("itself");
     vm.eval("GC.start");
     expect(robj3.call("object_id").toString()).toBe(robjId);
+
+    dropRbValue(robj);
+    expect(robj2.call("object_id").toString()).toBe(robjId);
+    expect(robj3.call("object_id").toString()).toBe(robjId);
+
+    vm.eval("GC.start");
+    expect(robj2.call("object_id").toString()).toBe(robjId);
+    expect(robj3.call("object_id").toString()).toBe(robjId);
+
+    dropRbValue(robj2);
+    dropRbValue(robj3);
+
+    vm.eval("GC.start");
   });
 
   test("method call with args", async () => {
