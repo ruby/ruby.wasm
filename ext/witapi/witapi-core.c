@@ -66,13 +66,45 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
     }                                                                          \
   }
 
+static VALUE rb_abi_guest_arena_hash;
+static void rb_abi_lend_object_internal(VALUE obj) {
+  VALUE ref_count = rb_hash_lookup(rb_abi_guest_arena_hash, obj);
+  if (NIL_P(ref_count)) {
+    rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(1));
+  } else {
+    rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(FIX2INT(ref_count) + 1));
+  }
+}
+static void rb_abi_lend_object(VALUE obj) {
+  RB_WASM_LIB_RT(rb_abi_lend_object_internal(obj));
+}
+
+void rb_abi_guest_rb_value_dtor(void *data) {
+  VALUE obj = (VALUE)data;
+  VALUE ref_count = rb_hash_lookup(rb_abi_guest_arena_hash, obj);
+  if (NIL_P(ref_count)) {
+    rb_warning("rb_abi_guest_rb_value_dtor: double free detected");
+    return;
+  }
+  if (ref_count == INT2FIX(1)) {
+    rb_hash_delete(rb_abi_guest_arena_hash, obj);
+  } else {
+    rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(FIX2INT(ref_count) - 1));
+  }
+}
+
 // MARK: - Exported functions
 // NOTE: Assume that callers always pass null terminated string by
 // rb_abi_guest_string_t
 
 void rb_abi_guest_ruby_show_version(void) { ruby_show_version(); }
 
-void rb_abi_guest_ruby_init(void) { RB_WASM_LIB_RT(ruby_init()) }
+void rb_abi_guest_ruby_init(void) {
+  RB_WASM_LIB_RT(ruby_init())
+
+  rb_abi_guest_arena_hash = rb_hash_new();
+  rb_gc_register_mark_object(rb_abi_guest_arena_hash);
+}
 
 void rb_abi_guest_ruby_sysinit(rb_abi_guest_list_string_t *args) {
   char **c_args;
@@ -107,12 +139,12 @@ void rb_abi_guest_ruby_init_loadpath(void) {
 }
 
 void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str,
-                                            rb_abi_guest_rb_value_t *result,
-                                            int32_t *state) {
+                                         rb_abi_guest_rb_value_t *result,
+                                         int32_t *state) {
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
-  // TODO(katei): protect the value from GC
-  rb_gc_register_mark_object(retval);
+  rb_abi_lend_object(retval);
+
   *result = rb_abi_guest_rb_value_new((void *)retval);
 }
 
@@ -132,42 +164,35 @@ VALUE rb_funcallv_thunk(VALUE arg) {
 }
 
 void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_value_t recv,
-                                         rb_abi_guest_rb_id_t mid,
-                                         rb_abi_guest_list_rb_value_t *args,
-                                         rb_abi_guest_rb_value_t *ret0,
-                                         int32_t *ret1) {
+                                      rb_abi_guest_rb_id_t mid,
+                                      rb_abi_guest_list_rb_value_t *args,
+                                      rb_abi_guest_rb_value_t *ret0,
+                                      int32_t *ret1) {
   VALUE retval;
   VALUE abi_recv = (VALUE)rb_abi_guest_rb_value_get(&recv);
   struct rb_funcallv_thunk_ctx ctx = {
       .recv = abi_recv, .mid = mid, .args = args};
   RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
-  // TODO(katei): protect the value from GC
-  rb_gc_register_mark_object(retval);
+  rb_abi_lend_object(retval);
   *ret0 = rb_abi_guest_rb_value_new((void *)retval);
 }
 
-rb_abi_guest_rb_id_t
-rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
+rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
   return rb_intern(name->ptr);
 }
 
 rb_abi_guest_rb_value_t rb_abi_guest_rb_errinfo(void) {
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_errinfo());
-  // TODO(katei): protect the value from GC
-  rb_gc_register_mark_object(retval);
+  rb_abi_lend_object(retval);
   return rb_abi_guest_rb_value_new((void *)retval);
 }
 
 void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_value_t value,
-                                 rb_abi_guest_string_t *ret0) {
+                              rb_abi_guest_string_t *ret0) {
   VALUE abi_value = (VALUE)rb_abi_guest_rb_value_get(&value);
   const char *str_ptr = (const char *)RSTRING_PTR(abi_value);
   rb_abi_guest_string_dup(ret0, str_ptr);
-}
-
-void rb_abi_guest_rb_value_dtor(void *data) {
-  // TODO(katei): unprotect the value from GC
 }
 
 uint32_t rb_abi_guest_rb_value_data_ptr(rb_abi_guest_rb_value_t self) {

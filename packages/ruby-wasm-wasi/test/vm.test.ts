@@ -71,13 +71,21 @@ describe("RubyVM", () => {
   test("protect exported Ruby objects", async () => {
     const vm = await initRubyVM();
     const initialGCCount = Number(vm.eval("GC.count").toString());
-    const robj = vm.eval("Object.new");
+    const robj = vm.eval("$x = Object.new");
     const robjId = robj.call("object_id").toString();
     expect(robjId).not.toEqual("");
 
     vm.eval("GC.start");
     expect(robj.call("object_id").toString()).toBe(robjId);
     expect(Number(vm.eval("GC.count").toString())).toEqual(initialGCCount + 1);
+
+    const robj2 = vm.eval("$x");
+    vm.eval("GC.start");
+    expect(robj2.call("object_id").toString()).toBe(robjId);
+
+    const robj3 = robj2.call("itself");
+    vm.eval("GC.start");
+    expect(robj3.call("object_id").toString()).toBe(robjId);
   });
 
   test("method call with args", async () => {
