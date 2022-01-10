@@ -121,7 +121,7 @@ export class RubyVM {
           throw new Error("Function not implemented.");
         },
         reflectSet: function (target, propertyKey, value): boolean {
-          throw new Error("Function not implemented.");
+          return Reflect.set(target, propertyKey, value);
         },
         reflectSetPrototypeOf: function (target, prototype): boolean {
           throw new Error("Function not implemented.");
