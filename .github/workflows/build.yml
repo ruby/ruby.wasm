@@ -92,7 +92,7 @@ jobs:
       - name: Configure Ruby
         run: |
           CONFIGURE_ARGS=$(docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID \
-            bash -c 'ruby ./ruby.wasm/ci/configure-args.rb \
+            bash -c 'ruby ./ruby.wasm/ci/configure_args.rb \
             --flavor "${{ matrix.entry.flavor }}" \
             --target "${{ matrix.entry.target }}" \
             --libs "${{ matrix.entry.libs }}"')
