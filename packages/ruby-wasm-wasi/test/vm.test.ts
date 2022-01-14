@@ -71,7 +71,7 @@ describe("RubyVM", () => {
 
   test("protect exported Ruby objects", async () => {
     function dropRbValue(value: RbValue) {
-      (value as any).inner.drop()
+      (value as any).inner.drop();
     }
     const vm = await initRubyVM();
     const initialGCCount = Number(vm.eval("GC.count").toString());

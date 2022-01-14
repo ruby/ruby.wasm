@@ -2,20 +2,10 @@ import * as RbAbi from "./bindgen/rb-abi-guest";
 import { addRbJsAbiHostToImports, JsAbiValue } from "./bindgen/rb-js-abi-host";
 
 /**
- * Error class thrown by Ruby execution
- */
-export class RbError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
-/**
  * A Ruby VM instance
  *
- * ## Example
+ * @example
  *
- * ```javascript
  * const wasi = new WASI();
  * const vm = new RubyVM();
  * const imports = {
@@ -25,9 +15,9 @@ export class RbError extends Error {
  * vm.addToImports(imports);
  *
  * const instance = await WebAssembly.instantiate(rubyModule, imports);
- * await vm.init(instance);
+ * await vm.setInstance(instance);
  * wasi.initialize(instance);
- * ```
+ *
  */
 export class RubyVM {
   guest: RbAbi.RbAbiGuest;
@@ -39,8 +29,13 @@ export class RubyVM {
     this.exporter = new JsValueExporter();
   }
 
+  /**
+   * Initialize the Ruby VM with the given command line arguments
+   * @param args The command line arguments to pass to Ruby. Must be
+   * an array of strings starting with the Ruby program name.
+   */
   initialize(args: string[] = ["ruby.wasm", "--disable-gems", "-e_=0"]) {
-    const c_args = args.map((arg) => arg + "\0")
+    const c_args = args.map((arg) => arg + "\0");
     this.guest.rubyInit();
     this.guest.rubySysinit(c_args);
     this.guest.rubyOptions(c_args);
@@ -51,8 +46,9 @@ export class RubyVM {
    * WebAssembly instance. This method must be called before calling
    * Ruby API.
    *
-   * The `instance` must be instantiated from a Ruby built with JS
-   * extension, and built with Reactor ABI instead of command line.
+   * @param instance The WebAssembly instance to interact with. Must
+   * be instantiated from a Ruby built with JS extension, and built
+   * with Reactor ABI instead of command line.
    */
   async setInstance(instance: WebAssembly.Instance) {
     this.instance = instance;
@@ -62,6 +58,7 @@ export class RubyVM {
   /**
    * Add intrinsic import entries, which is necessary to interact JavaScript
    * and Ruby's WebAssembly instance.
+   * @param imports The import object to add to the WebAssembly instance
    */
   addToImports(imports: WebAssembly.Imports) {
     this.guest.addToImports(imports);
@@ -161,7 +158,14 @@ export class RubyVM {
 
   /**
    * Runs a string of Ruby code from JavaScript
-   * Returns the result of the last expression
+   * @param code The Ruby code to run
+   * @returns the result of the last expression
+   *
+   * @example
+   * vm.eval("puts 'hello world'");
+   * const result = vm.eval("1 + 2");
+   * console.log(result.toString()); // 3
+   *
    */
   eval(code: string): RbValue {
     return evalRbCode(this, this.exporter, code);
@@ -190,6 +194,15 @@ export class RbValue {
 
   /**
    * Call a given method with given arguments
+   *
+   * @param callee name of the Ruby method to call
+   * @param args arguments to pass to the method. Must be an array of RbValue
+   *
+   * @example
+   * const ary = vm.eval("[1, 2, 3]");
+   * ary.call("push", 4);
+   * console.log(ary.call("sample").toString());
+   *
    */
   call(callee: string, ...args: RbValue[]): RbValue {
     const innerArgs = args.map((arg) => arg.inner);
@@ -200,6 +213,9 @@ export class RbValue {
     );
   }
 
+  /**
+   * @see {@link https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive}
+   */
   [Symbol.toPrimitive](hint: string) {
     if (hint === "string" || hint === "default") {
       return this.toString();
@@ -208,6 +224,10 @@ export class RbValue {
     }
     return null;
   }
+
+  /**
+   * Returns a string representation of the value by calling `to_s`
+   */
   toString(): string {
     const rbString = callRbMethod(
       this.vm,
@@ -219,7 +239,13 @@ export class RbValue {
     return this.vm.guest.rstringPtr(rbString);
   }
 
-  toJS(): JsAbiValue {
+  /**
+   * Returns a JavaScript object representation of the value
+   * by calling `to_js`.
+   *
+   * Returns null if the value is not convertible to a JavaScript object.
+   */
+  toJS(): any {
     const JS = this.vm.eval("JS");
     const jsValue = JS.call("try_convert", this);
     if (jsValue.call("nil?").toString() === "true") {
@@ -308,3 +334,12 @@ const evalRbCode = (vm: RubyVM, exporter: JsValueExporter, code: string) => {
   checkStatusTag(status, vm, exporter);
   return new RbValue(value, vm, exporter);
 };
+
+/**
+ * Error class thrown by Ruby execution
+ */
+export class RbError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
