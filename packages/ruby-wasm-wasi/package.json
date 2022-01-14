@@ -7,7 +7,19 @@
   "module": "./dist/index.esm.js",
   "typings": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
+  ],
+  "repository": "https://github.com/kateinoigakukun/ruby.wasm",
+  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/ruby-wasm-wasi",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "wasi",
+    "ruby"
   ],
   "license": "MIT",
   "scripts": {
