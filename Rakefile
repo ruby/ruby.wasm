@@ -60,7 +60,7 @@ class BuildPlan
     "ruby #{build_libs_rb} --ruby-src-dir=#{src_dir} --ruby-build-dir=#{build_dir} --target #{@params[:target]} --libs \"#{@params[:libs].join(" ")}\""
   end
 
-  def configure_args()
+  def configure_args(build_triple)
     target = @params[:target]
     flavor = @params[:flavor]
     libs = @params[:libs]
@@ -68,7 +68,7 @@ class BuildPlan
     ldflags = %w(-Xlinker -zstack-size=16777216)
     xldflags = []
 
-    args = ["--host", target]
+    args = ["--host", target, "--build", build_triple]
     args << "--with-static-linked-ext"
 
     case flavor
@@ -124,22 +124,26 @@ namespace :build do
       build = BuildPlan.new(source, params, Dir.pwd)
 
       directory build.dest_dir
-      desc "Build #{build.name}"
-      task build.name, [:reconfigure] => ["deps:check", src_dir, build.dest_dir] do |t, args|
+
+      desc "Configure #{build.name}"
+      task "#{build.name}-configure", [:reconfigure] => ["deps:check", src_dir] do |t, args|
         args.with_defaults(:reconfigure => false)
 
         sh "./autogen.sh", chdir: src_dir
         mkdir_p build.build_dir
         if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
-          args = build.configure_args
+          args = build.configure_args(`#{src_dir}/tool/config.guess`.chomp)
           sh "#{src_dir}/configure #{args.join(" ")}", chdir: build.build_dir
         end
-        Rake::Task["build:#{build.name}-libs"].invoke(src_dir, build.build_dir)
+      end
+
+      desc "Build #{build.name}"
+      task build.name => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
         sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
       end
 
       desc "Build ext libraries for #{build.name}"
-      task "#{build.name}-libs", [:src_dir, :build_dir] => ["deps:check"] do |t, args|
+      task "#{build.name}-libs" => ["#{build.name}-configure"] do
         make_args = []
         case params[:target]
         when "wasm32-unknown-wasi"
@@ -158,7 +162,7 @@ namespace :build do
         else
           raise "unknown target: #{params[:target]}"
         end
-        make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{args[:src_dir]}/include -I#{args[:build_dir]}/.ext/include/wasm32-wasi")
+        make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{src_dir}/include -I#{build.build_dir}/.ext/include/wasm32-wasi")
         make_args << %Q(OBJDIR=#{build.ext_build_dir})
         params[:libs].each do |lib|
           make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{build.ext_build_dir}/#{lib} obj)
