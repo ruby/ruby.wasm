@@ -57,91 +57,54 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { flavor: minimal, target: wasm32-unknown-wasi }
-          - { flavor: minimal-js, target: wasm32-unknown-wasi, libs: "witapi,js" }
-          - { flavor: minimal, target: wasm32-unknown-emscripten }
-          - { flavor: full, target: wasm32-unknown-wasi }
-          - { flavor: full-js, target: wasm32-unknown-wasi, libs: "witapi,js" }
-          - { flavor: full, target: wasm32-unknown-emscripten }
+          - { build: "pr-1726-wasm32-unknown-emscripten-full", builder: "wasm32-unknown-emscripten" }
+          - { build: "pr-1726-wasm32-unknown-emscripten-minimal", builder: "wasm32-unknown-emscripten" }
+          - { build: "pr-1726-wasm32-unknown-wasi-full", builder: "wasm32-unknown-wasi" }
+          - { build: "pr-1726-wasm32-unknown-wasi-full-js", builder: "wasm32-unknown-wasi" }
+          - { build: "pr-1726-wasm32-unknown-wasi-minimal", builder: "wasm32-unknown-wasi" }
+          - { build: "pr-1726-wasm32-unknown-wasi-minimal-js", builder: "wasm32-unknown-wasi" }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     steps:
-      # Clone repositories (side by side)
-      # ./
-      # ├── ruby.wasm/
-      # └── ruby/
       - uses: actions/checkout@v2
-        with:
-          path: ./ruby.wasm
-      - uses: actions/checkout@v2
-        with:
-          repository: kateinoigakukun/ruby
-          ref: e3b5c3c232f151bd4de4e6bf2d48790987a4ae96
-          path: ./ruby
-
       - name: Fetch builder image
         uses: actions/download-artifact@v2
         with:
-          name: ruby.wasm-builder-${{ matrix.entry.target }}
+          name: ruby.wasm-builder-${{ matrix.entry.builder }}
       - name: Load builder image
         id: load-image
         run: |
           docker load --input image.tar | tee image-info.txt
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
-      - run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID ./autogen.sh
-      - name: Configure Ruby
-        run: |
-          CONFIGURE_ARGS=$(docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID \
-            bash -c 'ruby ./ruby.wasm/ci/configure_args.rb \
-            --flavor "${{ matrix.entry.flavor }}" \
-            --target "${{ matrix.entry.target }}" \
-            --libs "${{ matrix.entry.libs }}"')
-          CONFIGURE_ARGS=" \
-            --build x86_64-pc-linux-gnu \
-            --with-destdir=./${{ matrix.entry.target }}-${{ matrix.entry.flavor }} \
-            $CONFIGURE_ARGS"
-          echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
-          docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID bash -c "./configure $CONFIGURE_ARGS"
-      - name: Build ruby.wasm libraries
-        run: |
-          docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID ruby ./ruby.wasm/ci/build-libs.rb \
-            --libs "${{ matrix.entry.libs }}" \
-            --target "${{ matrix.entry.target }}" \
-            --ruby-src-dir "./ruby"
-      - name: Build ruby.wasm
-        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build/ruby sha256:$BUILDER_IMAGE_ID make install
-      # Install ruby.wasm manually because rbinstall.rb doesn't recognize ruby.wasm for now
-      # cf. https://github.com/ruby/ruby/blob/4e4c4fab3c25a056688939ae8e003a049fc401ee/tool/rbinstall.rb#L375
-      - run: sudo cp ruby.wasm wasm32-unknown-emscripten-${{ matrix.entry.flavor }}/usr/local/bin/ruby.wasm
-        working-directory: ./ruby
-        if: ${{ matrix.entry.target == 'wasm32-unknown-emscripten' }}
-      - run: tar cfz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
+      - name: rake build:${{ matrix.entry.build }}
+        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID rake build:${{ matrix.entry.build }}
+      - run: tar cfz ${{ matrix.entry.build }}.tar.gz -C ./rubies pr-1726-wasm32-unknown-wasi-full ./rubies/${{ matrix.entry.build }}
         working-directory: ./ruby
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
-          path: ./ruby/${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
+          name: ${{ matrix.entry.build }}
+          path: ${{ matrix.entry.build }}.tar.gz
 
   build-npm-packages:
     strategy:
       fail-fast: false
       matrix:
         entry:
-          - { package: ruby-wasm-emscripten, target: wasm32-unknown-emscripten, flavor: full }
-          - { package: ruby-wasm-wasi, target: wasm32-unknown-wasi, flavor: full-js }
+          - { package: ruby-wasm-emscripten, build: "pr-1726-wasm32-unknown-emscripten-full", builder: wasm32-unknown-emscripten }
+          - { package: ruby-wasm-wasi, build: "pr-1726-wasm32-unknown-wasi-full-js", builder: wasm32-unknown-wasi }
     needs: [build-ruby-release]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}
-      - run: tar xfz ${{ matrix.entry.target }}-${{ matrix.entry.flavor }}.tar.gz
+          name: ${{ matrix.entry.build }}
+      - run: tar xfz ${{ matrix.entry.build }}.tar.gz
       - run: |
           (cd ./packages/${{ matrix.entry.package }} && npm install)
           docker run -v $(pwd):/work -w /work \
-            "ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.target }}" \
-            "./packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.target }}-${{ matrix.entry.flavor }}"
+            "ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.builder }}" \
+            "./packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.build }}"
       - run: sudo npm --no-git-tag-version version 0.0.0-latest-main && sudo npm pack
         working-directory: ./packages/${{ matrix.entry.package }}
       - uses: actions/upload-artifact@v2
