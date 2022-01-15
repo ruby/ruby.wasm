@@ -15,13 +15,13 @@ ENV WASI_SDK_PATH="/opt/wasi-sdk"
 
 RUN set -eux; \
   apt-get update; \
-  apt-get install ruby bison make autoconf git wget nodejs npm -y; \
+  apt-get install ruby bison make autoconf git curl nodejs npm -y; \
   apt-get clean; \
   rm -r /var/lib/apt/lists/*
 
 RUN set -eux pipefail; \
   wasi_sdk_deb="wasi-sdk_${WASI_SDK_VERSION_MAJOR}.${WASI_SDK_VERSION_MINOR}_amd64.deb"; \
-  wget "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION_MAJOR}/${wasi_sdk_deb}"; \
+  curl -LO "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION_MAJOR}/${wasi_sdk_deb}"; \
   dpkg -i "$wasi_sdk_deb"; \
   rm -f "$wasi_sdk_deb";
 
@@ -29,7 +29,7 @@ ENV BINARYEN_DIR="/opt/binaryen"
 RUN set -eux pipefail; \
   binaryen_tarball="binaryen-version_${BINARYEN_VERSION}-x86-linux.tar.gz"; \
   binaryen_url="https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/${binaryen_tarball}"; \
-  wget -O - "$binaryen_url" | tar xfz -; \
+  curl -L "$binaryen_url" | tar xfz -; \
   ln -fs /binaryen-version_${BINARYEN_VERSION} /opt/binaryen;
 
 ENV PATH="$BINARYEN_DIR:$PATH"
