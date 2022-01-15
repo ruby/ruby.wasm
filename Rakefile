@@ -2,9 +2,12 @@ require "rake"
 require_relative "ci/configure_args"
 
 namespace :deps do
-  task :check do
+  task "check-wasm32-unknown-wasi" do
     check_executable("wit-bindgen")
     check_envvar("WASI_SDK_PATH")
+  end
+  task "check-wasm32-unknown-emscripten" do
+    check_executable("emcc")
   end
 end
 
@@ -129,7 +132,7 @@ namespace :build do
         cp_r src_dir, build.build_dir
       end
 
-      task "#{build.name}-configure", [:reconfigure] => ["deps:check", build.build_dir] do |t, args|
+      task "#{build.name}-configure", [:reconfigure] => ["deps:check-#{params[:target]}", build.build_dir] do |t, args|
         args.with_defaults(:reconfigure => false)
 
         sh "./autogen.sh", chdir: build.build_dir
