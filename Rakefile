@@ -3,7 +3,6 @@ require_relative "ci/configure_args"
 
 namespace :deps do
   task :check do
-    check_executable("cargo")
     check_executable("wit-bindgen")
     check_envvar("WASI_SDK_PATH")
   end
