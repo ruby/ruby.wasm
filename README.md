@@ -14,7 +14,8 @@ It enables running Ruby application on browsers, WASI compatible WebAssembly run
 
 ## Prebuilt binaries
 
-The prebuilt binaries are available at GitHub Releases. A _build_ consists of _target triple_ and _flavor_.
+[The prebuilt binaries are available at here](https://github.com/kateinoigakukun/ruby.wasm/releases).
+A _build_ is a combination of ruby version, _flavor_, and _target_.
 
 The supported _target triples_ in this repository are:
 
@@ -29,6 +30,35 @@ The supported _target triples_ in this repository are:
 | full       | All standard extension libraries                                                     |
 | minimal-js | No standard extension libraries, and usable with npm package (only for WASI target)  |
 | full-js    | All standard extension libraries, and usable with npm package (only for WASI target) |
+
+## Building from source
+
+### Dependencies
+
+- [wit-bindgen](https://github.com/bytecodealliance/wit-bindgen): A language bindings generator for `wit` used in the npm packages.
+- [wasi-sdk](https://github.com/WebAssembly/wasi-sdk): For building for WASI target. Set `WASI_SDK_PATH` environment variable to the directory of wasi-sdk.
+- [Emscripten](https://emscripten.org): For building for Emscripten target
+
+It's recommended to build on a Docker container, which installs all dependencies and provides environment variables:
+
+```console
+# For building ruby for WASI target
+$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/kateinoigakukun/ruby.wasm-builder:wasm32-unknown-wasi /bin/bash
+# For building ruby for Emscripten target
+$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/kateinoigakukun/ruby.wasm-builder:wasm32-unknown-emscripten /bin/bash
+```
+
+Then, you can build by `rake` command. See `rake -T` for more information.
+
+```console
+# Build only a specific combination of ruby version, flavor, and target
+# Output is in the `rubies` directory
+$ rake build:pr-1726-wasm32-unknown-wasi-full-js
+# Build all combinations of flavor, and target for a specific ruby version
+$ rake build:pr-1726
+# Build npm packages and required ruby
+$ rake pkg:all
+```
 
 ## Notable Limitations
 
