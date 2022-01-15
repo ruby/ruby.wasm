@@ -18,7 +18,6 @@ BUILD_SOURCES = [
   },
 ]
 
-BUILD_TARGETS = ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"]
 BUILD_PARAMS = [
   { target: "wasm32-unknown-wasi", flavor: "minimal", libs: [] },
   { target: "wasm32-unknown-wasi", flavor: "minimal-js", libs: ["js", "witapi"] },
@@ -26,6 +25,11 @@ BUILD_PARAMS = [
   { target: "wasm32-unknown-wasi", flavor: "full-js", libs: ["js", "witapi"] },
   { target: "wasm32-unknown-emscripten", flavor: "minimal", libs: [] },
   { target: "wasm32-unknown-emscripten", flavor: "full", libs: [] },
+]
+
+PACKAGES = [
+  { name: "ruby-wasm-emscripten", build: "pr-1726-wasm32-unknown-emscripten-full" },
+  { name: "ruby-wasm-wasi", build: "pr-1726-wasm32-unknown-wasi-full-js" },
 ]
 
 class BuildPlan
@@ -53,11 +57,6 @@ class BuildPlan
 
   def extinit_obj
     "#{ext_build_dir}/extinit.o"
-  end
-
-  def build_libs_cmd(src_dir)
-    build_libs_rb = "#{@base_dir}/ci/build-libs.rb"
-    "ruby #{build_libs_rb} --ruby-src-dir=#{src_dir} --ruby-build-dir=#{build_dir} --target #{@params[:target]} --libs \"#{@params[:libs].join(" ")}\""
   end
 
   def configure_args(build_triple)
@@ -103,9 +102,6 @@ class BuildPlan
 end
 
 namespace :build do
-  BUILD_TARGETS.each do |target|
-  end
-
   BUILD_SOURCES.each do |source|
     base_dir = Dir.pwd
     src_dir = "#{base_dir}/build/src/#{source[:name]}"
@@ -134,7 +130,6 @@ namespace :build do
         cp_r src_dir, build.build_dir
       end
 
-      desc "Configure #{build.name}"
       task "#{build.name}-configure", [:reconfigure] => ["deps:check", build.build_dir] do |t, args|
         args.with_defaults(:reconfigure => false)
 
@@ -150,7 +145,6 @@ namespace :build do
         sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
       end
 
-      desc "Build ext libraries for #{build.name}"
       task "#{build.name}-libs" => ["#{build.name}-configure"] do
         make_args = []
         case params[:target]
@@ -186,6 +180,21 @@ namespace :build do
     desc "Build #{source[:name]}"
     multitask source[:name] => build_plans.map { |build| build.name }
   end
+end
+
+namespace :pkg do
+  PACKAGES.each do |pkg|
+    desc "Build #{pkg[:name]}"
+    task pkg[:name] => ["build:#{pkg[:build]}"] do
+      base_dir = Dir.pwd
+      pkg_dir = "#{Dir.pwd}/packages/#{pkg[:name]}"
+      sh "npm ci", chdir: pkg_dir
+      sh "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
+    end
+  end
+
+  desc "Build all packages"
+  multitask :all => PACKAGES.map { |pkg| pkg[:name] }
 end
 
 def check_executable(command)
