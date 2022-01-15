@@ -61,7 +61,7 @@ class BuildPlan
     "#{ext_build_dir}/extinit.o"
   end
 
-  def configure_args
+  def configure_args(build_triple)
     target = @params[:target]
     flavor = @params[:flavor]
     libs = @params[:libs]
@@ -69,7 +69,7 @@ class BuildPlan
     ldflags = %w(-Xlinker -zstack-size=16777216)
     xldflags = []
 
-    args = ["--host", target]
+    args = ["--host", target, "--build", build_triple]
     args << "--with-static-linked-ext"
 
     case flavor
@@ -137,7 +137,7 @@ namespace :build do
 
         sh "./autogen.sh", chdir: build.build_dir
         if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
-          args = build.configure_args
+          args = build.configure_args(`#{build.build_dir}/tool/config.guess`.chomp)
           sh "./configure #{args.join(" ")}", chdir: build.build_dir
         end
       end
