@@ -223,7 +223,8 @@ task :publish, [:run_id, :tag] do |t, args|
       sh "unzip #{artifact["name"]}.zip"
       rm "#{artifact["name"]}.zip"
     end
-    sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes "" --draft --prerelease *)
+    files = Dir.glob("*")
+    sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes "" --draft --prerelease #{files.join(" ")})
   end
 end
 
