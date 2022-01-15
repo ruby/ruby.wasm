@@ -78,8 +78,7 @@ jobs:
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
       - name: rake build:${{ matrix.entry.build }}
         run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID rake build:${{ matrix.entry.build }}
-      - run: tar cfz ${{ matrix.entry.build }}.tar.gz -C ./rubies pr-1726-wasm32-unknown-wasi-full ./rubies/${{ matrix.entry.build }}
-        working-directory: ./ruby
+      - run: tar cfz ${{ matrix.entry.build }}.tar.gz -C ./rubies ${{ matrix.entry.build }}
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.entry.build }}
