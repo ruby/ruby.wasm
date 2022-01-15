@@ -125,15 +125,23 @@ namespace :build do
 
       directory build.dest_dir
 
+      directory build.build_dir => [src_dir] do
+        # FIXME: It fails to make libencs in cross-compiling and
+        # out-of-tree mysteriously.
+        # It seems libencs target in exts.mk doesn't pass MINIRUBY to enc.mk,
+        # and it's only used under the condition.
+        mkdir_p File.dirname(build.build_dir)
+        cp_r src_dir, build.build_dir
+      end
+
       desc "Configure #{build.name}"
-      task "#{build.name}-configure", [:reconfigure] => ["deps:check", src_dir] do |t, args|
+      task "#{build.name}-configure", [:reconfigure] => ["deps:check", build.build_dir] do |t, args|
         args.with_defaults(:reconfigure => false)
 
-        sh "./autogen.sh", chdir: src_dir
-        mkdir_p build.build_dir
+        sh "./autogen.sh", chdir: build.build_dir
         if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
-          args = build.configure_args(`#{src_dir}/tool/config.guess`.chomp)
-          sh "#{src_dir}/configure #{args.join(" ")}", chdir: build.build_dir
+          args = build.configure_args(`#{build.build_dir}/tool/config.guess`.chomp)
+          sh "./configure #{args.join(" ")}", chdir: build.build_dir
         end
       end
 
@@ -168,6 +176,7 @@ namespace :build do
           make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{build.ext_build_dir}/#{lib} obj)
           sh make_cmd
         end
+        mkdir_p File.dirname(build.extinit_obj)
         sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{params[:libs].join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
       end
 
