@@ -1,4 +1,5 @@
 require "rake"
+require "json"
 require_relative "ci/configure_args"
 
 namespace :deps do
@@ -197,6 +198,33 @@ namespace :pkg do
 
   desc "Build all packages"
   multitask :all => PACKAGES.map { |pkg| pkg[:name] }
+end
+
+RELASE_ARTIFACTS = [
+  # ruby builds
+  "pr-1726-wasm32-unknown-emscripten-full",
+  "pr-1726-wasm32-unknown-emscripten-minimal",
+  "pr-1726-wasm32-unknown-wasi-full",
+  "pr-1726-wasm32-unknown-wasi-full-js",
+  "pr-1726-wasm32-unknown-wasi-minimal",
+  "pr-1726-wasm32-unknown-wasi-minimal-js",
+]
+
+task :publish, [:run_id, :tag] do |t, args|
+  check_executable("gh")
+
+  artifacts = JSON.load(%x(gh api repos/{owner}/{repo}/actions/runs/#{args[:run_id]}/artifacts))
+  artifacts = artifacts["artifacts"].filter { RELASE_ARTIFACTS.include?(_1["name"]) }
+  mkdir_p "release"
+  Dir.chdir("release") do
+    artifacts.each do |artifact|
+      url = artifact["archive_download_url"]
+      sh "gh api #{url} > #{artifact["name"]}.zip"
+      sh "unzip #{artifact["name"]}.zip"
+      rm "#{artifact["name"]}.zip"
+    end
+    sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes "" --draft --prerelease *)
+  end
 end
 
 def check_executable(command)
