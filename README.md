@@ -1,3 +1,5 @@
+[![Build ruby.wasm](https://github.com/kateinoigakukun/ruby.wasm/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kateinoigakukun/ruby.wasm/actions/workflows/build.yml)
+
 # ruby.wasm
 
 ruby.wasm is a collection of WebAssembly ports of the [CRuby](https://github.com/ruby/ruby).
