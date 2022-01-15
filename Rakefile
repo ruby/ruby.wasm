@@ -137,7 +137,7 @@ namespace :build do
 
         sh "./autogen.sh", chdir: build.build_dir
         if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
-          args = build.configure_args(`#{build.build_dir}/tool/config.guess`.chomp)
+          args = build.configure_args(RbConfig::CONFIG["host"])
           sh "./configure #{args.join(" ")}", chdir: build.build_dir
         end
       end
