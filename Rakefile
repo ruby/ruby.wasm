@@ -14,10 +14,10 @@ end
 
 BUILD_SOURCES = [
   {
-    name: "pr-1726",
+    name: "head",
     type: "github",
-    repo: "kateinoigakukun/ruby",
-    rev: "337b9df76e2850292c31983d2c992f768fc4cc5e",
+    repo: "ruby/ruby",
+    rev: "e7249294fb85953c3caa0af1eb9d3627a4827a11",
   },
 ]
 
@@ -31,8 +31,8 @@ BUILD_PARAMS = [
 ]
 
 PACKAGES = [
-  { name: "ruby-wasm-emscripten", build: "pr-1726-wasm32-unknown-emscripten-full" },
-  { name: "ruby-wasm-wasi", build: "pr-1726-wasm32-unknown-wasi-full-js" },
+  { name: "ruby-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
+  { name: "ruby-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js" },
 ]
 
 class BuildPlan
@@ -202,12 +202,12 @@ end
 
 RELASE_ARTIFACTS = [
   # ruby builds
-  "pr-1726-wasm32-unknown-emscripten-full",
-  "pr-1726-wasm32-unknown-emscripten-minimal",
-  "pr-1726-wasm32-unknown-wasi-full",
-  "pr-1726-wasm32-unknown-wasi-full-js",
-  "pr-1726-wasm32-unknown-wasi-minimal",
-  "pr-1726-wasm32-unknown-wasi-minimal-js",
+  "head-wasm32-unknown-emscripten-full",
+  "head-wasm32-unknown-emscripten-minimal",
+  "head-wasm32-unknown-wasi-full",
+  "head-wasm32-unknown-wasi-full-js",
+  "head-wasm32-unknown-wasi-minimal",
+  "head-wasm32-unknown-wasi-minimal-js",
 ]
 
 task :publish, [:run_id, :tag] do |t, args|

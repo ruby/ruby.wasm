@@ -53,9 +53,9 @@ Then, you can build by `rake` command. See `rake -T` for more information.
 ```console
 # Build only a specific combination of ruby version, flavor, and target
 # Output is in the `rubies` directory
-$ rake build:pr-1726-wasm32-unknown-wasi-full-js
+$ rake build:head-wasm32-unknown-wasi-full-js
 # Build all combinations of flavor, and target for a specific ruby version
-$ rake build:pr-1726
+$ rake build:head
 # Build npm packages and required ruby
 $ rake pkg:all
 ```

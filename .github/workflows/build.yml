@@ -58,12 +58,12 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { build: "pr-1726-wasm32-unknown-emscripten-full", builder: "wasm32-unknown-emscripten" }
-          - { build: "pr-1726-wasm32-unknown-emscripten-minimal", builder: "wasm32-unknown-emscripten" }
-          - { build: "pr-1726-wasm32-unknown-wasi-full", builder: "wasm32-unknown-wasi" }
-          - { build: "pr-1726-wasm32-unknown-wasi-full-js", builder: "wasm32-unknown-wasi" }
-          - { build: "pr-1726-wasm32-unknown-wasi-minimal", builder: "wasm32-unknown-wasi" }
-          - { build: "pr-1726-wasm32-unknown-wasi-minimal-js", builder: "wasm32-unknown-wasi" }
+          - { build: "head-wasm32-unknown-emscripten-full", builder: "wasm32-unknown-emscripten" }
+          - { build: "head-wasm32-unknown-emscripten-minimal", builder: "wasm32-unknown-emscripten" }
+          - { build: "head-wasm32-unknown-wasi-full", builder: "wasm32-unknown-wasi" }
+          - { build: "head-wasm32-unknown-wasi-full-js", builder: "wasm32-unknown-wasi" }
+          - { build: "head-wasm32-unknown-wasi-minimal", builder: "wasm32-unknown-wasi" }
+          - { build: "head-wasm32-unknown-wasi-minimal-js", builder: "wasm32-unknown-wasi" }
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     steps:
@@ -90,8 +90,8 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { package: ruby-wasm-emscripten, build: "pr-1726-wasm32-unknown-emscripten-full", builder: wasm32-unknown-emscripten }
-          - { package: ruby-wasm-wasi, build: "pr-1726-wasm32-unknown-wasi-full-js", builder: wasm32-unknown-wasi }
+          - { package: ruby-wasm-emscripten, build: "head-wasm32-unknown-emscripten-full", builder: wasm32-unknown-emscripten }
+          - { package: ruby-wasm-wasi, build: "head-wasm32-unknown-wasi-full-js", builder: wasm32-unknown-wasi }
     needs: [build-ruby-release]
     runs-on: ubuntu-20.04
     steps:
