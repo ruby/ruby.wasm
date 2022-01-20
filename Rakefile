@@ -17,7 +17,7 @@ BUILD_SOURCES = [
     name: "head",
     type: "github",
     repo: "ruby/ruby",
-    rev: "e7249294fb85953c3caa0af1eb9d3627a4827a11",
+    rev: "82b0a9004c57121239f0ad4cfd6fbe75233de228",
   },
 ]
 
