@@ -7,6 +7,9 @@ namespace :deps do
   task "check-wasm32-unknown-wasi" do
     check_executable("wit-bindgen")
     check_envvar("WASI_SDK_PATH")
+    if lib_wasi_vfs_a.nil?
+      STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
+    end
   end
   task "check-wasm32-unknown-emscripten" do
     check_executable("emcc")
@@ -91,6 +94,7 @@ class BuildPlan
 
     case target
     when "wasm32-unknown-wasi"
+      xldflags << lib_wasi_vfs_a unless lib_wasi_vfs_a.nil?
     when "wasm32-unknown-emscripten"
       ldflags.concat(%w(-s MODULARIZE=1))
       args.concat(%w(CC=emcc LD=emcc AR=emar RANLIB=emranlib))
@@ -283,3 +287,5 @@ def check_envvar(name)
     raise "missing environment variable: #{name}"
   end
 end
+
+def lib_wasi_vfs_a = ENV["LIB_WASI_VFS_A"]
