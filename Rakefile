@@ -19,6 +19,12 @@ BUILD_SOURCES = [
     repo: "ruby/ruby",
     rev: "82b0a9004c57121239f0ad4cfd6fbe75233de228",
   },
+  {
+    name: "pr5502",
+    type: "github",
+    repo: "kateinoigakukun/ruby",
+    rev: "ced85e3c05dfbcf19c8d209c60440946c707cbe6",
+  },
 ]
 
 BUILD_PARAMS = [
