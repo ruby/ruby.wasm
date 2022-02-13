@@ -1,0 +1,17 @@
+name: Nightly release
+on:
+  schedule:
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+jobs:
+  create-nightly-tag:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: git config
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      - run: git tag "$(date +'%Y-%m-%d')-a"
+      - run: git push --tags
