@@ -13,5 +13,9 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-      - run: git tag "$(date +'%Y-%m-%d')-a"
-      - run: git push --tags
+      - run: echo "NIGHTLY_TAG=$(date +'%Y-%m-%d')-a" >> $GITHUB_ENV
+      - run: git tag "$NIGHTLY_TAG"
+      - run: git push origin "$NIGHTLY_TAG"
+  build-and-publish:
+    needs: [create-nightly-tag]
+    uses: ./.github/workflows/build.yml
