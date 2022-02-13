@@ -118,6 +118,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
-      - run: rake "publish[$GITHUB_RUN_ID, $GITHUB_REF_NAME]"
+      - uses: actions/download-artifact@v2
+        with:
+          path: release
+      - run: rake "publish[$GITHUB_REF_NAME]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
