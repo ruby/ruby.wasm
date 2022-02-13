@@ -260,7 +260,9 @@ desc "Publish artifacts as a GitHub Release"
 task :publish, [:tag] do |t, args|
   check_executable("gh")
 
-  files = Dir.glob("release/*/*")
+  files = RELASE_ARTIFACTS.flat_map do |artifact|
+    Dir.glob("release/#{artifact}/*")
+  end
   File.open("release/note.md", "w") do |f|
     f.print release_note
   end
