@@ -1,5 +1,6 @@
 require "rake"
 require "json"
+require "open-uri"
 require_relative "ci/configure_args"
 
 namespace :deps do
@@ -17,13 +18,13 @@ BUILD_SOURCES = [
     name: "head",
     type: "github",
     repo: "ruby/ruby",
-    rev: "82b0a9004c57121239f0ad4cfd6fbe75233de228",
+    rev: "master",
   },
   {
     name: "pr5502",
     type: "github",
-    repo: "kateinoigakukun/ruby",
-    rev: "ced85e3c05dfbcf19c8d209c60440946c707cbe6",
+    repo: "ruby/ruby",
+    rev: "pull/5502/head",
   },
 ]
 
@@ -216,7 +217,29 @@ RELASE_ARTIFACTS = [
   "head-wasm32-unknown-wasi-minimal-js",
 ]
 
-task :publish, [:run_id, :tag] do |t, args|
+def release_note
+  output = <<EOS
+| channel | source |
+|:-------:|:------:|
+EOS
+
+  BUILD_SOURCES.each do |source|
+    case source[:type]
+    when "github"
+      url = "https://api.github.com/repos/#{source[:repo]}/commits/#{source[:rev]}"
+      commit = OpenURI.open_uri(url) do |f|
+        JSON.load(f.read)
+      end
+      output += "| #{source[:name]} | [`#{source[:repo]}@#{commit["sha"]}`](https://github.com/ruby/ruby/tree/#{commit["sha"]}) |\n"
+    else
+      raise "unknown source type: #{source[:type]}"
+    end
+  end
+  output
+end
+
+desc "Fetch artifacts of a run of GitHub Actions"
+task :fetch_artifacts, [:run_id] do |t, args|
   check_executable("gh")
 
   artifacts = JSON.load(%x(gh api repos/{owner}/{repo}/actions/runs/#{args[:run_id]}/artifacts))
@@ -226,12 +249,22 @@ task :publish, [:run_id, :tag] do |t, args|
     artifacts.each do |artifact|
       url = artifact["archive_download_url"]
       sh "gh api #{url} > #{artifact["name"]}.zip"
-      sh "unzip #{artifact["name"]}.zip"
+      mkdir_p artifact["name"]
+      sh "unzip #{artifact["name"]}.zip -d #{artifact["name"]}"
       rm "#{artifact["name"]}.zip"
     end
-    files = Dir.glob("*")
-    sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes "" --draft --prerelease #{files.join(" ")})
   end
+end
+
+desc "Publish artifacts as a GitHub Release"
+task :publish, [:tag] do |t, args|
+  check_executable("gh")
+
+  files = Dir.glob("release/*/*")
+  File.open("release/note.md", "w") do |f|
+    f.print release_note
+  end
+  sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --draft --prerelease #{files.join(" ")})
 end
 
 def check_executable(command)
