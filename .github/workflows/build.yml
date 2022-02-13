@@ -8,7 +8,7 @@ on:
       publish:
         type: boolean
         description: "Whether to publish or not"
-        default: "true"
+        default: true
 
 jobs:
   build-builder-image:
