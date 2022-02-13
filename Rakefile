@@ -257,7 +257,8 @@ task :fetch_artifacts, [:run_id] do |t, args|
 end
 
 desc "Publish artifacts as a GitHub Release"
-task :publish, [:tag] do |t, args|
+task :publish, [:tag, :opts] do |t, args|
+  args.with_defaults(:opts => "")
   check_executable("gh")
 
   files = RELASE_ARTIFACTS.flat_map do |artifact|
@@ -266,7 +267,7 @@ task :publish, [:tag] do |t, args|
   File.open("release/note.md", "w") do |f|
     f.print release_note
   end
-  sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --draft --prerelease #{files.join(" ")})
+  sh %Q(gh release create #{args[:tag]} #{args[:opts]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
 end
 
 def check_executable(command)
