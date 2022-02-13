@@ -4,6 +4,11 @@ on:
     branches: [main]
     tags: ['*']
   workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        description: "Whether to publish or not"
+        default: "true"
 
 jobs:
   build-builder-image:
@@ -116,7 +121,7 @@ jobs:
   release-artifacts:
     needs: [build-ruby-release, build-npm-packages]
     runs-on: ubuntu-20.04
-    if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ startsWith(github.ref, 'refs/tags/') || github.event.inputs.publish }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
