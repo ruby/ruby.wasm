@@ -9,6 +9,10 @@ on:
         type: boolean
         description: "Whether to publish or not"
         default: true
+      tag_name:
+        type: string
+        description: "Tag name to be released"
+        required: true
 
 jobs:
   build-builder-image:
@@ -127,6 +131,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: release
-      - run: rake "publish[$GITHUB_REF_NAME]"
+      - run: rake "publish[${GITHUB_REF_NAME:-${{ inputs.tag_name }}}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
