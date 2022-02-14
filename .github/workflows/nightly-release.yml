@@ -7,6 +7,8 @@ on:
 jobs:
   create-nightly-tag:
     runs-on: ubuntu-20.04
+    outputs:
+      tag-name: ${{ steps.generate-tag.outputs.name }}
     steps:
       - uses: actions/checkout@v2
       - name: git config
@@ -22,4 +24,4 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       publish: true
-      tag_name: ${{ needs.create-nightly-tag.steps.generate-tag.outputs.name }}
+      tag_name: ${{ needs.create-nightly-tag.outputs.tag-name }}
