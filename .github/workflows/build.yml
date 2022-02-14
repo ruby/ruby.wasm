@@ -131,6 +131,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: release
-      - run: rake "publish[${GITHUB_REF_NAME:-${{ inputs.tag_name }}}]"
+      - run: echo "TAG_NAME=${{ inputs.tag_name }}" >> $GITHUB_ENV
+      - run: rake "publish[${TAG_NAME:-$GITHUB_REF_NAME}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
