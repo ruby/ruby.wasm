@@ -10,6 +10,7 @@ FROM debian:buster
 ARG WASI_SDK_VERSION_MAJOR=14
 ARG WASI_SDK_VERSION_MINOR=0
 ARG BINARYEN_VERSION=91
+ARG WASI_VFS_VERSION=0.1.0
 
 ENV WASI_SDK_PATH="/opt/wasi-sdk" 
 
@@ -33,5 +34,17 @@ RUN set -eux pipefail; \
   ln -fs /binaryen-version_${BINARYEN_VERSION} /opt/binaryen;
 
 ENV PATH="$BINARYEN_DIR:$PATH"
+
+ENV LIB_WASI_VFS_A="/opt/wasi-vfs/lib/libwasi_vfs.a"
+RUN set -eux pipefail; \
+  lib_wasi_vfs_url="https://github.com/kateinoigakukun/wasi-vfs/releases/download/v${WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"; \
+  curl -LO "$lib_wasi_vfs_url"; \
+  unzip libwasi_vfs-wasm32-unknown-unknown.zip; \
+  mkdir -p /opt/wasi-vfs/lib; \
+  mv libwasi_vfs.a $LIB_WASI_VFS_A; \
+  wasi_vfs_cli_url="https://github.com/kateinoigakukun/wasi-vfs/releases/download/v${WASI_VFS_VERSION}/wasi-vfs-cli-x86_64-unknown-linux-gnu.zip"; \
+  curl -LO "$wasi_vfs_cli_url"; \
+  unzip wasi-vfs-cli-x86_64-unknown-linux-gnu.zip; \
+  mv wasi-vfs /usr/local/bin/wasi-vfs
 
 COPY --from=wit-bindgen-builder /tmp/install/bin/wit-bindgen /usr/local/bin/wit-bindgen
