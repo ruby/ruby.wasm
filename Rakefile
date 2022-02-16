@@ -221,6 +221,13 @@ RELASE_ARTIFACTS = [
   "head-wasm32-unknown-wasi-full-js",
   "head-wasm32-unknown-wasi-minimal",
   "head-wasm32-unknown-wasi-minimal-js",
+
+  "pr5502-wasm32-unknown-emscripten-full",
+  "pr5502-wasm32-unknown-emscripten-minimal",
+  "pr5502-wasm32-unknown-wasi-full",
+  "pr5502-wasm32-unknown-wasi-full-js",
+  "pr5502-wasm32-unknown-wasi-minimal",
+  "pr5502-wasm32-unknown-wasi-minimal-js",
 ]
 
 def release_note

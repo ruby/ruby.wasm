@@ -74,6 +74,14 @@ jobs:
           - { build: "head-wasm32-unknown-wasi-full-js", builder: "wasm32-unknown-wasi" }
           - { build: "head-wasm32-unknown-wasi-minimal", builder: "wasm32-unknown-wasi" }
           - { build: "head-wasm32-unknown-wasi-minimal-js", builder: "wasm32-unknown-wasi" }
+
+          - { build: "pr5502-wasm32-unknown-emscripten-full", builder: "wasm32-unknown-emscripten" }
+          - { build: "pr5502-wasm32-unknown-emscripten-minimal", builder: "wasm32-unknown-emscripten" }
+          - { build: "pr5502-wasm32-unknown-wasi-full", builder: "wasm32-unknown-wasi" }
+          - { build: "pr5502-wasm32-unknown-wasi-full-js", builder: "wasm32-unknown-wasi" }
+          - { build: "pr5502-wasm32-unknown-wasi-minimal", builder: "wasm32-unknown-wasi" }
+          - { build: "pr5502-wasm32-unknown-wasi-minimal-js", builder: "wasm32-unknown-wasi" }
+
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     steps:
