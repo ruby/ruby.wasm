@@ -290,4 +290,6 @@ def check_envvar(name)
   end
 end
 
-def lib_wasi_vfs_a = ENV["LIB_WASI_VFS_A"]
+def lib_wasi_vfs_a
+  ENV["LIB_WASI_VFS_A"]
+end
