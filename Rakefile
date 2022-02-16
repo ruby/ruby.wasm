@@ -1,7 +1,6 @@
 require "rake"
 require "json"
 require "open-uri"
-require_relative "ci/configure_args"
 
 namespace :deps do
   task "check-wasm32-unknown-wasi" do
@@ -31,13 +30,22 @@ BUILD_SOURCES = [
   },
 ]
 
-BUILD_PARAMS = [
-  { target: "wasm32-unknown-wasi", flavor: "minimal", libs: [] },
-  { target: "wasm32-unknown-wasi", flavor: "minimal-js", libs: ["js", "witapi"] },
-  { target: "wasm32-unknown-wasi", flavor: "full", libs: [] },
-  { target: "wasm32-unknown-wasi", flavor: "full-js", libs: ["js", "witapi"] },
-  { target: "wasm32-unknown-emscripten", flavor: "minimal", libs: [] },
-  { target: "wasm32-unknown-emscripten", flavor: "full", libs: [] },
+FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor"
+
+BUILD_PROFILES = {
+  "minimal"    => { default_exts: "", user_exts: [] },
+  "minimal-js" => { default_exts: "", user_exts: ["js", "witapi"] },
+  "full"       => { default_exts: FULL_EXTS, user_exts: [] },
+  "full-js"    => { default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
+}
+
+BUILDS = [
+  { target: "wasm32-unknown-wasi", profile: "minimal" },
+  { target: "wasm32-unknown-wasi", profile: "minimal-js" },
+  { target: "wasm32-unknown-wasi", profile: "full" },
+  { target: "wasm32-unknown-wasi", profile: "full-js" },
+  { target: "wasm32-unknown-emscripten", profile: "minimal" },
+  { target: "wasm32-unknown-emscripten", profile: "full" },
 ]
 
 PACKAGES = [
@@ -53,7 +61,7 @@ class BuildPlan
   end
 
   def name
-    "#{@source[:name]}-#{@params[:target]}-#{@params[:flavor]}"
+    "#{@source[:name]}-#{@params[:target]}-#{@params[:profile]}"
   end
 
   def build_dir
@@ -74,23 +82,16 @@ class BuildPlan
 
   def configure_args(build_triple)
     target = @params[:target]
-    flavor = @params[:flavor]
-    libs = @params[:libs]
+    profile = BUILD_PROFILES[@params[:profile]]
+    default_exts = profile[:default_exts]
+    user_exts = profile[:user_exts]
 
     ldflags = %w(-Xlinker -zstack-size=16777216)
     xldflags = []
 
     args = ["--host", target, "--build", build_triple]
     args << "--with-static-linked-ext"
-
-    case flavor
-    when /^minimal/
-      args << %Q(--with-ext="")
-    when /^full/
-      args << %Q(--with-ext="bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor")
-    else
-      raise "unknown flavor: #{flavor}"
-    end
+    args << %Q(--with-ext="#{default_exts}")
 
     case target
     when "wasm32-unknown-wasi"
@@ -99,10 +100,10 @@ class BuildPlan
       ldflags.concat(%w(-s MODULARIZE=1))
       args.concat(%w(CC=emcc LD=emcc AR=emar RANLIB=emranlib))
     else
-      raise "unknown flavor: #{flavor}"
+      raise "unknown target: #{target}"
     end
 
-    (libs || []).each do |lib|
+    (user_exts || []).each do |lib|
       xldflags << "@#{ext_build_dir}/#{lib}/link.filelist"
     end
     xldflags << extinit_obj
@@ -130,7 +131,7 @@ namespace :build do
         raise "unknown source type: #{source[:type]}"
       end
     end
-    build_plans = BUILD_PARAMS.map do |params|
+    build_plans = BUILDS.map do |params|
       build = BuildPlan.new(source, params, Dir.pwd)
 
       directory build.dest_dir
@@ -180,12 +181,13 @@ namespace :build do
         end
         make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{src_dir}/include -I#{build.build_dir}/.ext/include/wasm32-wasi")
         make_args << %Q(OBJDIR=#{build.ext_build_dir})
-        params[:libs].each do |lib|
+        libs = BUILD_PROFILES[params[:profile]][:user_exts]
+        libs.each do |lib|
           make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{build.ext_build_dir}/#{lib} obj)
           sh make_cmd
         end
         mkdir_p File.dirname(build.extinit_obj)
-        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{params[:libs].join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
+        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
       end
 
       build

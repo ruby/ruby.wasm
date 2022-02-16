@@ -15,16 +15,16 @@ It enables running Ruby application on browsers, WASI compatible WebAssembly run
 ## Prebuilt binaries
 
 [The prebuilt binaries are available at here](https://github.com/kateinoigakukun/ruby.wasm/releases).
-A _build_ is a combination of ruby version, _flavor_, and _target_.
+A _build_ is a combination of ruby version, _profile_, and _target_.
 
 The supported _target triples_ in this repository are:
 
 - `wasm32-unknown-wasi`
 - `wasm32-unknown-emscripten`
 
-### Flavors
+### Profiles
 
-| Flavor     | Description                                                                          |
+| Profile    | Description                                                                          |
 | ---------- | ------------------------------------------------------------------------------------ |
 | minimal    | No standard extension libraries (like `json`, `yaml`, or `stringio`)                 |
 | full       | All standard extension libraries                                                     |
@@ -51,10 +51,10 @@ $ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/kateinoigakukun/ruby.wasm-b
 Then, you can build by `rake` command. See `rake -T` for more information.
 
 ```console
-# Build only a specific combination of ruby version, flavor, and target
+# Build only a specific combination of ruby version, profile, and target
 # Output is in the `rubies` directory
 $ rake build:head-wasm32-unknown-wasi-full-js
-# Build all combinations of flavor, and target for a specific ruby version
+# Build all combinations of profile, and target for a specific ruby version
 $ rake build:head
 # Build npm packages and required ruby
 $ rake pkg:all
