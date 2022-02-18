@@ -22,12 +22,6 @@ BUILD_SOURCES = [
     repo: "ruby/ruby",
     rev: "master",
   },
-  {
-    name: "pr5502",
-    type: "github",
-    repo: "ruby/ruby",
-    rev: "pull/5502/head",
-  },
 ]
 
 FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor"
@@ -221,13 +215,6 @@ RELASE_ARTIFACTS = [
   "head-wasm32-unknown-wasi-full-js",
   "head-wasm32-unknown-wasi-minimal",
   "head-wasm32-unknown-wasi-minimal-js",
-
-  "pr5502-wasm32-unknown-emscripten-full",
-  "pr5502-wasm32-unknown-emscripten-minimal",
-  "pr5502-wasm32-unknown-wasi-full",
-  "pr5502-wasm32-unknown-wasi-full-js",
-  "pr5502-wasm32-unknown-wasi-minimal",
-  "pr5502-wasm32-unknown-wasi-minimal-js",
 ]
 
 def release_note
