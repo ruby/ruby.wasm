@@ -112,16 +112,16 @@ jobs:
           name: ${{ matrix.entry.build }}
       - run: tar xfz ruby-${{ matrix.entry.build }}.tar.gz
       - run: |
-          (cd ./packages/${{ matrix.entry.package }} && npm install)
+          (cd ./packages/npm-packages/${{ matrix.entry.package }} && npm install)
           docker run -v $(pwd):/work -w /work \
             "ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.builder }}" \
-            "./packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.build }}"
+            "./packages/npm-packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.build }}"
       - run: sudo npm --no-git-tag-version version 0.0.0-latest-main && sudo npm pack
-        working-directory: ./packages/${{ matrix.entry.package }}
+        working-directory: ./packages/npm-packages/${{ matrix.entry.package }}
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.entry.package }}
-          path: ./packages/${{ matrix.entry.package }}/${{ matrix.entry.package }}-0.0.0-latest-main.tgz
+          path: ./packages/npm-packages/${{ matrix.entry.package }}/${{ matrix.entry.package }}-0.0.0-latest-main.tgz
 
   release-artifacts:
     needs: [build-ruby-release, build-npm-packages]

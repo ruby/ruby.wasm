@@ -13,6 +13,7 @@ fi
 ruby_root="$1"
 package_dir="$(cd "$(dirname "$0")" && pwd)"
 dist_dir="$package_dir/dist"
+repo_dir="$package_dir/../../../"
 
 mkdir -p "$dist_dir"
 
@@ -22,8 +23,8 @@ mkdir -p "$dist_dir/bin"
 wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
 
 wit-bindgen js \
-    --import "$package_dir/../../ext/witapi/bindgen/rb-abi-guest.wit" \
-    --export "$package_dir/../../ext/js/bindgen/rb-js-abi-host.wit" \
+    --import "$repo_dir/ext/witapi/bindgen/rb-abi-guest.wit" \
+    --export "$repo_dir/ext/js/bindgen/rb-js-abi-host.wit" \
     --out-dir "$package_dir/src/bindgen"
 
 (
