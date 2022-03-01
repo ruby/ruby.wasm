@@ -2,19 +2,6 @@ require "rake"
 require "json"
 require "open-uri"
 
-namespace :deps do
-  task "check-wasm32-unknown-wasi" do
-    check_executable("wit-bindgen")
-    check_envvar("WASI_SDK_PATH")
-    if lib_wasi_vfs_a.nil?
-      STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
-    end
-  end
-  task "check-wasm32-unknown-emscripten" do
-    check_executable("emcc")
-  end
-end
-
 BUILD_SOURCES = [
   {
     name: "head",
@@ -74,6 +61,26 @@ class BuildPlan
     "#{ext_build_dir}/extinit.o"
   end
 
+  def check_deps
+    target = @params[:target]
+    profile = BUILD_PROFILES[@params[:profile]]
+    user_exts = profile[:user_exts]
+
+    case target
+    when "wasm32-unknown-wasi"
+      check_envvar("WASI_SDK_PATH")
+      if lib_wasi_vfs_a.nil?
+        STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
+      end
+    when "wasm32-unknown-emscripten"
+      check_executable("emcc")
+    end
+
+    if user_exts.include?("js") or user_exts.include?("witapi")
+      check_executable("wit-bindgen")
+    end
+  end
+
   def configure_args(build_triple)
     target = @params[:target]
     profile = BUILD_PROFILES[@params[:profile]]
@@ -111,6 +118,7 @@ class BuildPlan
 end
 
 namespace :build do
+
   BUILD_SOURCES.each do |source|
     base_dir = Dir.pwd
     src_dir = "#{base_dir}/build/src/#{source[:name]}"
@@ -139,8 +147,9 @@ namespace :build do
         cp_r src_dir, build.build_dir
       end
 
-      task "#{build.name}-configure", [:reconfigure] => ["deps:check-#{params[:target]}", build.build_dir] do |t, args|
+      task "#{build.name}-configure", [:reconfigure] => [build.build_dir] do |t, args|
         args.with_defaults(:reconfigure => false)
+        build.check_deps
 
         sh "./autogen.sh", chdir: build.build_dir
         if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
