@@ -189,10 +189,11 @@ namespace :build do
           raise "unknown target: #{params[:target]}"
         end
         make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{src_dir}/include -I#{build.build_dir}/.ext/include/wasm32-wasi")
-        make_args << %Q(OBJDIR=#{build.ext_build_dir})
         libs = BUILD_PROFILES[params[:profile]][:user_exts]
         libs.each do |lib|
-          make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{build.ext_build_dir}/#{lib} obj)
+          objdir = "#{build.ext_build_dir}/#{lib}"
+          FileUtils.mkdir_p objdir
+          make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{objdir} obj)
           sh make_cmd
         end
         mkdir_p File.dirname(build.extinit_obj)
