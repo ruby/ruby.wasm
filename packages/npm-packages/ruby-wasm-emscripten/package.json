@@ -12,7 +12,7 @@
     "README.md"
   ],
   "repository": "https://github.com/kateinoigakukun/ruby.wasm",
-  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/ruby-wasm-emscripten",
+  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-emscripten",
   "publishConfig": {
     "access": "public"
   },
