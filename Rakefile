@@ -36,6 +36,7 @@ NPM_PACKAGES = [
 
 WAPM_PACKAGES = [
   { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
+  { name: "irb", build: "head-wasm32-unknown-wasi-full" },
 ]
 
 class BuildPlan

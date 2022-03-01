@@ -106,6 +106,10 @@ jobs:
             artifact: "packages/wapm-packages/ruby/dist"
             artifact_name: "wapm-ruby"
             builder: "wasm32-unknown-wasi"
+          - task: "wapm:irb-build"
+            artifact: "packages/wapm-packages/irb/dist"
+            artifact_name: "wapm-irb"
+            builder: "wasm32-unknown-wasi"
 
     needs: [build-builder-image]
     runs-on: ubuntu-20.04

@@ -1,0 +1,10 @@
+require "irb"
+
+ap_path = __FILE__
+STDOUT.sync = true
+$0 = File::basename(ap_path, ".rb") if ap_path
+
+IRB.setup(ap_path)
+
+irb = IRB::Irb.new(nil, IRB::StdioInputMethod.new)
+irb.run(IRB.conf)

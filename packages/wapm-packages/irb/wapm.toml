@@ -1,0 +1,16 @@
+[package]
+name = "katei/irb"
+version = "0.1.2"
+description = "Interactive Ruby"
+license = "MIT"
+repository = "https://github.com/kateinoigakukun/ruby.wasm"
+
+[[module]]
+name = "irb"
+source = "dist/irb.wasm"
+abi = "wasi"
+
+[[command]]
+name = "irb"
+module = "irb"
+main_args = "-I/gems/lib /gems/libexec/irb --prompt default"
