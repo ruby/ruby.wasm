@@ -3,3 +3,5 @@ dist
 /build
 /rubies
 /release
+
+wapm_packages

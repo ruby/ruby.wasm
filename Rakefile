@@ -34,6 +34,10 @@ PACKAGES = [
   { name: "ruby-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js" },
 ]
 
+WAPM_PACKAGES = [
+  { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
+]
+
 class BuildPlan
   def initialize(source, params, base_dir)
     @source = source
@@ -277,6 +281,26 @@ task :publish, [:tag, :opts] do |t, args|
     f.print release_note
   end
   sh %Q(gh release create #{args[:tag]} #{args[:opts]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
+end
+
+namespace :wapm do
+
+  WAPM_PACKAGES.each do |pkg|
+    pkg_dir = "#{Dir.pwd}/wapm-packages/#{pkg[:name]}"
+
+    desc "Build wapm package #{pkg[:name]}"
+    task "#{pkg[:name]}-build" => ["build:#{pkg[:build]}"] do
+      base_dir = Dir.pwd
+      sh "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
+    end
+
+    desc "Publish wapm package #{pkg[:name]}"
+    task "#{pkg[:name]}-publish" => ["#{pkg[:name]}-build"] do
+      check_executable("wapm")
+      sh "wapm publish", chdir: pkg_dir
+    end
+  end
+
 end
 
 def check_executable(command)

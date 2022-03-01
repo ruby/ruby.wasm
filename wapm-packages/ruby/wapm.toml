@@ -1,0 +1,15 @@
+[package]
+name = "katei/ruby"
+version = "0.1.2"
+description = "The Ruby Programming Language"
+license = "MIT"
+repository = "https://github.com/kateinoigakukun/ruby.wasm"
+
+[[module]]
+name = "ruby"
+source = "dist/ruby.wasm"
+abi = "wasi"
+
+[[command]]
+name = "ruby"
+module = "ruby"
