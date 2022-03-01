@@ -63,17 +63,37 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-  build-ruby-release:
+  rake-tasks:
     strategy:
       fail-fast: false
       matrix:
         entry:
-          - { build: "head-wasm32-unknown-emscripten-full", builder: "wasm32-unknown-emscripten" }
-          - { build: "head-wasm32-unknown-emscripten-minimal", builder: "wasm32-unknown-emscripten" }
-          - { build: "head-wasm32-unknown-wasi-full", builder: "wasm32-unknown-wasi" }
-          - { build: "head-wasm32-unknown-wasi-full-js", builder: "wasm32-unknown-wasi" }
-          - { build: "head-wasm32-unknown-wasi-minimal", builder: "wasm32-unknown-wasi" }
-          - { build: "head-wasm32-unknown-wasi-minimal-js", builder: "wasm32-unknown-wasi" }
+          - task: "build:head-wasm32-unknown-emscripten-full"
+            artifact: "rubies/ruby-head-wasm32-unknown-emscripten-full.tar.gz"
+            builder: "wasm32-unknown-emscripten"
+          - task: "build:head-wasm32-unknown-emscripten-minimal"
+            artifact: "rubies/ruby-head-wasm32-unknown-emscripten-minimal.tar.gz"
+            builder: "wasm32-unknown-emscripten"
+          - task: "build:head-wasm32-unknown-wasi-full"
+            artifact: "rubies/ruby-head-wasm32-unknown-wasi-full.tar.gz"
+            builder: "wasm32-unknown-wasi"
+          - task: "build:head-wasm32-unknown-wasi-full-js"
+            artifact: "rubies/ruby-head-wasm32-unknown-wasi-full-js.tar.gz"
+            builder: "wasm32-unknown-wasi"
+          - task: "build:head-wasm32-unknown-wasi-minimal"
+            artifact: "rubies/ruby-head-wasm32-unknown-wasi-minimal.tar.gz"
+            builder: "wasm32-unknown-wasi"
+          - task: "build:head-wasm32-unknown-wasi-minimal-js"
+            artifact: "rubies/ruby-head-wasm32-unknown-wasi-minimal-js.tar.gz"
+            builder: "wasm32-unknown-wasi"
+
+          - task: "npm:ruby-wasm-emscripten"
+            builder: "wasm32-unknown-emscripten"
+          - task: "npm:ruby-wasm-wasi"
+            builder: "wasm32-unknown-wasi"
+
+          - task: "wapm:ruby-package"
+            builder: "wasm32-unknown-wasi"
 
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
@@ -88,43 +108,16 @@ jobs:
         run: |
           docker load --input image.tar | tee image-info.txt
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
-      - name: rake build:${{ matrix.entry.build }}
-        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID rake build:${{ matrix.entry.build }}
-      - run: tar cfz ruby-${{ matrix.entry.build }}.tar.gz -C ./rubies ${{ matrix.entry.build }}
+      - name: rake ${{ matrix.entry.task }}
+        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
       - uses: actions/upload-artifact@v2
+        if: ${{ matrix.entry.artifact }}
         with:
-          name: ${{ matrix.entry.build }}
-          path: ruby-${{ matrix.entry.build }}.tar.gz
-
-  build-npm-packages:
-    strategy:
-      fail-fast: false
-      matrix:
-        entry:
-          - { package: ruby-wasm-emscripten, build: "head-wasm32-unknown-emscripten-full", builder: wasm32-unknown-emscripten }
-          - { package: ruby-wasm-wasi, build: "head-wasm32-unknown-wasi-full-js", builder: wasm32-unknown-wasi }
-    needs: [build-ruby-release]
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-        with:
-          name: ${{ matrix.entry.build }}
-      - run: tar xfz ruby-${{ matrix.entry.build }}.tar.gz
-      - run: |
-          (cd ./packages/npm-packages/${{ matrix.entry.package }} && npm install)
-          docker run -v $(pwd):/work -w /work \
-            "ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.builder }}" \
-            "./packages/npm-packages/${{ matrix.entry.package }}/build-package.sh" "${{ matrix.entry.build }}"
-      - run: sudo npm --no-git-tag-version version 0.0.0-latest-main && sudo npm pack
-        working-directory: ./packages/npm-packages/${{ matrix.entry.package }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.entry.package }}
-          path: ./packages/npm-packages/${{ matrix.entry.package }}/${{ matrix.entry.package }}-0.0.0-latest-main.tgz
+          name: ${{ matrix.entry.task }}
+          path: ${{ matrix.entry.artifact }}
 
   release-artifacts:
-    needs: [build-ruby-release, build-npm-packages]
+    needs: [rake-tasks]
     runs-on: ubuntu-20.04
     if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
     steps:

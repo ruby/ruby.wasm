@@ -165,6 +165,7 @@ namespace :build do
       desc "Build #{build.name}"
       task build.name => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
         sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
+        sh "tar cfz rubies/ruby-#{build.name}.tar.gz -C rubies #{build.name}"
       end
 
       task "#{build.name}-libs" => ["#{build.name}-configure"] do
@@ -222,12 +223,12 @@ end
 
 RELASE_ARTIFACTS = [
   # ruby builds
-  "head-wasm32-unknown-emscripten-full",
-  "head-wasm32-unknown-emscripten-minimal",
-  "head-wasm32-unknown-wasi-full",
-  "head-wasm32-unknown-wasi-full-js",
-  "head-wasm32-unknown-wasi-minimal",
-  "head-wasm32-unknown-wasi-minimal-js",
+  "build:head-wasm32-unknown-emscripten-full",
+  "build:head-wasm32-unknown-emscripten-minimal",
+  "build:head-wasm32-unknown-wasi-full",
+  "build:head-wasm32-unknown-wasi-full-js",
+  "build:head-wasm32-unknown-wasi-minimal",
+  "build:head-wasm32-unknown-wasi-minimal-js",
 ]
 
 def release_note
