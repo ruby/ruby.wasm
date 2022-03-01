@@ -29,7 +29,7 @@ BUILDS = [
   { target: "wasm32-unknown-emscripten", profile: "full" },
 ]
 
-PACKAGES = [
+NPM_PACKAGES = [
   { name: "ruby-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
   { name: "ruby-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js" },
 ]
@@ -205,19 +205,19 @@ namespace :build do
   end
 end
 
-namespace :pkg do
-  PACKAGES.each do |pkg|
-    desc "Build #{pkg[:name]}"
+namespace :npm do
+  NPM_PACKAGES.each do |pkg|
+    desc "Build npm package #{pkg[:name]}"
     task pkg[:name] => ["build:#{pkg[:build]}"] do
       base_dir = Dir.pwd
-      pkg_dir = "#{Dir.pwd}/packages/#{pkg[:name]}"
+      pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
       sh "npm ci", chdir: pkg_dir
       sh "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
     end
   end
 
-  desc "Build all packages"
-  multitask :all => PACKAGES.map { |pkg| pkg[:name] }
+  desc "Build all npm packages"
+  multitask :all => NPM_PACKAGES.map { |pkg| pkg[:name] }
 end
 
 RELASE_ARTIFACTS = [
@@ -286,7 +286,7 @@ end
 namespace :wapm do
 
   WAPM_PACKAGES.each do |pkg|
-    pkg_dir = "#{Dir.pwd}/wapm-packages/#{pkg[:name]}"
+    pkg_dir = "#{Dir.pwd}/packages/wapm-packages/#{pkg[:name]}"
 
     desc "Build wapm package #{pkg[:name]}"
     task "#{pkg[:name]}-build" => ["build:#{pkg[:build]}"] do
