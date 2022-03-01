@@ -223,12 +223,12 @@ end
 
 RELASE_ARTIFACTS = [
   # ruby builds
-  "build:head-wasm32-unknown-emscripten-full",
-  "build:head-wasm32-unknown-emscripten-minimal",
-  "build:head-wasm32-unknown-wasi-full",
-  "build:head-wasm32-unknown-wasi-full-js",
-  "build:head-wasm32-unknown-wasi-minimal",
-  "build:head-wasm32-unknown-wasi-minimal-js",
+  "ruby-head-wasm32-unknown-emscripten-full",
+  "ruby-head-wasm32-unknown-emscripten-minimal",
+  "ruby-head-wasm32-unknown-wasi-full",
+  "ruby-head-wasm32-unknown-wasi-full-js",
+  "ruby-head-wasm32-unknown-wasi-minimal",
+  "ruby-head-wasm32-unknown-wasi-minimal-js",
 ]
 
 def release_note
