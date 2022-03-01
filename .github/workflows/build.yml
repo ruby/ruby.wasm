@@ -88,11 +88,14 @@ jobs:
             builder: "wasm32-unknown-wasi"
 
           - task: "npm:ruby-wasm-emscripten"
+            artifact: "packages/npm-packages/ruby-wasm-emscripten/dist"
             builder: "wasm32-unknown-emscripten"
           - task: "npm:ruby-wasm-wasi"
+            artifact: "packages/npm-packages/ruby-wasm-wasi/dist"
             builder: "wasm32-unknown-wasi"
 
-          - task: "wapm:ruby-package"
+          - task: "wapm:ruby-build"
+            artifact: "packages/wapm-packages/ruby/dist"
             builder: "wasm32-unknown-wasi"
 
     needs: [build-builder-image]
