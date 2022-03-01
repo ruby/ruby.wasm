@@ -112,7 +112,7 @@ jobs:
           docker load --input image.tar | tee image-info.txt
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
       - name: rake ${{ matrix.entry.task }}
-        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
+        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build -e "MAKEFLAGS=-j$((1 + $(sysctl -n hw.activecpu)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
       - uses: actions/upload-artifact@v2
         if: ${{ matrix.entry.artifact }}
         with:
