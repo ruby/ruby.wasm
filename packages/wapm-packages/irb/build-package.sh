@@ -22,5 +22,6 @@ cp -R "$ruby_root" "$workdir/ruby-root"
 (
   cd "$workdir" && \
   wasm-opt --strip-debug ruby-root/usr/local/bin/ruby -o ./ruby-root/ruby.wasm && \
-  wasi-vfs pack ./ruby-root/ruby.wasm --mapdir /usr::./ruby-root/usr --mapdir /gems::$package_dir/gems -o "$dist_dir/irb.wasm"
+  wasi-vfs pack ./ruby-root/ruby.wasm --mapdir /usr::./ruby-root/usr --mapdir /gems::$package_dir/gems -o "$dist_dir/irb.wasm" && \
+  wasi-preset-args "$dist_dir/irb.wasm" -o "$dist_dir/irb.wasm" -- -I/gems/lib /gems/libexec/irb --prompt default
 )
