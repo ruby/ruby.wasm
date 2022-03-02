@@ -46,7 +46,7 @@ RUN set -eux pipefail; \
   wasi_vfs_cli_url="https://github.com/kateinoigakukun/wasi-vfs/releases/download/v${WASI_VFS_VERSION}/wasi-vfs-cli-x86_64-unknown-linux-gnu.zip"; \
   curl -LO "$wasi_vfs_cli_url"; \
   unzip wasi-vfs-cli-x86_64-unknown-linux-gnu.zip; \
-  mv wasi-vfs /usr/local/bin/wasi-vfs
+  mv wasi-vfs /usr/local/bin/wasi-vfs; \
   wasi_preset_args_url="https://github.com/kateinoigakukun/wasi-preset-args/releases/download/v${WASI_PRESET_ARGS_VERSION}/wasi-preset-args-x86_64-unknown-linux-gnu.zip"; \
   curl -LO "$wasi_preset_args_url"; \
   unzip wasi-preset-args-x86_64-unknown-linux-gnu.zip; \
