@@ -37,6 +37,8 @@ The supported _target triples_ in this repository are:
 
 - [wit-bindgen](https://github.com/bytecodealliance/wit-bindgen): A language bindings generator for `wit` used in the npm packages.
 - [wasi-sdk](https://github.com/WebAssembly/wasi-sdk): For building for WASI target. Set `WASI_SDK_PATH` environment variable to the directory of wasi-sdk.
+- [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs): A virtual filesystem layer for WASI.
+- [wasi-preset-args](https://github.com/kateinoigakukun/wasi-preset-args): A tool to preset command-line arguments to a WASI module.
 - [Emscripten](https://emscripten.org): For building for Emscripten target
 
 It's recommended to build on a Docker container, which installs all dependencies and provides environment variables:
