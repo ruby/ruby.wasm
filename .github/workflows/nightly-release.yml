@@ -24,4 +24,4 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       publish: true
-      tag_name: ${{ needs.create-nightly-tag.outputs.tag-name }}
+      prerel_name: ${{ needs.create-nightly-tag.outputs.tag-name }}

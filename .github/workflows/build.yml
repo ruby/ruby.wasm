@@ -7,9 +7,9 @@ on:
         type: boolean
         description: "Whether to publish or not"
         default: true
-      tag_name:
+      prerel_name:
         type: string
-        description: "Tag name to be released"
+        description: "Pre-release name to be released"
         required: true
 
 jobs:
@@ -92,10 +92,12 @@ jobs:
             builder: "wasm32-unknown-wasi"
 
           - task: "npm:ruby-head-wasm-emscripten"
+            prelease: "npm:configure_prerelease"
             artifact: "packages/npm-packages/ruby-head-wasm-emscripten/ruby-head-wasm-emscripten-*.tgz"
             artifact_name: "npm-ruby-head-wasm-emscripten"
             builder: "wasm32-unknown-emscripten"
           - task: "npm:ruby-head-wasm-wasi"
+            prelease: "npm:configure_prerelease"
             artifact: "packages/npm-packages/ruby-head-wasm-wasi/ruby-head-wasm-wasi-*.tgz"
             artifact_name: "npm-ruby-head-wasm-wasi"
             builder: "wasm32-unknown-wasi"
@@ -122,6 +124,9 @@ jobs:
         run: |
           docker load --input image.tar | tee image-info.txt
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
+      - name: Pre-release configuration
+        run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
+        if: ${{ inputs.prerel_name && matrix.entry.prerelease }}
       - name: rake ${{ matrix.entry.task }}
         run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
       - uses: actions/upload-artifact@v2
@@ -139,7 +144,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: release
-      - run: echo "TAG_NAME=${{ inputs.tag_name }}" >> $GITHUB_ENV
-      - run: rake "publish[${TAG_NAME:-$GITHUB_REF_NAME}]"
+      - run: echo "PREREL_NAME=${{ inputs.prerel_name }}" >> $GITHUB_ENV
+      - run: rake "publish[${PREREL_NAME:-$GITHUB_REF_NAME}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
