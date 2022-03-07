@@ -12,5 +12,7 @@ COPY --from=wit-bindgen-builder /tmp/install/bin/wit-bindgen /usr/local/bin/wit-
 RUN set -eux; \
   apt-get update; \
   apt-get install ruby bison make autoconf git curl -y; \
+  curl -fsSL https://deb.nodesource.com/setup_16.x | bash -; \
+  apt-get install nodejs -y; \
   apt-get clean; \
   rm -r /var/lib/apt/lists/*

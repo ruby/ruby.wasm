@@ -17,7 +17,9 @@ ENV WASI_SDK_PATH="/opt/wasi-sdk"
 
 RUN set -eux; \
   apt-get update; \
-  apt-get install ruby bison make autoconf git curl nodejs npm -y; \
+  apt-get install ruby bison make autoconf git curl -y; \
+  curl -fsSL https://deb.nodesource.com/setup_16.x | bash -; \
+  apt-get install nodejs -y; \
   apt-get clean; \
   rm -r /var/lib/apt/lists/*
 
