@@ -91,9 +91,9 @@ jobs:
             artifact_name: "ruby-head-wasm32-unknown-wasi-minimal-js"
             builder: "wasm32-unknown-wasi"
 
-          - task: "npm:ruby-wasm-emscripten"
-            artifact: "packages/npm-packages/ruby-wasm-emscripten/dist"
-            artifact_name: "npm-ruby-wasm-emscripten"
+          - task: "npm:ruby-head-wasm-emscripten"
+            artifact: "packages/npm-packages/ruby-head-wasm-emscripten/ruby-head-wasm-emscripten-*.tgz"
+            artifact_name: "npm-ruby-head-wasm-emscripten"
             builder: "wasm32-unknown-emscripten"
           - task: "npm:ruby-head-wasm-wasi"
             artifact: "packages/npm-packages/ruby-head-wasm-wasi/ruby-head-wasm-wasi-*.tgz"

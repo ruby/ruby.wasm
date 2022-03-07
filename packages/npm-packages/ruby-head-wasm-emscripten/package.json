@@ -1,0 +1,25 @@
+{
+  "name": "ruby-head-wasm-emscripten",
+  "version": "0.1.0",
+  "description": "Ruby head built on Emscripten",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "files": [
+    "dist/index.js",
+    "dist/ruby.wasm",
+    "dist/ruby_stdlib.data",
+    "README.md"
+  ],
+  "repository": "https://github.com/kateinoigakukun/ruby.wasm",
+  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-emscripten",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "emscripten",
+    "ruby"
+  ],
+  "license": "MIT"
+}
