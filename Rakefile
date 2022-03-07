@@ -235,6 +235,7 @@ namespace :npm do
       pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
       sh "npm ci", chdir: pkg_dir
       sh "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
+      sh "npm pack", chdir: pkg_dir
     end
   end
 
