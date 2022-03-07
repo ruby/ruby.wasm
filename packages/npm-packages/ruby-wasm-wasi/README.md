@@ -8,8 +8,10 @@ The CRuby source code is available at [a working branch](https://github.com/ruby
 
 For instaling ruby-wasm-wasi, just run this command in your shell:
 
+### Ruby head
+
 ```console
-$ npm install --save ruby-wasm-wasi
+$ npm install --save ruby-head-wasm-wasi
 ```
 
 ## Quick Start (for Node.js)
@@ -19,11 +21,11 @@ See [the example project](./example) for more details.
 ```javascript
 import fs from "fs/promises";
 import { WASI } from "wasi";
-import { RubyVM } from "ruby-wasm-wasi";
+import { RubyVM } from "ruby-head-wasm-wasi";
 
 const main = async () => {
   const wasi = new WASI();
-  const binary = await fs.readFile("./node_modules/ruby-wasm-wasi/ruby.wasm");
+  const binary = await fs.readFile("./node_modules/ruby-head-wasm-wasi/ruby.wasm");
   const vm = new RubyVM();
   const imports = {
     wasi_snapshot_preview1: wasi.wasiImport,
@@ -65,9 +67,9 @@ In browser, you need a WASI polyfill
 See [the example project](./example) for more details.
 
 ```javascript
-import { WASI } from "./node_modules/@wasmer/wasi";
+import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
-import { RubyVM } from "ruby-wasm-wasi";
+import { RubyVM } from "ruby-head-wasm-wasi";
 
 const main = async () => {
   // Setup WASI and FileSystem emulation
@@ -92,7 +94,7 @@ const main = async () => {
   };
 
   // Fetch and instantiate WebAssembly binary
-  const response = await fetch("./node_modules/ruby-wasm-wasi/dist/ruby.wasm");
+  const response = await fetch("./node_modules/ruby-head-wasm-wasi/dist/ruby.wasm");
   const buffer = await response.arrayBuffer();
   const vm = new RubyVM();
 
