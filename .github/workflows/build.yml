@@ -95,9 +95,9 @@ jobs:
             artifact: "packages/npm-packages/ruby-wasm-emscripten/dist"
             artifact_name: "npm-ruby-wasm-emscripten"
             builder: "wasm32-unknown-emscripten"
-          - task: "npm:ruby-wasm-wasi"
-            artifact: "packages/npm-packages/ruby-wasm-wasi/dist"
-            artifact_name: "npm-ruby-wasm-wasi"
+          - task: "npm:ruby-head-wasm-wasi"
+            artifact: "packages/npm-packages/ruby-head-wasm-wasi/dist"
+            artifact_name: "npm-ruby-head-wasm-wasi"
             builder: "wasm32-unknown-wasi"
 
           - task: "wapm:ruby-build"

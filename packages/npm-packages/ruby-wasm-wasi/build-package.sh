@@ -15,12 +15,7 @@ package_dir="$(cd "$(dirname "$0")" && pwd)"
 dist_dir="$package_dir/dist"
 repo_dir="$package_dir/../../../"
 
-mkdir -p "$dist_dir"
-
-# TODO(katei): Embed stdlib by wasi-vfs after it's published
-
-mkdir -p "$dist_dir/bin"
-wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
+rm -rf "$dist_dir"
 
 wit-bindgen js \
     --import "$repo_dir/ext/witapi/bindgen/rb-abi-guest.wit" \
@@ -32,6 +27,7 @@ wit-bindgen js \
     npx rollup -c rollup.config.js
 )
 
-rm -rf "$dist_dir/bindgen"
+wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
+
 mkdir "$dist_dir/bindgen"
 cp $(find "$package_dir/src/bindgen" -name "*.d.ts") "$dist_dir/bindgen"

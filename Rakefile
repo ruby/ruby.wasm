@@ -31,7 +31,7 @@ BUILDS = [
 
 NPM_PACKAGES = [
   { name: "ruby-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
-  { name: "ruby-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js" },
+  { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js" },
 ]
 
 WAPM_PACKAGES = [
@@ -234,7 +234,7 @@ namespace :npm do
       base_dir = Dir.pwd
       pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
       sh "npm ci", chdir: pkg_dir
-      sh "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
+      sh "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
     end
   end
 

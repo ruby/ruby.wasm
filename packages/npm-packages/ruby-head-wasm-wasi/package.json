@@ -1,0 +1,25 @@
+{
+  "name": "ruby-head-wasm-wasi",
+  "version": "0.1.0",
+  "description": "Ruby head built on WASI",
+  "main": "./dist/index.cjs.js",
+  "umd:main": "./dist/index.umd.js",
+  "module": "./dist/index.esm.js",
+  "typings": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": "https://github.com/kateinoigakukun/ruby.wasm",
+  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "wasi",
+    "ruby"
+  ],
+  "license": "MIT"
+}
