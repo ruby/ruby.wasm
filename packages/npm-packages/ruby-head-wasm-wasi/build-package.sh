@@ -17,5 +17,9 @@ dist_dir="$package_dir/dist"
 repo_dir="$package_dir/../../../"
 
 rm -rf "$dist_dir"
-"$base_package_dir/build-package.sh" "$ruby_root"
+(
+  cd "$base_package_dir" && \
+  npm ci && \
+  ./build-package.sh "$ruby_root"
+)
 cp -R "$base_package_dir/dist" "$dist_dir"
