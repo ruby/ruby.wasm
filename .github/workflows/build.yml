@@ -1,8 +1,6 @@
 name: Build ruby.wasm
 on:
-  push:
-    branches: [main]
-    tags: ['*']
+  push: {}
   workflow_call:
     inputs:
       publish:
