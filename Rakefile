@@ -21,12 +21,12 @@ BUILD_PROFILES = {
 }
 
 BUILDS = [
-  { target: "wasm32-unknown-wasi", profile: "minimal" },
-  { target: "wasm32-unknown-wasi", profile: "minimal-js" },
-  { target: "wasm32-unknown-wasi", profile: "full" },
-  { target: "wasm32-unknown-wasi", profile: "full-js" },
-  { target: "wasm32-unknown-emscripten", profile: "minimal" },
-  { target: "wasm32-unknown-emscripten", profile: "full" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "full" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
+  { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
+  { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
 ]
 
 NPM_PACKAGES = [
@@ -39,15 +39,36 @@ WAPM_PACKAGES = [
   { name: "irb", build: "head-wasm32-unknown-wasi-full" },
 ]
 
+class BuildSource
+  def initialize(params, base_dir)
+    @params = params
+    @base_dir = base_dir
+  end
+
+  def src_dir
+    "#{@base_dir}/build/src/#{@params[:name]}"
+  end
+
+  def fetch
+    case @params[:type]
+    when "github"
+      tarball_url = "https://api.github.com/repos/#{@params[:repo]}/tarball/#{@params[:rev]}"
+      mkdir_p src_dir
+      sh "curl -L #{tarball_url} | tar xz --strip-components=1", chdir: src_dir
+    else
+      raise "unknown source type: #{@params[:type]}"
+    end
+  end
+end
+
 class BuildPlan
-  def initialize(source, params, base_dir)
-    @source = source
+  def initialize(params, base_dir)
     @params = params
     @base_dir = base_dir
   end
 
   def name
-    "#{@source[:name]}-#{@params[:target]}-#{@params[:profile]}"
+    "#{@params[:src]}-#{@params[:target]}-#{@params[:profile]}"
   end
 
   def build_dir
@@ -124,87 +145,81 @@ end
 
 namespace :build do
 
-  BUILD_SOURCES.each do |source|
-    base_dir = Dir.pwd
-    src_dir = "#{base_dir}/build/src/#{source[:name]}"
+  base_dir = Dir.pwd
 
-    directory src_dir do
-      case source[:type]
-      when "github"
-        tarball_url = "https://api.github.com/repos/#{source[:repo]}/tarball/#{source[:rev]}"
-        mkdir_p src_dir
-        sh "curl -L #{tarball_url} | tar xz --strip-components=1", chdir: src_dir
+  build_srcs = {}
+  BUILD_SOURCES.each do |src|
+    build_srcs[src[:name]] = BuildSource.new(src, Dir.pwd)
+  end
+
+  build_srcs.each do |name, source|
+    directory source.src_dir do
+      source.fetch
+    end
+  end
+
+  BUILDS.each do |params|
+    source = build_srcs[params[:src]]
+    build = BuildPlan.new(params, Dir.pwd)
+
+    directory build.dest_dir
+
+    directory build.build_dir => [source.src_dir] do
+      # FIXME: It fails to make libencs in cross-compiling and
+      # out-of-tree mysteriously.
+      # It seems libencs target in exts.mk doesn't pass MINIRUBY to enc.mk,
+      # and it's only used under the condition.
+      mkdir_p File.dirname(build.build_dir)
+      cp_r source.src_dir, build.build_dir
+    end
+
+    task "#{build.name}-configure", [:reconfigure] => [build.build_dir] do |t, args|
+      args.with_defaults(:reconfigure => false)
+      build.check_deps
+
+      sh "./autogen.sh", chdir: build.build_dir
+      if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
+        args = build.configure_args(RbConfig::CONFIG["host"])
+        sh "./configure #{args.join(" ")}", chdir: build.build_dir
+      end
+    end
+
+    desc "Build #{build.name}"
+    task build.name => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
+      sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
+      sh "tar cfz rubies/ruby-#{build.name}.tar.gz -C rubies #{build.name}"
+    end
+
+    task "#{build.name}-libs" => ["#{build.name}-configure"] do
+      make_args = []
+      case params[:target]
+      when "wasm32-unknown-wasi"
+        wasi_sdk_path = ENV["WASI_SDK_PATH"]
+        cc = "#{wasi_sdk_path}/bin/clang"
+        make_args << "CC=#{cc}"
+        make_args << "LD=#{wasi_sdk_path}/bin/wasm-ld"
+        make_args << "AR=#{wasi_sdk_path}/bin/llvm-ar"
+        make_args << "RANLIB=#{wasi_sdk_path}/bin/llvm-ranlib"
+      when "wasm32-unknown-emscripten"
+        cc = "emcc"
+        make_args << "CC=#{cc}"
+        make_args << "LD=emcc"
+        make_args << "AR=emar"
+        make_args << "RANLIB=emranlib"
       else
-        raise "unknown source type: #{source[:type]}"
+        raise "unknown target: #{params[:target]}"
       end
+      make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{source.src_dir}/include -I#{build.build_dir}/.ext/include/wasm32-wasi")
+      libs = BUILD_PROFILES[params[:profile]][:user_exts]
+      libs.each do |lib|
+        objdir = "#{build.ext_build_dir}/#{lib}"
+        FileUtils.mkdir_p objdir
+        make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{objdir} obj)
+        sh make_cmd
+      end
+      mkdir_p File.dirname(build.extinit_obj)
+      sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
     end
-    build_plans = BUILDS.map do |params|
-      build = BuildPlan.new(source, params, Dir.pwd)
-
-      directory build.dest_dir
-
-      directory build.build_dir => [src_dir] do
-        # FIXME: It fails to make libencs in cross-compiling and
-        # out-of-tree mysteriously.
-        # It seems libencs target in exts.mk doesn't pass MINIRUBY to enc.mk,
-        # and it's only used under the condition.
-        mkdir_p File.dirname(build.build_dir)
-        cp_r src_dir, build.build_dir
-      end
-
-      task "#{build.name}-configure", [:reconfigure] => [build.build_dir] do |t, args|
-        args.with_defaults(:reconfigure => false)
-        build.check_deps
-
-        sh "./autogen.sh", chdir: build.build_dir
-        if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
-          args = build.configure_args(RbConfig::CONFIG["host"])
-          sh "./configure #{args.join(" ")}", chdir: build.build_dir
-        end
-      end
-
-      desc "Build #{build.name}"
-      task build.name => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
-        sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
-        sh "tar cfz rubies/ruby-#{build.name}.tar.gz -C rubies #{build.name}"
-      end
-
-      task "#{build.name}-libs" => ["#{build.name}-configure"] do
-        make_args = []
-        case params[:target]
-        when "wasm32-unknown-wasi"
-          wasi_sdk_path = ENV["WASI_SDK_PATH"]
-          cc = "#{wasi_sdk_path}/bin/clang"
-          make_args << "CC=#{cc}"
-          make_args << "LD=#{wasi_sdk_path}/bin/wasm-ld"
-          make_args << "AR=#{wasi_sdk_path}/bin/llvm-ar"
-          make_args << "RANLIB=#{wasi_sdk_path}/bin/llvm-ranlib"
-        when "wasm32-unknown-emscripten"
-          cc = "emcc"
-          make_args << "CC=#{cc}"
-          make_args << "LD=emcc"
-          make_args << "AR=emar"
-          make_args << "RANLIB=emranlib"
-        else
-          raise "unknown target: #{params[:target]}"
-        end
-        make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{src_dir}/include -I#{build.build_dir}/.ext/include/wasm32-wasi")
-        libs = BUILD_PROFILES[params[:profile]][:user_exts]
-        libs.each do |lib|
-          objdir = "#{build.ext_build_dir}/#{lib}"
-          FileUtils.mkdir_p objdir
-          make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{objdir} obj)
-          sh make_cmd
-        end
-        mkdir_p File.dirname(build.extinit_obj)
-        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
-      end
-
-      build
-    end
-
-    desc "Build #{source[:name]}"
-    multitask source[:name] => build_plans.map { |build| build.name }
   end
 end
 
@@ -221,6 +236,24 @@ namespace :npm do
 
   desc "Build all npm packages"
   multitask :all => NPM_PACKAGES.map { |pkg| pkg[:name] }
+end
+
+namespace :wapm do
+  WAPM_PACKAGES.each do |pkg|
+    pkg_dir = "#{Dir.pwd}/packages/wapm-packages/#{pkg[:name]}"
+
+    desc "Build wapm package #{pkg[:name]}"
+    task "#{pkg[:name]}-build" => ["build:#{pkg[:build]}"] do
+      base_dir = Dir.pwd
+      sh "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
+    end
+
+    desc "Publish wapm package #{pkg[:name]}"
+    task "#{pkg[:name]}-publish" => ["#{pkg[:name]}-build"] do
+      check_executable("wapm")
+      sh "wapm publish", chdir: pkg_dir
+    end
+  end
 end
 
 RELASE_ARTIFACTS = [
@@ -284,26 +317,6 @@ task :publish, [:tag, :opts] do |t, args|
     f.print release_note
   end
   sh %Q(gh release create #{args[:tag]} #{args[:opts]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
-end
-
-namespace :wapm do
-
-  WAPM_PACKAGES.each do |pkg|
-    pkg_dir = "#{Dir.pwd}/packages/wapm-packages/#{pkg[:name]}"
-
-    desc "Build wapm package #{pkg[:name]}"
-    task "#{pkg[:name]}-build" => ["build:#{pkg[:build]}"] do
-      base_dir = Dir.pwd
-      sh "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
-    end
-
-    desc "Publish wapm package #{pkg[:name]}"
-    task "#{pkg[:name]}-publish" => ["#{pkg[:name]}-build"] do
-      check_executable("wapm")
-      sh "wapm publish", chdir: pkg_dir
-    end
-  end
-
 end
 
 def check_executable(command)
