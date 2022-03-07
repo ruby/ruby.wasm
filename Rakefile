@@ -40,6 +40,8 @@ WAPM_PACKAGES = [
 ]
 
 class BuildSource
+  include Rake::FileUtilsExt
+
   def initialize(params, base_dir)
     @params = params
     @base_dir = base_dir
