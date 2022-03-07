@@ -239,6 +239,19 @@ namespace :npm do
     end
   end
 
+  desc "Configure for pre-release"
+  task :configure_prerelease, [:prerel] do |t, args|
+    require "json"
+    prerel = args[:prerel]
+    NPM_PACKAGES.each do |pkg|
+      pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
+      pkg_json = "#{pkg_dir}/package.json"
+      package = JSON.parse(File.read(pkg_json))
+      package["version"] += "-#{prerel}"
+      File.write(pkg_json, JSON.pretty_generate(package))
+    end
+  end
+
   desc "Build all npm packages"
   multitask :all => NPM_PACKAGES.map { |pkg| pkg[:name] }
 end
