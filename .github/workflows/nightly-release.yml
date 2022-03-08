@@ -25,3 +25,5 @@ jobs:
     with:
       publish: true
       prerel_name: ${{ needs.create-nightly-tag.outputs.tag-name }}
+    secrets:
+      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
