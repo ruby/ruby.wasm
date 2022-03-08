@@ -274,6 +274,10 @@ namespace :wapm do
   end
 end
 
+NPM_RELEASE_ARTIFACTS = [
+  "npm-ruby-head-wasm-emscripten",
+  "npm-ruby-head-wasm-wasi",
+]
 RELASE_ARTIFACTS = [
   # ruby builds
   "ruby-head-wasm32-unknown-emscripten-full",
@@ -282,7 +286,7 @@ RELASE_ARTIFACTS = [
   "ruby-head-wasm32-unknown-wasi-full-js",
   "ruby-head-wasm32-unknown-wasi-minimal",
   "ruby-head-wasm32-unknown-wasi-minimal-js",
-]
+] + NPM_RELEASE_ARTIFACTS
 
 def release_note
   output = <<EOS
@@ -324,8 +328,7 @@ task :fetch_artifacts, [:run_id] do |t, args|
 end
 
 desc "Publish artifacts as a GitHub Release"
-task :publish, [:tag, :opts] do |t, args|
-  args.with_defaults(:opts => "")
+task :publish, [:tag] do |t, args|
   check_executable("gh")
 
   files = RELASE_ARTIFACTS.flat_map do |artifact|
@@ -334,7 +337,13 @@ task :publish, [:tag, :opts] do |t, args|
   File.open("release/note.md", "w") do |f|
     f.print release_note
   end
-  sh %Q(gh release create #{args[:tag]} #{args[:opts]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
+  NPM_RELEASE_ARTIFACTS.each do |artifact|
+    tarball = Dir.glob("release/#{artifact}/*")
+    next if tarball.empty?
+    tarball = tarball[0]
+    sh %Q(npm publish #{tarball})
+  end
+  sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
 end
 
 def check_executable(command)
