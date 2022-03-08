@@ -7,10 +7,10 @@ It enables running Ruby application on browsers, WASI compatible WebAssembly run
 
 ## npm packages (for JavaScript host environments)
 
-| Package                                                 | Description                                 | npm                                                                                                                |
-| ------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| [ruby-wasm-wasi](./packages/ruby-wasm-wasi)             | CRuby built on WASI with JS interop support | [![npm version](https://badge.fury.io/js/ruby-wasm-wasi.svg)](https://badge.fury.io/js/ruby-wasm-wasi)             |
-| [ruby-wasm-emscripten](./packages/ruby-wasm-emscripten) | CRuby built on Emscripten (not well tested) | [![npm version](https://badge.fury.io/js/ruby-wasm-emscripten.svg)](https://badge.fury.io/js/ruby-wasm-emscripten) |
+| Package                                                                        | Description                                      | npm                                                                                                                          |
+| ------------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| [ruby-head-wasm-wasi](./packages/npm-packages/ruby-head-wasm-wasi)             | HEAD CRuby built on WASI with JS interop support | [![npm version](https://badge.fury.io/js/ruby-head-wasm-wasi.svg)](https://badge.fury.io/js/ruby-head-wasm-wasi)             |
+| [ruby-head-wasm-emscripten](./packages/npm-packages/ruby-head-wasm-emscripten) | HEAD CRuby built on Emscripten (not well tested) | [![npm version](https://badge.fury.io/js/ruby-head-wasm-emscripten.svg)](https://badge.fury.io/js/ruby-head-wasm-emscripten) |
 
 ## Prebuilt binaries
 
