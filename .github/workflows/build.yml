@@ -129,7 +129,7 @@ jobs:
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
       - name: Pre-release configuration
         run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
-        if: ${{ inputs.prerel_name && matrix.entry.prerelease }}
+        if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
         run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
       - uses: actions/upload-artifact@v2
