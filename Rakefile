@@ -341,7 +341,7 @@ task :publish, [:tag] do |t, args|
     tarball = Dir.glob("release/#{artifact}/*")
     next if tarball.empty?
     tarball = tarball[0]
-    sh %Q(npm publish #{tarball})
+    sh %Q(npm publish --tag next #{tarball})
   end
   sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
 end
