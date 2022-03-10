@@ -51,6 +51,10 @@ class BuildSource
     "#{@base_dir}/build/src/#{@params[:name]}"
   end
 
+  def configure_file
+    "#{src_dir}/configure"
+  end
+
   def fetch
     case @params[:type]
     when "github"
@@ -158,6 +162,9 @@ namespace :build do
     directory source.src_dir do
       source.fetch
     end
+    file source.configure_file => [source.src_dir] do
+      sh "./autogen.sh", chdir: source.src_dir
+    end
   end
 
   BUILDS.each do |params|
@@ -165,24 +172,15 @@ namespace :build do
     build = BuildPlan.new(params, Dir.pwd)
 
     directory build.dest_dir
+    directory build.build_dir
 
-    directory build.build_dir => [source.src_dir] do
-      # FIXME: It fails to make libencs in cross-compiling and
-      # out-of-tree mysteriously.
-      # It seems libencs target in exts.mk doesn't pass MINIRUBY to enc.mk,
-      # and it's only used under the condition.
-      mkdir_p File.dirname(build.build_dir)
-      cp_r source.src_dir, build.build_dir
-    end
-
-    task "#{build.name}-configure", [:reconfigure] => [build.build_dir] do |t, args|
+    task "#{build.name}-configure", [:reconfigure] => [build.build_dir, source.src_dir, source.configure_file] do |t, args|
       args.with_defaults(:reconfigure => false)
       build.check_deps
 
-      sh "./autogen.sh", chdir: build.build_dir
       if !File.exist?("#{build.build_dir}/Makefile") || args[:reconfigure]
         args = build.configure_args(RbConfig::CONFIG["host"])
-        sh "./configure #{args.join(" ")}", chdir: build.build_dir
+        sh "#{source.configure_file} #{args.join(" ")}", chdir: build.build_dir
       end
     end
 
