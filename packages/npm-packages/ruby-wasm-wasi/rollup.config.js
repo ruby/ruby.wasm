@@ -1,26 +1,50 @@
 import typescript from "@rollup/plugin-typescript";
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-/** @type {import('rollup').RollupOptions[]} */
-export default [
-  {
-    input: "src/index.ts",
+function variant(basename, opts = {}) {
+  return {
+    input: `src/${basename}.ts`,
     output: [
       {
-        file: "dist/index.umd.js",
+        file: `dist/${basename}.umd.js`,
         format: "umd",
         name: "ruby-wasm-wasi",
       },
       {
-        file: "dist/index.esm.js",
+        file: `dist/${basename}.esm.js`,
         format: "es",
         name: "ruby-wasm-wasi",
       },
       {
-        file: "dist/index.cjs.js",
+        file: `dist/${basename}.cjs.js`,
         format: "cjs",
         exports: "named",
       },
     ],
-    plugins: [typescript({ tsconfig: "./tsconfig.json" })],
-  },
+    plugins: [typescript({ tsconfig: "./tsconfig.json" }), nodeResolve()],
+    ...opts,
+  };
+}
+
+/** @type {import('rollup').RollupOptions[]} */
+export default [
+  variant("index"),
+  variant("default/browser"),
+  {
+    input: `src/default/node.ts`,
+    output: [
+      {
+        file: `dist/default/node.esm.js`,
+        format: "es",
+        name: "ruby-wasm-wasi",
+      },
+      {
+        file: `dist/default/node.cjs.js`,
+        format: "cjs",
+        exports: "named",
+      },
+    ],
+    plugins: [typescript({ tsconfig: "./tsconfig.json" }), nodeResolve()],
+    external: ["wasi"],
+  }
 ];
