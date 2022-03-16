@@ -24,10 +24,11 @@ wit-bindgen js \
 
 (
     cd "$package_dir" && \
-    npx rollup -c rollup.config.js
+    npx rollup -c rollup.config.js && \
+    npx tsc --build
 )
 
 wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
 
 mkdir "$dist_dir/bindgen"
-cp $(find "$package_dir/src/bindgen" -name "*.d.ts") "$dist_dir/bindgen"
+cp $(find "$package_dir/src/bindgen" -name "*.js" -or -name "*.d.ts") "$dist_dir/bindgen"

@@ -21,7 +21,7 @@ function variant(basename) {
         exports: "named",
       },
     ],
-    plugins: [typescript({ tsconfig: "./tsconfig.json" }), nodeResolve()],
+    plugins: [typescript({ tsconfig: "./tsconfig.json", declaration: false }), nodeResolve()],
   };
 }
 
@@ -43,7 +43,7 @@ export default [
         exports: "named",
       },
     ],
-    plugins: [typescript({ tsconfig: "./tsconfig.json" }), nodeResolve()],
+    plugins: [typescript({ tsconfig: "./tsconfig.json", declaration: false }), nodeResolve()],
     external: ["wasi"],
   }
 ];
