@@ -5,8 +5,9 @@
     "module": "ES2015",
     "outDir": "./",
     "target": "es2017",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "moduleResolution": "node",
   },
-  "include": ["src/index.ts", "./src/bindgen/*"],
+  "include": ["src/**/*.ts", "./src/bindgen/*"],
   "exclude": ["node_modules"]
 }

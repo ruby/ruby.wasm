@@ -25,7 +25,9 @@ import { RubyVM } from "ruby-head-wasm-wasi";
 
 const main = async () => {
   const wasi = new WASI();
-  const binary = await fs.readFile("./node_modules/ruby-head-wasm-wasi/ruby.wasm");
+  const binary = await fs.readFile(
+    "./node_modules/ruby-head-wasm-wasi/ruby.wasm"
+  );
   const vm = new RubyVM();
   const imports = {
     wasi_snapshot_preview1: wasi.wasiImport,
@@ -94,7 +96,9 @@ const main = async () => {
   };
 
   // Fetch and instantiate WebAssembly binary
-  const response = await fetch("./node_modules/ruby-head-wasm-wasi/dist/ruby.wasm");
+  const response = await fetch(
+    "./node_modules/ruby-head-wasm-wasi/dist/ruby.wasm"
+  );
   const buffer = await response.arrayBuffer();
   const vm = new RubyVM();
 
@@ -135,29 +139,29 @@ main();
 
 #### Table of Contents
 
-*   [RubyVM](#rubyvm)
-    *   [Examples](#examples)
-    *   [initialize](#initialize)
-        *   [Parameters](#parameters)
-    *   [setInstance](#setinstance)
-        *   [Parameters](#parameters-1)
-    *   [addToImports](#addtoimports)
-        *   [Parameters](#parameters-2)
-    *   [printVersion](#printversion)
-    *   [eval](#eval)
-        *   [Parameters](#parameters-3)
-        *   [Examples](#examples-1)
-*   [RbValue](#rbvalue)
-    *   [Parameters](#parameters-4)
-    *   [call](#call)
-        *   [Parameters](#parameters-5)
-        *   [Examples](#examples-2)
-    *   [toPrimitive](#toprimitive)
-        *   [Parameters](#parameters-6)
-    *   [toString](#tostring)
-    *   [toJS](#tojs)
-*   [RbError](#rberror)
-    *   [Parameters](#parameters-7)
+- [RubyVM](#rubyvm)
+  - [Examples](#examples)
+  - [initialize](#initialize)
+    - [Parameters](#parameters)
+  - [setInstance](#setinstance)
+    - [Parameters](#parameters-1)
+  - [addToImports](#addtoimports)
+    - [Parameters](#parameters-2)
+  - [printVersion](#printversion)
+  - [eval](#eval)
+    - [Parameters](#parameters-3)
+    - [Examples](#examples-1)
+- [RbValue](#rbvalue)
+  - [Parameters](#parameters-4)
+  - [call](#call)
+    - [Parameters](#parameters-5)
+    - [Examples](#examples-2)
+  - [toPrimitive](#toprimitive)
+    - [Parameters](#parameters-6)
+  - [toString](#tostring)
+  - [toJS](#tojs)
+- [RbError](#rberror)
+  - [Parameters](#parameters-7)
 
 ### RubyVM
 
@@ -185,8 +189,8 @@ Initialize the Ruby VM with the given command line arguments
 
 ##### Parameters
 
-*   `args`  The command line arguments to pass to Ruby. Must be
-    an array of strings starting with the Ruby program name. (optional, default `["ruby.wasm","--disable-gems","-e_=0"]`)
+- `args` The command line arguments to pass to Ruby. Must be
+  an array of strings starting with the Ruby program name. (optional, default `["ruby.wasm","--disable-gems","-e_=0"]`)
 
 #### setInstance
 
@@ -196,9 +200,9 @@ Ruby API.
 
 ##### Parameters
 
-*   `instance`  The WebAssembly instance to interact with. Must
-    be instantiated from a Ruby built with JS extension, and built
-    with Reactor ABI instead of command line.
+- `instance` The WebAssembly instance to interact with. Must
+  be instantiated from a Ruby built with JS extension, and built
+  with Reactor ABI instead of command line.
 
 #### addToImports
 
@@ -207,7 +211,7 @@ and Ruby's WebAssembly instance.
 
 ##### Parameters
 
-*   `imports`  The import object to add to the WebAssembly instance
+- `imports` The import object to add to the WebAssembly instance
 
 #### printVersion
 
@@ -219,7 +223,7 @@ Runs a string of Ruby code from JavaScript
 
 ##### Parameters
 
-*   `code`  The Ruby code to run
+- `code` The Ruby code to run
 
 ##### Examples
 
@@ -237,9 +241,9 @@ A RbValue is an object that represents a value in Ruby
 
 #### Parameters
 
-*   `inner`  
-*   `vm`  
-*   `exporter`  
+- `inner`
+- `vm`
+- `exporter`
 
 #### call
 
@@ -247,8 +251,8 @@ Call a given method with given arguments
 
 ##### Parameters
 
-*   `callee`  name of the Ruby method to call
-*   `args` **...any** arguments to pass to the method. Must be an array of RbValue
+- `callee` name of the Ruby method to call
+- `args` **...any** arguments to pass to the method. Must be an array of RbValue
 
 ##### Examples
 
@@ -260,11 +264,11 @@ console.log(ary.call("sample").toString());
 
 #### toPrimitive
 
-*   **See**: <https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive>
+- **See**: <https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive>
 
 ##### Parameters
 
-*   `hint`  
+- `hint`
 
 #### toString
 
@@ -285,7 +289,7 @@ Error class thrown by Ruby execution
 
 #### Parameters
 
-*   `message`  
+- `message`
 
 ## Building the package from source
 

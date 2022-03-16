@@ -4,9 +4,7 @@ import path from "path";
 import { RubyVM } from "../dist/index.umd.js";
 
 const rubyModule = (async () => {
-  const binary = await fs.readFile(
-    path.join(__dirname, "./../dist/ruby.wasm")
-  );
+  const binary = await fs.readFile(path.join(__dirname, "./../dist/ruby.wasm"));
   return await WebAssembly.compile(binary.buffer);
 })();
 
