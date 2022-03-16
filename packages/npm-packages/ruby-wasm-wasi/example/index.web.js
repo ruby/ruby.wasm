@@ -1,4 +1,4 @@
-import { DefaultRubyVM } from "ruby-wasm-wasi/dist/default/browser.esm";
+import { DefaultRubyVM } from "ruby-wasm-wasi/dist/browser.esm";
 
 const main = async () => {
   // Fetch and instntiate WebAssembly binary

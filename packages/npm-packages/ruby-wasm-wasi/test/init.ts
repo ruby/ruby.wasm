@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { DefaultRubyVM } from "../dist/default/node.cjs";
+import { DefaultRubyVM } from "../dist/node.cjs";
 
 const rubyModule = (async () => {
   const binary = await fs.readFile(path.join(__dirname, "./../dist/ruby.wasm"));

@@ -1,7 +1,7 @@
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-function variant(basename, opts = {}) {
+function variant(basename) {
   return {
     input: `src/${basename}.ts`,
     output: [
@@ -22,24 +22,23 @@ function variant(basename, opts = {}) {
       },
     ],
     plugins: [typescript({ tsconfig: "./tsconfig.json" }), nodeResolve()],
-    ...opts,
   };
 }
 
 /** @type {import('rollup').RollupOptions[]} */
 export default [
   variant("index"),
-  variant("default/browser"),
+  variant("browser"),
   {
-    input: `src/default/node.ts`,
+    input: `src/node.ts`,
     output: [
       {
-        file: `dist/default/node.esm.js`,
+        file: `dist/node.esm.js`,
         format: "es",
         name: "ruby-wasm-wasi",
       },
       {
-        file: `dist/default/node.cjs.js`,
+        file: `dist/node.cjs.js`,
         format: "cjs",
         exports: "named",
       },

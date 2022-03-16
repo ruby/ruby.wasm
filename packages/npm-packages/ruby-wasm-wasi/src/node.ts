@@ -1,5 +1,5 @@
 import { WASI } from "wasi";
-import { RubyVM } from "../index";
+import { RubyVM } from "./index";
 
 export const DefaultRubyVM = async (rubyModule: WebAssembly.Module) => {
   const wasi = new WASI();
