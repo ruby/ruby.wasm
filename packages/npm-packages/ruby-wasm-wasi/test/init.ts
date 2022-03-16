@@ -8,5 +8,5 @@ const rubyModule = (async () => {
 })();
 
 export const initRubyVM = async () => {
-  return DefaultRubyVM(await rubyModule);
+  return (await DefaultRubyVM(await rubyModule)).vm;
 };

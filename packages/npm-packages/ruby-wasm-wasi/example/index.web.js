@@ -1,5 +1,3 @@
-import { WASI } from "./node_modules/@wasmer/wasi";
-import { WasmFs } from "@wasmer/wasmfs";
 import { DefaultRubyVM } from "ruby-wasm-wasi/dist/default/browser.esm";
 
 const main = async () => {
@@ -7,7 +5,7 @@ const main = async () => {
   const response = await fetch("./node_modules/ruby-wasm-wasi/dist/ruby.wasm");
   const buffer = await response.arrayBuffer();
   const module = await WebAssembly.compile(buffer);
-  const vm = await DefaultRubyVM(module);
+  const { vm } = await DefaultRubyVM(module);
 
   vm.printVersion();
 

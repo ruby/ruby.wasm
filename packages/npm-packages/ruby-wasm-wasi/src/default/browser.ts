@@ -43,5 +43,7 @@ export const DefaultRubyVM = async (rubyModule: WebAssembly.Module) => {
   wasi.setMemory(instance.exports.memory as WebAssembly.Memory);
   vm.initialize();
 
-  return vm;
+  return {
+    vm, wasi, fs: wasmFs,
+  };
 };
