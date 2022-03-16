@@ -18,6 +18,6 @@ export const DefaultRubyVM = async (rubyModule: WebAssembly.Module) => {
   vm.initialize();
 
   return {
-    vm, wasi,
+    vm, wasi, instance,
   };
 };

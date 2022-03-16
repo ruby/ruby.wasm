@@ -46,6 +46,6 @@ export const DefaultRubyVM = async (rubyModule: WebAssembly.Module, options: { c
   vm.initialize();
 
   return {
-    vm, wasi, fs: wasmFs,
+    vm, wasi, fs: wasmFs, instance,
   };
 };
