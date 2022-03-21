@@ -2,13 +2,12 @@
   "name": "ruby-wasm-wasi-example",
   "type": "module",
   "scripts": {
-    "build": "rollup -c rollup.config.js",
     "serve": "ruby -run -ehttpd"
   },
   "dependencies": {
     "@wasmer/wasi": "^0.12.0",
     "@wasmer/wasmfs": "^0.12.0",
-    "ruby-wasm-wasi": ".."
+    "ruby-head-wasm-wasi": "0.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",

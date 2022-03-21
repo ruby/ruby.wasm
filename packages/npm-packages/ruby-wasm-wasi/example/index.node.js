@@ -1,26 +1,16 @@
-import { WASI } from "wasi";
 import fs from "fs/promises";
-import { RubyVM } from "ruby-wasm-wasi";
+import { DefaultRubyVM } from "ruby-head-wasm-wasi/dist/node.esm";
 
 // $ node --experimental-wasi-unstable-preview1 index.node.js
 
 const main = async () => {
-  const wasi = new WASI();
   const binary = await fs.readFile(
-    "./node_modules/ruby-wasm-wasi/bin/ruby.wasm"
+    "./node_modules/ruby-head-wasm-wasi/bin/ruby.wasm"
   );
-  const vm = new RubyVM();
-  const imports = {
-    wasi_snapshot_preview1: wasi.wasiImport,
-  };
-  vm.addToImports(imports);
+  const module = await WebAssembly.compile(binary);
+  const { vm } = await DefaultRubyVM(module);
 
-  const { instance } = await WebAssembly.instantiate(binary.buffer, imports);
-  await vm.setInstance(instance);
-  // Start WASI application
-  wasi.initialize(instance);
-  vm.initialize();
-  vm.guest.rubyShowVersion();
+  vm.printVersion();
 
   const a = vm.eval(`
   class A
