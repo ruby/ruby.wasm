@@ -2,12 +2,6 @@
 
 This is a simple example of how to use the `ruby-wasm-wasi` faimily packages
 
-## How to build
-
-```console
-$ npm install
-```
-
 ## For browser
 
 ```console
@@ -18,5 +12,6 @@ $ # Open http://localhost:8000/index.html
 ## For Node.js
 
 ```console
-$ node --experimental-wasi-unstable-preview1 dist/index.node.js
+$ npm install
+$ node --experimental-wasi-unstable-preview1 index.node.js
 ```
