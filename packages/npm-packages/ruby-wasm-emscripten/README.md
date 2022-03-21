@@ -1,3 +1,8 @@
-# ruby-head-wasm-emscripten
+# ruby-wasm-emscripten
 
-See also https://github.com/kateinoigakukun/ruby.wasm/blob/main/packages/npm-packages/ruby-wasm-emscripten/README.md
+This package is a template for each channel-specific package.
+
+| Channel | Package |
+| ------- | ------- |
+| `head`  | [`ruby-head-wasm-emscripten`](./../ruby-head-wasm-emscripten) |
+
