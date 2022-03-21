@@ -2,7 +2,10 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import { RubyVM } from "./index";
 
-export const DefaultRubyVM = async (rubyModule: WebAssembly.Module, options: { consolePrint: boolean } = { consolePrint: true }) => {
+export const DefaultRubyVM = async (
+  rubyModule: WebAssembly.Module,
+  options: { consolePrint: boolean } = { consolePrint: true }
+) => {
   const wasmFs = new WasmFs();
   const wasi = new WASI({
     bindings: {
@@ -13,7 +16,7 @@ export const DefaultRubyVM = async (rubyModule: WebAssembly.Module, options: { c
 
   if (options.consolePrint) {
     const originalWriteSync = wasmFs.fs.writeSync.bind(wasmFs.fs);
-    wasmFs.fs.writeSync = function() {
+    wasmFs.fs.writeSync = function () {
       let fd: number = arguments[0];
       let text: string;
       if (arguments.length === 4) {
@@ -46,6 +49,9 @@ export const DefaultRubyVM = async (rubyModule: WebAssembly.Module, options: { c
   vm.initialize();
 
   return {
-    vm, wasi, fs: wasmFs, instance,
+    vm,
+    wasi,
+    fs: wasmFs,
+    instance,
   };
 };

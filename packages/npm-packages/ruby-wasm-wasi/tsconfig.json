@@ -6,7 +6,7 @@
     "outDir": "./dist",
     "target": "es2017",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node"
   },
   "include": ["src/**/*.ts", "./src/bindgen/*"],
   "exclude": ["node_modules", "dist"]
