@@ -85,12 +85,21 @@ class BuildPlan
     "#{@base_dir}/build/ext-build/#{name}"
   end
 
+  def deps_install_dir
+    "#{@base_dir}/build/deps/#{@params[:target]}/opt"
+  end
+
   def dest_dir
     "#{@base_dir}/rubies/#{name}"
   end
 
   def extinit_obj
     "#{ext_build_dir}/extinit.o"
+  end
+
+  def dep_tasks
+    return [] if @params[:profile] == "minimal"
+    ["deps:libyaml-#{@params[:target]}"]
   end
 
   def check_deps
@@ -125,6 +134,7 @@ class BuildPlan
     args = ["--host", target, "--build", build_triple]
     args << "--with-static-linked-ext"
     args << %Q(--with-ext="#{default_exts}")
+    args << %Q(--with-libyaml-dir="#{deps_install_dir}/libyaml/usr/local")
 
     case target
     when "wasm32-unknown-wasi"
@@ -146,6 +156,38 @@ class BuildPlan
     args << %Q(debugflags="-g0")
     args << "--disable-install-doc"
     args
+  end
+end
+
+namespace :deps do
+  ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"].each do |target|
+    install_dir = File.join(Dir.pwd, "/build/deps/#{target}/opt")
+    libyaml_version = "0.2.5"
+    desc "build libyaml #{libyaml_version} for #{target}"
+    task "libyaml-#{target}" do
+      next if Dir.exist?("#{install_dir}/libyaml")
+
+      build_dir = File.join(Dir.pwd, "/build/deps/#{target}/yaml-#{libyaml_version}")
+      mkdir_p File.dirname(build_dir)
+      rm_rf build_dir
+      sh "curl -L https://github.com/yaml/libyaml/releases/download/#{libyaml_version}/yaml-#{libyaml_version}.tar.gz | tar xz", chdir: File.dirname(build_dir)
+
+      # obtain the latest config.guess and config.sub for Emscripten and WASI triple support
+      sh "curl -o #{build_dir}/config/config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'"
+      sh "curl -o #{build_dir}/config/config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'"
+
+      configure_args = []
+      case target
+      when "wasm32-unknown-wasi"
+        configure_args.concat(%W(--host wasm32-wasi CC=#{ENV["WASI_SDK_PATH"]}/bin/clang RANLIB=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ranlib LD=#{ENV["WASI_SDK_PATH"]}/bin/clang AR=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ar))
+      when "wasm32-unknown-emscripten"
+        configure_args.concat(%W(--host wasm32-emscripten CC=emcc RANLIB=emranlib LD=emcc AR=emar))
+      else
+        raise "unknown target: #{target}"
+      end
+      sh "./configure #{configure_args.join(" ")}", chdir: build_dir
+      sh "make install DESTDIR=#{install_dir}/libyaml", chdir: build_dir
+    end
   end
 end
 
@@ -174,7 +216,7 @@ namespace :build do
     directory build.dest_dir
     directory build.build_dir
 
-    task "#{build.name}-configure", [:reconfigure] => [build.build_dir, source.src_dir, source.configure_file] do |t, args|
+    task "#{build.name}-configure", [:reconfigure] => [build.build_dir, source.src_dir, source.configure_file] + build.dep_tasks do |t, args|
       args.with_defaults(:reconfigure => false)
       build.check_deps
 
