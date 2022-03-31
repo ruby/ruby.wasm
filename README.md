@@ -1,4 +1,4 @@
-[![Build ruby.wasm](https://github.com/kateinoigakukun/ruby.wasm/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/kateinoigakukun/ruby.wasm/actions/workflows/build.yml)
+[![Build ruby.wasm](https://github.com/ruby/ruby.wasm/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ruby/ruby.wasm/actions/workflows/build.yml)
 
 # ruby.wasm
 
@@ -14,7 +14,7 @@ It enables running Ruby application on browsers, WASI compatible WebAssembly run
 
 ## Prebuilt binaries
 
-[The prebuilt binaries are available at here](https://github.com/kateinoigakukun/ruby.wasm/releases).
+[The prebuilt binaries are available at here](https://github.com/ruby/ruby.wasm/releases).
 A _build_ is a combination of ruby version, _profile_, and _target_.
 
 The supported _target triples_ in this repository are:
@@ -45,9 +45,9 @@ It's recommended to build on a Docker container, which installs all dependencies
 
 ```console
 # For building ruby for WASI target
-$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/kateinoigakukun/ruby.wasm-builder:wasm32-unknown-wasi /bin/bash
+$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/ruby/ruby.wasm-builder:wasm32-unknown-wasi /bin/bash
 # For building ruby for Emscripten target
-$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/kateinoigakukun/ruby.wasm-builder:wasm32-unknown-emscripten /bin/bash
+$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/ruby/ruby.wasm-builder:wasm32-unknown-emscripten /bin/bash
 ```
 
 Then, you can build by `rake` command. See `rake -T` for more information.

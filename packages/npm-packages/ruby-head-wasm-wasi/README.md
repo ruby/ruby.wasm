@@ -264,11 +264,11 @@ path/to/wasm32-unknown-wasi-full-js/
     └── lib
         └── gems
 $ ./build-package.sh path/to/wasm32-unknown-wasi-full-js/
-Generating "/Users/katei/.ghq/github.com/kateinoigakukun/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/intrinsics.js"
-Generating "/Users/katei/.ghq/github.com/kateinoigakukun/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-abi-guest.d.ts"
-Generating "/Users/katei/.ghq/github.com/kateinoigakukun/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-abi-guest.js"
-Generating "/Users/katei/.ghq/github.com/kateinoigakukun/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-js-abi-host.d.ts"
-Generating "/Users/katei/.ghq/github.com/kateinoigakukun/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-js-abi-host.js"
+Generating "/Users/katei/.ghq/github.com/ruby/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/intrinsics.js"
+Generating "/Users/katei/.ghq/github.com/ruby/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-abi-guest.d.ts"
+Generating "/Users/katei/.ghq/github.com/ruby/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-abi-guest.js"
+Generating "/Users/katei/.ghq/github.com/ruby/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-js-abi-host.d.ts"
+Generating "/Users/katei/.ghq/github.com/ruby/ruby.wasm/packages/ruby-head-wasm-wasi/src/bindgen/rb-js-abi-host.js"
 
 src/index.ts → dist/index.umd.js, dist/index.esm.js, dist/index.cjs.js...
 created dist/index.umd.js, dist/index.esm.js, dist/index.cjs.js in 682ms

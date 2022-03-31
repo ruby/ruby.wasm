@@ -10,8 +10,8 @@
     "dist/ruby_stdlib.data",
     "README.md"
   ],
-  "repository": "https://github.com/kateinoigakukun/ruby.wasm",
-  "homepage": "https://github.com/kateinoigakukun/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-emscripten",
+  "repository": "https://github.com/ruby/ruby.wasm",
+  "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-emscripten",
   "publishConfig": {
     "access": "public"
   },
