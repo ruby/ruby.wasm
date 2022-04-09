@@ -149,4 +149,25 @@ eval:6:in \`bar'
 eval:3:in \`foo'
 eval:11:in \`<main>'`);
   });
+
+  test("protect objects having same hash values from GC", async () => {
+    const vm = await initRubyVM();
+    vm.eval(`
+    class X
+      def hash
+        42
+      end
+      def eql?(other)
+        true
+      end
+    end
+    `);
+
+    const o1 = vm.eval(`X.new`);
+    const o2 = vm.eval(`X.new`);
+    const o3 = vm.eval(`X.new`);
+    vm.eval(`GC.start`);
+    expect(o1.call("hash").toString()).toBe(o2.call("hash").toString());
+    expect(o2.call("hash").toString()).toBe(o3.call("hash").toString());
+  });
 });
