@@ -20,6 +20,13 @@ void *rb_wasm_handle_scan_unwind(void);
 void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
                                   void **arg0, void **arg1,
                                   bool *is_new_fiber_started);
+#define RB_WASM_ENABLE_DEBUG_LOG 0
+
+#if RB_WASM_ENABLE_DEBUG_LOG
+# define RB_WASM_DEBUG_LOG(...) fprintf(stderr, __VA_ARGS__)
+#else
+# define RB_WASM_DEBUG_LOG(...) (void)0
+#endif
 
 #define RB_WASM_LIB_RT(MAIN_ENTRY)                                             \
   {                                                                            \
@@ -79,6 +86,7 @@ static VALUE rb_abi_lend_object_internal(VALUE obj) {
   return Qundef;
 }
 static void rb_abi_lend_object(VALUE obj) {
+  RB_WASM_DEBUG_LOG("rb_abi_lend_object: obj = %p\n", (void *)obj);
   int state;
   RB_WASM_LIB_RT(rb_protect(rb_abi_lend_object_internal, obj, &state));
   assert(state == TAG_NONE && "rb_abi_lend_object_internal failed");
@@ -92,13 +100,16 @@ static VALUE rb_abi_guest_rb_abi_value_dtor_internal(VALUE obj) {
   }
   if (ref_count == INT2FIX(1)) {
     rb_hash_delete(rb_abi_guest_arena_hash, obj);
+    RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: ref_count == 1\n");
   } else {
     rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(FIX2INT(ref_count) - 1));
+    RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: ref_count = %d\n", FIX2INT(ref_count));
   }
   return Qundef;
 }
 
 void rb_abi_guest_rb_abi_value_dtor(void *data) {
+  RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: data = %p\n", data);
   int state;
   RB_WASM_LIB_RT(rb_protect(rb_abi_guest_rb_abi_value_dtor_internal, (VALUE)data, &state));
   assert(state == TAG_NONE && "rb_abi_guest_rb_abi_value_dtor_internal failed");
@@ -153,8 +164,10 @@ void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str,
                                          rb_abi_guest_rb_abi_value_t *result,
                                          int32_t *state) {
   VALUE retval;
+  RB_WASM_DEBUG_LOG("rb_eval_string_protect: str = %s\n", str->ptr);
   RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
   rb_abi_lend_object(retval);
+  RB_WASM_DEBUG_LOG("rb_eval_string_protect: retval = %p, state = %d\n", (void *)retval, *state);
 
   *result = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
@@ -185,6 +198,8 @@ void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_abi_value_t recv,
       .recv = r_recv, .mid = mid, .args = args};
   RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
   rb_abi_lend_object(retval);
+  RB_WASM_DEBUG_LOG("rb_abi_guest_rb_funcallv_protect: retval = %p, state = %d\n", (void *)retval, *ret1);
+
   *ret0 = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
