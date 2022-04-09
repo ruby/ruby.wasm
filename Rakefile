@@ -14,10 +14,10 @@ BUILD_SOURCES = [
 FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor"
 
 BUILD_PROFILES = {
-  "minimal"    => { default_exts: "", user_exts: [] },
-  "minimal-js" => { default_exts: "", user_exts: ["js", "witapi"] },
-  "full"       => { default_exts: FULL_EXTS, user_exts: [] },
-  "full-js"    => { default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
+  "minimal"    => { debug: false, default_exts: "", user_exts: [] },
+  "minimal-js" => { debug: false, default_exts: "", user_exts: ["js", "witapi"] },
+  "full"       => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
+  "full-js"    => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
 }
 
 BUILDS = [
@@ -128,7 +128,13 @@ class BuildPlan
     default_exts = profile[:default_exts]
     user_exts = profile[:user_exts]
 
-    ldflags = %w(-Xlinker -zstack-size=16777216)
+    ldflags = if profile[:debug]
+      # use --stack-first to detect stack overflow easily
+      %w(-Xlinker --stack-first -Xlinker -z -Xlinker stack-size=16777216)
+    else
+      %w(-Xlinker -zstack-size=16777216)
+    end
+
     xldflags = []
 
     args = ["--host", target, "--build", build_triple]
@@ -153,7 +159,12 @@ class BuildPlan
 
     args << %Q(LDFLAGS="#{ldflags.join(" ")}")
     args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
-    args << %Q(debugflags="-g0")
+    if profile[:debug]
+      args << %Q(debugflags="-g")
+      args << %Q(wasmoptflags="-O2 -g")
+    else
+      args << %Q(debugflags="-g0")
+    end
     args << "--disable-install-doc"
     args
   end

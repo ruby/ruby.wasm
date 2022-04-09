@@ -14,6 +14,7 @@ ruby_root="$1"
 package_dir="$(cd "$(dirname "$0")" && pwd)"
 dist_dir="$package_dir/dist"
 repo_dir="$package_dir/../../../"
+BUILD_WITH_DEBUG="${BUILD_WITH_DEBUG-""}"
 
 rm -rf "$dist_dir"
 
@@ -28,7 +29,11 @@ wit-bindgen js \
     npx tsc --build
 )
 
-wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
+if [ -z "$BUILD_WITH_DEBUG" ]; then
+  wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
+else
+  cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/ruby.wasm"
+fi
 
 mkdir "$dist_dir/bindgen"
 cp $(find "$package_dir/src/bindgen" -name "*.js" -or -name "*.d.ts") "$dist_dir/bindgen"
