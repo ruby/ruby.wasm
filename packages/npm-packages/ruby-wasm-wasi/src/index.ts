@@ -23,10 +23,12 @@ export class RubyVM {
   guest: RbAbi.RbAbiGuest;
   private instance: WebAssembly.Instance | null = null;
   private exporter: JsValueExporter;
+  private exceptionFormatter: RbExceptionFormatter;
 
   constructor() {
     this.guest = new RbAbi.RbAbiGuest();
     this.exporter = new JsValueExporter();
+    this.exceptionFormatter = new RbExceptionFormatter();
   }
 
   /**
@@ -168,7 +170,7 @@ export class RubyVM {
    *
    */
   eval(code: string): RbValue {
-    return evalRbCode(this, this.exporter, code);
+    return evalRbCode(this, { exporter: this.exporter, exceptionFormatter: this.exceptionFormatter }, code);
   }
 }
 
@@ -189,7 +191,7 @@ export class RbValue {
   constructor(
     private inner: RbAbi.RbAbiValue,
     private vm: RubyVM,
-    private exporter: JsValueExporter
+    private privateObject: RubyVMPrivate
   ) {}
 
   /**
@@ -207,9 +209,9 @@ export class RbValue {
   call(callee: string, ...args: RbValue[]): RbValue {
     const innerArgs = args.map((arg) => arg.inner);
     return new RbValue(
-      callRbMethod(this.vm, this.exporter, this.inner, callee, innerArgs),
+      callRbMethod(this.vm, this.privateObject, this.inner, callee, innerArgs),
       this.vm,
-      this.exporter
+      this.privateObject
     );
   }
 
@@ -231,7 +233,7 @@ export class RbValue {
   toString(): string {
     const rbString = callRbMethod(
       this.vm,
-      this.exporter,
+      this.privateObject,
       this.inner,
       "to_s",
       []
@@ -252,7 +254,7 @@ export class RbValue {
       return null;
     }
     jsValue.call("__export_to_js");
-    return this.exporter.exportJsValue();
+    return this.privateObject.exporter.exportJsValue();
   }
 }
 
@@ -269,18 +271,52 @@ enum ruby_tag_type {
   Mask = 0xf,
 }
 
-const formatException = (
-  klass: string,
-  message: string,
-  backtrace: [string, string]
-) => {
-  return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
+type RubyVMPrivate = {
+  exporter: JsValueExporter,
+  exceptionFormatter: RbExceptionFormatter,
 };
+
+
+class RbExceptionFormatter {
+  private literalsCache: [RbValue, RbValue, RbValue] | null = null;
+
+  format(error: RbValue, vm: RubyVM, privateObject: RubyVMPrivate): string {
+    const [zeroLiteral, oneLiteral, newLineLiteral] = (() => {
+      if (this.literalsCache == null) {
+        const zeroOneNewLine: [RbValue, RbValue, RbValue] = [
+          evalRbCode(vm, privateObject, "0"),
+          evalRbCode(vm, privateObject, "1"),
+          evalRbCode(vm, privateObject, `"\n"`)
+        ];
+        this.literalsCache = zeroOneNewLine;
+        return zeroOneNewLine;
+      } else {
+        return this.literalsCache;
+      }
+    })();
+
+    const backtrace = error.call("backtrace");
+    const firstLine = backtrace.call("at", zeroLiteral);
+    const restLines = backtrace.call("drop", oneLiteral).call("join", newLineLiteral);
+    return this.formatString(error.call("class").toString(), error.toString(), [
+      firstLine.toString(),
+      restLines.toString(),
+    ])
+  }
+
+  formatString(
+    klass: string,
+    message: string,
+    backtrace: [string, string]
+  ): string {
+    return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
+  };
+}
 
 const checkStatusTag = (
   rawTag: number,
   vm: RubyVM,
-  exporter: JsValueExporter
+  privateObject: RubyVMPrivate
 ) => {
   switch (rawTag & ruby_tag_type.Mask) {
     case ruby_tag_type.None:
@@ -299,19 +335,13 @@ const checkStatusTag = (
       throw new RbError("unexpected throw");
     case ruby_tag_type.Raise:
     case ruby_tag_type.Fatal:
-      const error = new RbValue(vm.guest.rbErrinfo(), vm, exporter);
-      const newLine = evalRbCode(vm, exporter, `"\n"`);
-      const backtrace = error.call("backtrace");
-      const firstLine = backtrace.call("at", evalRbCode(vm, exporter, "0"));
-      const restLines = backtrace
-        .call("drop", evalRbCode(vm, exporter, "1"))
-        .call("join", newLine);
-      throw new RbError(
-        formatException(error.call("class").toString(), error.toString(), [
-          firstLine.toString(),
-          restLines.toString(),
-        ])
-      );
+      const error = new RbValue(vm.guest.rbErrinfo(), vm, privateObject);
+      if (error.call("nil?").toString() === "true") {
+        throw new RbError("no exception object");
+      }
+      // clear errinfo if got exception due to no rb_jump_tag
+      vm.guest.rbClearErrinfo();
+      throw new RbError(privateObject.exceptionFormatter.format(error, vm, privateObject));
     default:
       throw new RbError(`unknown error tag: ${rawTag}`);
   }
@@ -319,20 +349,20 @@ const checkStatusTag = (
 
 const callRbMethod = (
   vm: RubyVM,
-  exporter: JsValueExporter,
+  privateObject: RubyVMPrivate,
   recv: RbAbi.RbAbiValue,
   callee: string,
   args: RbAbi.RbAbiValue[]
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
   const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, args);
-  checkStatusTag(status, vm, exporter);
+  checkStatusTag(status, vm, privateObject);
   return value;
 };
-const evalRbCode = (vm: RubyVM, exporter: JsValueExporter, code: string) => {
+const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
   const [value, status] = vm.guest.rbEvalStringProtect(code + "\0");
-  checkStatusTag(status, vm, exporter);
-  return new RbValue(value, vm, exporter);
+  checkStatusTag(status, vm, privateObject);
+  return new RbValue(value, vm, privateObject);
 };
 
 /**

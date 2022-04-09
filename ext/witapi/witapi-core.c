@@ -218,6 +218,10 @@ rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
   return rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
+void rb_abi_guest_rb_clear_errinfo(void) {
+  rb_set_errinfo(Qnil);
+}
+
 void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_abi_value_t value,
                               rb_abi_guest_string_t *ret0) {
   VALUE r_str = (VALUE)rb_abi_guest_rb_abi_value_get(&value);
