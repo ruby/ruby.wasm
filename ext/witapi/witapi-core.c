@@ -2,6 +2,8 @@
 
 #include "ruby.h"
 
+#define TAG_NONE 0
+
 #include "bindgen/rb-abi-guest.h"
 
 __attribute__((import_module("asyncify"), import_name("start_unwind"))) void
@@ -67,30 +69,39 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
   }
 
 static VALUE rb_abi_guest_arena_hash;
-static void rb_abi_lend_object_internal(VALUE obj) {
+static VALUE rb_abi_lend_object_internal(VALUE obj) {
   VALUE ref_count = rb_hash_lookup(rb_abi_guest_arena_hash, obj);
   if (NIL_P(ref_count)) {
     rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(1));
   } else {
     rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(FIX2INT(ref_count) + 1));
   }
+  return Qundef;
 }
 static void rb_abi_lend_object(VALUE obj) {
-  RB_WASM_LIB_RT(rb_abi_lend_object_internal(obj));
+  int state;
+  RB_WASM_LIB_RT(rb_protect(rb_abi_lend_object_internal, obj, &state));
+  assert(state == TAG_NONE && "rb_abi_lend_object_internal failed");
 }
 
-void rb_abi_guest_rb_abi_value_dtor(void *data) {
-  VALUE obj = (VALUE)data;
+static VALUE rb_abi_guest_rb_abi_value_dtor_internal(VALUE obj) {
   VALUE ref_count = rb_hash_lookup(rb_abi_guest_arena_hash, obj);
   if (NIL_P(ref_count)) {
     rb_warning("rb_abi_guest_rb_abi_value_dtor: double free detected");
-    return;
+    return Qundef;
   }
   if (ref_count == INT2FIX(1)) {
     rb_hash_delete(rb_abi_guest_arena_hash, obj);
   } else {
     rb_hash_aset(rb_abi_guest_arena_hash, obj, INT2FIX(FIX2INT(ref_count) - 1));
   }
+  return Qundef;
+}
+
+void rb_abi_guest_rb_abi_value_dtor(void *data) {
+  int state;
+  RB_WASM_LIB_RT(rb_protect(rb_abi_guest_rb_abi_value_dtor_internal, (VALUE)data, &state));
+  assert(state == TAG_NONE && "rb_abi_guest_rb_abi_value_dtor_internal failed");
 }
 
 // MARK: - Exported functions
