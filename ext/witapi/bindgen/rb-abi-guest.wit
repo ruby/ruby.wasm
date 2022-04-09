@@ -13,5 +13,6 @@ rb-eval-string-protect: function(str: string) -> tuple<rb-abi-value, s32>
 rb-funcallv-protect: function(recv: rb-abi-value, mid: rb-id, args: list<rb-abi-value>) -> tuple<rb-abi-value, s32>
 rb-intern: function(name: string) -> rb-id
 rb-errinfo: function() -> rb-abi-value
+rb-clear-errinfo: function()
 
 rstring-ptr: function(value: rb-abi-value) -> string

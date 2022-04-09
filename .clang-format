@@ -1,6 +1,7 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
+IndentPPDirectives: AfterHash
 ---
 Language: JavaScript
 DisableFormat: true
