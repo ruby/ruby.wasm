@@ -166,9 +166,11 @@ void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str,
   VALUE retval;
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: str = %s\n", str->ptr);
   RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
-  rb_abi_lend_object(retval);
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: retval = %p, state = %d\n", (void *)retval, *state);
 
+  if (*state == TAG_NONE) {
+    rb_abi_lend_object(retval);
+  }
   *result = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
@@ -197,9 +199,11 @@ void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_abi_value_t recv,
   struct rb_funcallv_thunk_ctx ctx = {
       .recv = r_recv, .mid = mid, .args = args};
   RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
-  rb_abi_lend_object(retval);
   RB_WASM_DEBUG_LOG("rb_abi_guest_rb_funcallv_protect: retval = %p, state = %d\n", (void *)retval, *ret1);
 
+  if (*ret1 == TAG_NONE) {
+    rb_abi_lend_object(retval);
+  }
   *ret0 = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
