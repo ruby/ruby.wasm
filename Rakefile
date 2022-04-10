@@ -35,7 +35,7 @@ BUILDS = [
 
 NPM_PACKAGES = [
   { name: "ruby-head-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
-  { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js" },
+  { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js-debug" },
 ]
 
 WAPM_PACKAGES = [
