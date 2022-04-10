@@ -107,6 +107,7 @@ jobs:
             artifact_name: "npm-ruby-head-wasm-emscripten"
             builder: "wasm32-unknown-emscripten"
           - task: "npm:ruby-head-wasm-wasi"
+            test: "npm:ruby-head-wasm-wasi-check"
             prerelease: "npm:configure_prerelease"
             artifact: "packages/npm-packages/ruby-head-wasm-wasi/ruby-head-wasm-wasi-*.tgz"
             artifact_name: "npm-ruby-head-wasm-wasi"
@@ -139,6 +140,9 @@ jobs:
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
         run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
+      - name: rake ${{ matrix.entry.test }}
+        run: rake ${{ matrix.entry.test }}
+        if: ${{ matrix.entry.test != '' }}
       - uses: actions/upload-artifact@v2
         if: ${{ matrix.entry.artifact }}
         with:

@@ -280,13 +280,19 @@ end
 
 namespace :npm do
   NPM_PACKAGES.each do |pkg|
+    base_dir = Dir.pwd
+    pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
+
     desc "Build npm package #{pkg[:name]}"
     task pkg[:name] => ["build:#{pkg[:build]}"] do
-      base_dir = Dir.pwd
-      pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
       sh "npm ci", chdir: pkg_dir
       sh "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
       sh "npm pack", chdir: pkg_dir
+    end
+
+    desc "Check npm package #{pkg[:name]}"
+    task "#{pkg[:name]}-check" do
+      sh "npm test", chdir: pkg_dir
     end
   end
 
