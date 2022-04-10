@@ -16,6 +16,13 @@ on:
         required: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: sudo apt-get install clang-format
+      - run: ./scripts/clang-format-diff.sh
+
   build-builder-image:
     strategy:
       fail-fast: false
