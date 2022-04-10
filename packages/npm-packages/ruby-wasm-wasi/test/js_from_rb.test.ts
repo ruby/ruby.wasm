@@ -1,6 +1,8 @@
 import { initRubyVM } from "./init";
 
 describe("Manipulation of JS from Ruby", () => {
+  jest.setTimeout(10 /*sec*/ * 1000);
+
   const Qtrue = 0x02;
   test(`require "js"`, async () => {
     const vm = await initRubyVM();
