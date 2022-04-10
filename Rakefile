@@ -398,7 +398,8 @@ task :publish, [:tag] do |t, args|
     tarball = Dir.glob("release/#{artifact}/*")
     next if tarball.empty?
     tarball = tarball[0]
-    sh %Q(npm publish --tag next #{tarball})
+    # tolerate failure as a case that has already been released
+    sh_or_warn %Q(npm publish --tag next #{tarball})
   end
   sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
 end
@@ -419,4 +420,12 @@ end
 
 def lib_wasi_vfs_a
   ENV["LIB_WASI_VFS_A"]
+end
+
+def sh_or_warn(*cmd)
+  sh *cmd do |ok, status|
+    unless ok
+      warn "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+    end
+  end
 end
