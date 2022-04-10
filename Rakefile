@@ -165,7 +165,7 @@ class BuildPlan
     args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
     if profile[:debug]
       args << %Q(debugflags="-g")
-      args << %Q(wasmoptflags="-O2 -g")
+      args << %Q(wasmoptflags="-O3 -g")
     else
       args << %Q(debugflags="-g0")
     end
