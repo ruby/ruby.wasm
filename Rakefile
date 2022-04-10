@@ -14,17 +14,21 @@ BUILD_SOURCES = [
 FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor"
 
 BUILD_PROFILES = {
-  "minimal"    => { debug: false, default_exts: "", user_exts: [] },
-  "minimal-js" => { debug: false, default_exts: "", user_exts: ["js", "witapi"] },
-  "full"       => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
-  "full-js"    => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
+  "minimal"          => { debug: false, default_exts: "", user_exts: [] },
+  "minimal-js"       => { debug: false, default_exts: "", user_exts: ["js", "witapi"] },
+  "minimal-js-debug" => { debug: true,  default_exts: "", user_exts: ["js", "witapi"] },
+  "full"             => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
+  "full-js"          => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
+  "full-js-debug"    => { debug: true,  default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
 }
 
 BUILDS = [
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
 ]
