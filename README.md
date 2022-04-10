@@ -56,10 +56,8 @@ Then, you can build by `rake` command. See `rake -T` for more information.
 # Build only a specific combination of ruby version, profile, and target
 # Output is in the `rubies` directory
 $ rake build:head-wasm32-unknown-wasi-full-js
-# Build all combinations of profile, and target for a specific ruby version
-$ rake build:head
 # Build npm packages and required ruby
-$ rake pkg:all
+$ rake npm:all
 ```
 
 ## Notable Limitations
