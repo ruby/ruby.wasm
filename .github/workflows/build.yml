@@ -18,6 +18,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
       - run: sudo apt-get install clang-format
