@@ -7,7 +7,7 @@
 // MARK: - Ruby extension
 
 #ifndef RBOOL
-#define RBOOL(v) ((v) ? Qtrue : Qfalse)
+#  define RBOOL(v) ((v) ? Qtrue : Qfalse)
 #endif
 
 extern VALUE rb_mKernel;
@@ -65,7 +65,8 @@ static struct jsvalue *check_jsvalue(VALUE obj) {
 
 #define IS_JSVALUE(obj) (rb_typeddata_is_kind_of((obj), &jsvalue_data_type))
 
-static inline void rstring_to_abi_string(VALUE rstr, rb_js_abi_host_string_t *abi_str) {
+static inline void rstring_to_abi_string(VALUE rstr,
+                                         rb_js_abi_host_string_t *abi_str) {
   abi_str->len = RSTRING_LEN(rstr);
   abi_str->ptr = xmalloc(abi_str->len);
   memcpy(abi_str->ptr, RSTRING_PTR(rstr), abi_str->len);
