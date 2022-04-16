@@ -71,6 +71,7 @@ If you want to build Ruby for WebAssembly from source yourself, follow the below
 
 - [wit-bindgen](https://github.com/bytecodealliance/wit-bindgen): A language bindings generator for `wit` used in the npm packages. Install in `PATH`.
 - [wasi-sdk](https://github.com/WebAssembly/wasi-sdk): Only for building for WASI target. Set `WASI_SDK_PATH` environment variable to the directory of wasi-sdk.
+- [Binaryen](https://github.com/WebAssembly/binaryen): Only for building for WASI target. Install `wasm-opt` in `PATH`
 - [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs): A virtual filesystem layer for WASI. Install CLI tool in `PATH`. Set `LIB_WASI_VFS_A` environment variable to the path to `libwasi_vfs.a`.
 - [wasi-preset-args](https://github.com/kateinoigakukun/wasi-preset-args): A tool to preset command-line arguments to a WASI module. Install in `PATH`.
 - [Emscripten](https://emscripten.org): Only for building for Emscripten target. Follow the official instructions to install.
