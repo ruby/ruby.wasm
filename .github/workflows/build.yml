@@ -2,6 +2,7 @@ name: Build ruby.wasm
 on:
   push:
     branches: [main]
+    tags:
   pull_request:
   workflow_call:
     inputs:
