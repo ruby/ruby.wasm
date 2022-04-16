@@ -22,6 +22,9 @@ import { DefaultRubyVM } from "ruby-head-wasm-wasi/dist/node.cjs.js";
 
 const main = async () => {
   const binary = await fs.readFile(
+//  Tips: Replace the binary with debug info if you want symbolicated stack trace.
+//  (only nightly release for now)
+//  "./node_modules/ruby-head-wasm-wasi/dist/ruby.debug.wasm"
     "./node_modules/ruby-head-wasm-wasi/dist/ruby.wasm"
   );
   const module = await WebAssembly.compile(binary);
@@ -55,6 +58,9 @@ See [the example project](./example) for more details.
     const main = async () => {
       // Fetch and instntiate WebAssembly binary
       const response = await fetch(
+//      Tips: Replace the binary with debug info if you want symbolicated stack trace.
+//      (only nightly release for now)
+//      "https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@latest/dist/ruby.debug.wasm"
         "https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@latest/dist/ruby.wasm"
       );
       const buffer = await response.arrayBuffer();
