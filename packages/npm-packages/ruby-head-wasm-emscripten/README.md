@@ -14,7 +14,7 @@ $ npm install --save ruby-head-wasm-emscripten
 
 ## Quick Start
 
-This quick start is for browsers and Node.js environments. See [the example project](./example) for more details.
+This quick start is for browsers and Node.js environments. See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-emscripten/example) for more details.
 
 ```javascript
 import { loadRuby } from "ruby-head-wasm-emscripten";

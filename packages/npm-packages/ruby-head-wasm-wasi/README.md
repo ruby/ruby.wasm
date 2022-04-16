@@ -14,7 +14,7 @@ $ npm install --save ruby-head-wasm-wasi
 
 ## Quick Start (for Node.js)
 
-See [the example project](./example) for more details.
+See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example) for more details.
 
 ```javascript
 import fs from "fs/promises";
@@ -48,7 +48,7 @@ $ node --experimental-wasi-unstable-preview1 index.node.js
 ## Quick Start (for Browser)
 
 In browser, you need a WASI polyfill
-See [the example project](./example) for more details.
+See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example) for more details.
 
 ```html
 <html>
