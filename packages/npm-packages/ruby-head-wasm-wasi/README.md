@@ -9,7 +9,11 @@ This package distributes the latest `master` branch of CRuby.
 For instaling ruby-head-wasm-wasi family, just run this command in your shell:
 
 ```console
-$ npm install --save ruby-head-wasm-wasi
+$ npm install --save ruby-head-wasm-wasi@latest
+# or if you want the nightly snapshot
+$ npm install --save ruby-head-wasm-wasi@next
+# or you can specify the exact snapshot version
+$ npm install --save ruby-head-wasm-wasi@0.3.0-2022-04-16-a
 ```
 
 ## Quick Start (for Node.js)
