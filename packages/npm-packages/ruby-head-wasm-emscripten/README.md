@@ -58,7 +58,7 @@ This package is a thin wrapper of Emscripten module, so you can control the beha
 
 For building the package from source, you need to prepare a Ruby build produced by Emscripten, and you need Emscripten SDK in your PATH.
 
-The instructions for building a Ruby targeting WebAssembly are available at: [TODO](./).
+The instructions for building a Ruby targeting WebAssembly are available [here](https://github.com/ruby/ruby.wasm#building-from-source).
 
 Then, you can run the following command in your shell:
 

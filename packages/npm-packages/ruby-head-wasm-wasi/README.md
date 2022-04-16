@@ -252,7 +252,7 @@ Error class thrown by Ruby execution
 
 For building the package from source, you need to prepare a Ruby build produced by WASI SDK, and you need [`wit-bindgen`](https://github.com/bytecodealliance/wit-bindgen) and [`wasm-opt`](https://github.com/webassembly/binaryen#tools) in your PATH.
 
-The instructions for building a Ruby targeting WebAssembly are available at: [TODO](./).
+The instructions for building a Ruby targeting WebAssembly are available [here](https://github.com/ruby/ruby.wasm#building-from-source).
 
 Then, you can run the following command in your shell:
 
