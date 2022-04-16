@@ -15,18 +15,22 @@ FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubbleb
 
 BUILD_PROFILES = {
   "minimal"          => { debug: false, default_exts: "", user_exts: [] },
+  "minimal-debug"    => { debug: true,  default_exts: "", user_exts: [] },
   "minimal-js"       => { debug: false, default_exts: "", user_exts: ["js", "witapi"] },
   "minimal-js-debug" => { debug: true,  default_exts: "", user_exts: ["js", "witapi"] },
   "full"             => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
+  "full-debug"       => { debug: true,  default_exts: FULL_EXTS, user_exts: [] },
   "full-js"          => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
   "full-js-debug"    => { debug: true,  default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
 }
 
 BUILDS = [
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "full-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
@@ -344,9 +348,13 @@ RELASE_ARTIFACTS = [
   "ruby-head-wasm32-unknown-emscripten-full",
   "ruby-head-wasm32-unknown-emscripten-minimal",
   "ruby-head-wasm32-unknown-wasi-full",
+  "ruby-head-wasm32-unknown-wasi-full-debug",
   "ruby-head-wasm32-unknown-wasi-full-js",
+  "ruby-head-wasm32-unknown-wasi-full-js-debug",
   "ruby-head-wasm32-unknown-wasi-minimal",
+  "ruby-head-wasm32-unknown-wasi-minimal-debug",
   "ruby-head-wasm32-unknown-wasi-minimal-js",
+  "ruby-head-wasm32-unknown-wasi-minimal-js-debug",
 ] + NPM_RELEASE_ARTIFACTS
 
 def release_note
