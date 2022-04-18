@@ -1,6 +1,6 @@
 FROM rust:1.57-buster as wit-bindgen-builder
 
-ARG WIT_BINDGEN_REV=dab589f579b980c81b39c8348400b88a8c4d175a
+ARG WIT_BINDGEN_REV=bb33644b4fd21ecf43761f63c472cdfffe57e300
 RUN cargo install --git https://github.com/bytecodealliance/wit-bindgen \
   --rev $WIT_BINDGEN_REV \
   --root /tmp/install wit-bindgen-cli
