@@ -17,6 +17,7 @@ import { addRbJsAbiHostToImports, JsAbiValue } from "./bindgen/rb-js-abi-host";
  * const instance = await WebAssembly.instantiate(rubyModule, imports);
  * await vm.setInstance(instance);
  * wasi.initialize(instance);
+ * vm.initialize();
  *
  */
 export class RubyVM {
