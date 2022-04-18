@@ -24,6 +24,8 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - run: sudo apt-get install clang-format
       - run: ./scripts/clang-format-diff.sh
 
