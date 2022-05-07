@@ -16,7 +16,7 @@ See the `README.md` of each package for more detail and its usage.
 
 ## Quick Example: How to package your Ruby application as a WASI application
 
-Dpendencies: [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs), [wasmtime](https://github.com/bytecodealliance/wasmtime)
+Dependencies: [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs), [wasmtime](https://github.com/bytecodealliance/wasmtime)
 
 ```console
 # Download a prebuilt Ruby release
