@@ -97,6 +97,7 @@ export class RubyVM {
           return value.toString();
         },
         takeJsValue: (value) => {
+          // See `JsValueExporter` for the reason why we need to do this
           this.exporter.takeJsValue(value);
         },
         instanceOf: (value, klass) => {
@@ -175,12 +176,32 @@ export class RubyVM {
   }
 }
 
+/**
+ * Export a JS value held by the Ruby VM to the JS environment.
+ * This is implemented in a dirty way since wit cannot reference resources
+ * defined in other interfaces.
+ * In our case, we can't express `function(v: rb-abi-value) -> js-abi-value`
+ * because `rb-js-abi-host.wit`, that defines `js-abi-value`, is implemented
+ * by embedder side (JS) but `rb-abi-guest.wit`, that defines `rb-abi-value`
+ * is implemented by guest side (Wasm).
+ *
+ * This class is a helper to export by:
+ * 1. Call `function __export_to_js(v: rb-abi-value)` defined in guest from embedder side.
+ * 2. Call `function takeJsValue(v: js-abi-value)` defined in embedder from guest side with
+ *    underlying JS value of given `rb-abi-value`.
+ * 3. Then `takeJsValue` implementation escapes the given JS value to the `_takenJsValues`
+ *    stored in embedder side.
+ * 4. Finally, embedder side can take `_takenJsValues`.
+ *
+ * Note that `exportJsValue` is not reentrant.
+ */
 class JsValueExporter {
   private _takenJsValues: JsAbiValue = null;
   takeJsValue(value: JsAbiValue) {
     this._takenJsValues = value;
   }
-  exportJsValue(): JsAbiValue {
+  exportJsValue(value: RbValue): JsAbiValue {
+    value.call("__export_to_js");
     return this._takenJsValues;
   }
 }
@@ -254,8 +275,7 @@ export class RbValue {
     if (jsValue.call("nil?").toString() === "true") {
       return null;
     }
-    jsValue.call("__export_to_js");
-    return this.privateObject.exporter.exportJsValue();
+    return this.privateObject.exporter.exportJsValue(jsValue);
   }
 }
 
