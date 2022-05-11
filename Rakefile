@@ -105,9 +105,17 @@ class BuildPlan
     "#{ext_build_dir}/extinit.o"
   end
 
+  def baseruby_name
+    "baseruby-#{@params[:src]}"
+  end
+
+  def baseruby_path
+    "#{@base_dir}/build/deps/#{RbConfig::CONFIG["host"]}/opt/#{baseruby_name}/bin/ruby"
+  end
+
   def dep_tasks
-    return [] if @params[:profile] == "minimal"
-    ["deps:libyaml-#{@params[:target]}"]
+    return [baseruby_name] if @params[:profile] == "minimal"
+    [baseruby_name, "deps:libyaml-#{@params[:target]}"]
   end
 
   def check_deps
@@ -149,6 +157,7 @@ class BuildPlan
     args << "--with-static-linked-ext"
     args << %Q(--with-ext="#{default_exts}")
     args << %Q(--with-libyaml-dir="#{deps_install_dir}/libyaml/usr/local")
+    args << %Q(--with-baseruby="#{baseruby_path}")
 
     case target
     when "wasm32-unknown-wasi"
@@ -225,6 +234,18 @@ namespace :build do
     end
     file source.configure_file => [source.src_dir] do
       sh "./autogen.sh", chdir: source.src_dir
+    end
+
+    baseruby_install_dir = File.join(Dir.pwd, "/build/deps/#{RbConfig::CONFIG["host"]}/opt/baseruby-#{name}")
+    baseruby_build_dir   = File.join(Dir.pwd, "/build/deps/#{RbConfig::CONFIG["host"]}/baseruby-#{name}")
+
+    directory baseruby_build_dir
+
+    desc "build baseruby #{name}"
+    task "baseruby-#{name}" => [source.src_dir, source.configure_file, baseruby_build_dir] do
+      next if Dir.exist?(baseruby_install_dir)
+      sh "#{source.configure_file} --prefix=#{baseruby_install_dir} --disable-install-doc", chdir: baseruby_build_dir
+      sh "make install", chdir: baseruby_build_dir
     end
   end
 
