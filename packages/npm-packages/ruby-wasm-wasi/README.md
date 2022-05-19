@@ -2,7 +2,6 @@
 
 This package is a template for each channel-specific package.
 
-| Channel | Package |
-| ------- | ------- |
+| Channel | Package                                           |
+| ------- | ------------------------------------------------- |
 | `head`  | [`ruby-head-wasm-wasi`](./../ruby-head-wasm-wasi) |
-

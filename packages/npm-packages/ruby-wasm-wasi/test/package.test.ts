@@ -38,11 +38,10 @@ describe("Packaging validation", () => {
     const mod = await WebAssembly.compile(binary.buffer);
     const { vm } = await initRubyVM(mod, ["ruby.wasm", "-e_=0"]);
     // Check loading ext library
-    vm.eval(`require "stringio"`)
+    vm.eval(`require "stringio"`);
     if (stdlib) {
       // Check loading stdlib gem
-      vm.eval(`require "English"`)
+      vm.eval(`require "English"`);
     }
   });
-
 });

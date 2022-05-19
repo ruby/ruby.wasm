@@ -95,8 +95,11 @@ export class RubyVM {
           return value;
         },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
-            const abiValue = new (RbAbi.RbAbiValue as any)(rawRbAbiValue, this.guest);
-            return new RbValue(abiValue, this, this.privateObject());
+          const abiValue = new (RbAbi.RbAbiValue as any)(
+            rawRbAbiValue,
+            this.guest
+          );
+          return new RbValue(abiValue, this, this.privateObject());
         },
         jsValueToString: (value) => {
           return value.toString();
@@ -197,7 +200,10 @@ export class RubyVM {
   }
 
   private privateObject(): RubyVMPrivate {
-    return { transport: this.transport, exceptionFormatter: this.exceptionFormatter }
+    return {
+      transport: this.transport,
+      exceptionFormatter: this.exceptionFormatter,
+    };
   }
 }
 
@@ -330,10 +336,9 @@ enum ruby_tag_type {
 }
 
 type RubyVMPrivate = {
-  transport: JsValueTransport,
-  exceptionFormatter: RbExceptionFormatter,
+  transport: JsValueTransport;
+  exceptionFormatter: RbExceptionFormatter;
 };
-
 
 class RbExceptionFormatter {
   private literalsCache: [RbValue, RbValue, RbValue] | null = null;
@@ -344,7 +349,7 @@ class RbExceptionFormatter {
         const zeroOneNewLine: [RbValue, RbValue, RbValue] = [
           evalRbCode(vm, privateObject, "0"),
           evalRbCode(vm, privateObject, "1"),
-          evalRbCode(vm, privateObject, `"\n"`)
+          evalRbCode(vm, privateObject, `"\n"`),
         ];
         this.literalsCache = zeroOneNewLine;
         return zeroOneNewLine;
@@ -355,11 +360,13 @@ class RbExceptionFormatter {
 
     const backtrace = error.call("backtrace");
     const firstLine = backtrace.call("at", zeroLiteral);
-    const restLines = backtrace.call("drop", oneLiteral).call("join", newLineLiteral);
+    const restLines = backtrace
+      .call("drop", oneLiteral)
+      .call("join", newLineLiteral);
     return this.formatString(error.call("class").toString(), error.toString(), [
       firstLine.toString(),
       restLines.toString(),
-    ])
+    ]);
   }
 
   formatString(
@@ -368,7 +375,7 @@ class RbExceptionFormatter {
     backtrace: [string, string]
   ): string {
     return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
-  };
+  }
 }
 
 const checkStatusTag = (
@@ -399,7 +406,9 @@ const checkStatusTag = (
       }
       // clear errinfo if got exception due to no rb_jump_tag
       vm.guest.rbClearErrinfo();
-      throw new RbError(privateObject.exceptionFormatter.format(error, vm, privateObject));
+      throw new RbError(
+        privateObject.exceptionFormatter.format(error, vm, privateObject)
+      );
     default:
       throw new RbError(`unknown error tag: ${rawTag}`);
   }
