@@ -72,7 +72,8 @@ export class RubyVM {
           return Function(code)();
         },
         isJs: (value) => {
-          return value == null || !(value instanceof RbValue);
+          // Just for compatibility with the old JS API
+          return true;
         },
         globalThis: () => {
           if (typeof globalThis !== "undefined") {
@@ -92,6 +93,10 @@ export class RubyVM {
         },
         boolToJsBool: (value) => {
           return value;
+        },
+        rbObjectToJsRbValue: (rawRbAbiValue) => {
+            const abiValue = new (RbAbi.RbAbiValue as any)(rawRbAbiValue, this.guest);
+            return new RbValue(abiValue, this, this.privateObject());
         },
         jsValueToString: (value) => {
           return value.toString();
@@ -172,7 +177,11 @@ export class RubyVM {
    *
    */
   eval(code: string): RbValue {
-    return evalRbCode(this, { exporter: this.exporter, exceptionFormatter: this.exceptionFormatter }, code);
+    return evalRbCode(this, this.privateObject(), code);
+  }
+
+  private privateObject(): RubyVMPrivate {
+    return { exporter: this.exporter, exceptionFormatter: this.exceptionFormatter }
   }
 }
 

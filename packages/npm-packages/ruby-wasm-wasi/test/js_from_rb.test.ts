@@ -147,4 +147,22 @@ describe("Manipulation of JS from Ruby", () => {
       `);
     expect(result.toJS()).toEqual(expected);
   });
+
+  test("Wrap arbitrary Ruby object to JS::Object", async () => {
+    const vm = await initRubyVM();
+    const results = vm.eval(`
+      require "js"
+      intrinsics = JS.eval(<<-JS)
+        return {
+          identity(v) { return v }
+        }
+      JS
+      o1 = Object.new
+      o1_clone = intrinsics.call(:identity, JS::Object.wrap(o1))
+      [o1.object_id, o1_clone.call("call", "object_id").inspect]
+    `);
+    const o1 = results.call("at", vm.eval("0"));
+    const o1Clone = results.call("at", vm.eval("1"));
+    expect(o1.toString()).toEqual(o1Clone.toString());
+  });
 });
