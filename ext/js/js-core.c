@@ -239,10 +239,13 @@ static VALUE _rb_js_obj_inspect(VALUE obj) {
  */
 static VALUE _rb_js_export_to_js(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
-  rb_js_abi_host_take_js_value(p->abi);
+  rb_js_abi_host_export_js_value_to_host(p->abi);
   return Qnil;
 }
 
+static VALUE _rb_js_import_from_js(VALUE obj) {
+  return jsvalue_s_new(rb_js_abi_host_import_js_value_from_host());
+}
 
 /*
  * call-seq:
@@ -317,6 +320,7 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
+  rb_define_singleton_method(rb_cJS_Object, "__import_from_js", _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);
   rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
 

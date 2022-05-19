@@ -11,7 +11,8 @@ rb-object-to-js-rb-value: function(raw-rb-abi-value: u32) -> js-abi-value
 
 js-value-to-string: function(value: js-abi-value) -> string
 
-take-js-value: function(value: js-abi-value)
+export-js-value-to-host: function(value: js-abi-value)
+import-js-value-from-host: function() -> js-abi-value
 
 reflect-apply: function(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-construct: function(target: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value

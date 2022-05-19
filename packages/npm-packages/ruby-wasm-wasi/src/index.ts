@@ -23,12 +23,12 @@ import { addRbJsAbiHostToImports, JsAbiValue } from "./bindgen/rb-js-abi-host";
 export class RubyVM {
   guest: RbAbi.RbAbiGuest;
   private instance: WebAssembly.Instance | null = null;
-  private exporter: JsValueExporter;
+  private transport: JsValueTransport;
   private exceptionFormatter: RbExceptionFormatter;
 
   constructor() {
     this.guest = new RbAbi.RbAbiGuest();
-    this.exporter = new JsValueExporter();
+    this.transport = new JsValueTransport();
     this.exceptionFormatter = new RbExceptionFormatter();
   }
 
@@ -101,9 +101,12 @@ export class RubyVM {
         jsValueToString: (value) => {
           return value.toString();
         },
-        takeJsValue: (value) => {
+        exportJsValueToHost: (value) => {
           // See `JsValueExporter` for the reason why we need to do this
-          this.exporter.takeJsValue(value);
+          this.transport.takeJsValue(value);
+        },
+        importJsValueFromHost: () => {
+          return this.transport.consumeJsValue();
         },
         instanceOf: (value, klass) => {
           if (typeof klass === "function") {
@@ -180,8 +183,21 @@ export class RubyVM {
     return evalRbCode(this, this.privateObject(), code);
   }
 
+  /**
+   * Wrap a JavaScript value into a Ruby JS::Object
+   * @param value The value to convert to RbValue
+   * @returns the RbValue object representing the given JS value
+   *
+   * @example
+   * const hash = vm.eval(`Hash.new`)
+   * hash.call("store", vm.eval(`"key1"`), vm.wrap(new Object()));
+   */
+  wrap(value: any): RbValue {
+    return this.transport.importJsValue(value, this);
+  }
+
   private privateObject(): RubyVMPrivate {
-    return { exporter: this.exporter, exceptionFormatter: this.exceptionFormatter }
+    return { transport: this.transport, exceptionFormatter: this.exceptionFormatter }
   }
 }
 
@@ -204,14 +220,26 @@ export class RubyVM {
  *
  * Note that `exportJsValue` is not reentrant.
  */
-class JsValueExporter {
-  private _takenJsValues: JsAbiValue = null;
+class JsValueTransport {
+  private _takenJsValue: JsAbiValue = null;
   takeJsValue(value: JsAbiValue) {
-    this._takenJsValues = value;
+    this._takenJsValue = value;
   }
+  consumeJsValue(): JsAbiValue {
+    return this._takenJsValue;
+  }
+
   exportJsValue(value: RbValue): JsAbiValue {
     value.call("__export_to_js");
-    return this._takenJsValues;
+    return this._takenJsValue;
+  }
+
+  importJsValue(value: JsAbiValue, vm: RubyVM): RbValue {
+    this._takenJsValue = value;
+    return vm.eval(`
+      require "js"
+      JS::Object.__import_from_js
+    `);
   }
 }
 
@@ -284,7 +312,7 @@ export class RbValue {
     if (jsValue.call("nil?").toString() === "true") {
       return null;
     }
-    return this.privateObject.exporter.exportJsValue(jsValue);
+    return this.privateObject.transport.exportJsValue(jsValue);
   }
 }
 
@@ -302,7 +330,7 @@ enum ruby_tag_type {
 }
 
 type RubyVMPrivate = {
-  exporter: JsValueExporter,
+  transport: JsValueTransport,
   exceptionFormatter: RbExceptionFormatter,
 };
 
