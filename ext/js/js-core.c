@@ -102,9 +102,10 @@ static VALUE _rb_js_is_js(VALUE _, VALUE obj) {
  *  Try to convert the given object to a JS::Object using <code>to_js</code>
  *  method. Returns <code>nil</code> if the object cannot be converted.
  *
- *   p JS.try_convert(1)          # => 1
- *   p JS.try_convert("foo")      # => "foo"
- *   p JS.try_convert(Object.new) # => nil
+ *   p JS.try_convert(1)                           # => JS::Object
+ *   p JS.try_convert("foo")                       # => JS::Object
+ *   p JS.try_convert(Object.new)                  # => nil
+ *   p JS.try_convert(JS::Object.wrap(Object.new)) # => JS::Object
  */
 VALUE _rb_js_try_convert(VALUE klass, VALUE obj) {
   if (_rb_js_is_js(klass, obj)) {
@@ -238,8 +239,22 @@ static VALUE _rb_js_obj_inspect(VALUE obj) {
  */
 static VALUE _rb_js_export_to_js(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
-  rb_js_abi_host_take_js_value(p->abi);
+  rb_js_abi_host_export_js_value_to_host(p->abi);
   return Qnil;
+}
+
+static VALUE _rb_js_import_from_js(VALUE obj) {
+  return jsvalue_s_new(rb_js_abi_host_import_js_value_from_host());
+}
+
+/*
+ * call-seq:
+ *   JS::Object.wrap(obj) -> JS::Object
+ *
+ *  Returns +obj+ wrapped by JS class RbValue.
+ */
+static VALUE _rb_js_obj_wrap(VALUE obj, VALUE wrapping) {
+  return jsvalue_s_new(rb_js_abi_host_rb_object_to_js_rb_value((uint32_t)wrapping));
 }
 
 /*
@@ -305,7 +320,9 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
+  rb_define_singleton_method(rb_cJS_Object, "__import_from_js", _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);
+  rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
 
   rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);
   rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
