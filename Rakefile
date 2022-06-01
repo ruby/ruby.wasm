@@ -11,7 +11,7 @@ BUILD_SOURCES = [
   },
 ]
 
-FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor"
+FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib"
 
 BUILD_PROFILES = {
   "minimal"          => { debug: false, default_exts: "", user_exts: [] },
@@ -115,7 +115,7 @@ class BuildPlan
 
   def dep_tasks
     return [baseruby_name] if @params[:profile] == "minimal"
-    [baseruby_name, "deps:libyaml-#{@params[:target]}"]
+    [baseruby_name, "deps:libyaml-#{@params[:target]}", "deps:zlib-#{@params[:target]}"]
   end
 
   def check_deps
@@ -157,6 +157,7 @@ class BuildPlan
     args << "--with-static-linked-ext"
     args << %Q(--with-ext="#{default_exts}")
     args << %Q(--with-libyaml-dir="#{deps_install_dir}/libyaml/usr/local")
+    args << %Q(--with-zlib-dir="#{deps_install_dir}/zlib")
     args << %Q(--with-baseruby="#{baseruby_path}")
 
     case target
@@ -215,6 +216,30 @@ namespace :deps do
       end
       sh "./configure #{configure_args.join(" ")}", chdir: build_dir
       sh "make install DESTDIR=#{install_dir}/libyaml", chdir: build_dir
+    end
+
+    zlib_version = "1.2.12"
+    desc "build zlib #{zlib_version} for #{target}"
+    task "zlib-#{target}" do
+      next if Dir.exist?("#{install_dir}/zlib")
+
+      build_dir = File.join(Dir.pwd, "/build/deps/#{target}/zlib-#{zlib_version}")
+      mkdir_p File.dirname(build_dir)
+      rm_rf build_dir
+
+      sh "curl -L https://zlib.net/zlib-#{zlib_version}.tar.gz | tar xz", chdir: File.dirname(build_dir)
+
+      configure_args = []
+      case target
+      when "wasm32-unknown-wasi"
+        configure_args.concat(%W(CC=#{ENV["WASI_SDK_PATH"]}/bin/clang RANLIB=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ranlib AR=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ar))
+      when "wasm32-unknown-emscripten"
+        configure_args.concat(%W(CC=emcc RANLIB=emranlib AR=emar))
+      else
+        raise "unknown target: #{target}"
+      end
+      sh "#{configure_args.join(" ")} ./configure --prefix=#{install_dir}/zlib --static", chdir: build_dir
+      sh "make install", chdir: build_dir
     end
   end
 end
