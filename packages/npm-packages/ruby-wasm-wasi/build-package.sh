@@ -29,7 +29,6 @@ wit-bindgen js \
 )
 
 wasm-opt --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
-cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/ruby.debug.wasm"
 
 # Build +stdlib versions (removing files that are not used in normal use cases)
 workdir="$(mktemp -d)"
@@ -38,7 +37,7 @@ rm -rf $workdir/ruby-root/usr/local/include
 rm -f $workdir/ruby-root/usr/local/lib/libruby-static.a
 rm -f $workdir/ruby-root/usr/local/bin/ruby
 wasi-vfs pack "$dist_dir/ruby.wasm" --mapdir /usr::$workdir/ruby-root/usr -o "$dist_dir/ruby+stdlib.wasm"
-wasi-vfs pack "$dist_dir/ruby.debug.wasm" --mapdir /usr::$workdir/ruby-root/usr -o "$dist_dir/ruby.debug+stdlib.wasm"
+wasi-vfs pack "$ruby_root/usr/local/bin/ruby" --mapdir /usr::$workdir/ruby-root/usr -o "$dist_dir/ruby.debug+stdlib.wasm"
 
 
 mkdir "$dist_dir/bindgen"

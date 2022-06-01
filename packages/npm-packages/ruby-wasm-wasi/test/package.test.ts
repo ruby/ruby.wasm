@@ -31,7 +31,6 @@ describe("Packaging validation", () => {
 
   test.each([
     { file: "ruby+stdlib.wasm", stdlib: true },
-    { file: "ruby.debug.wasm", stdlib: false },
     { file: "ruby.debug+stdlib.wasm", stdlib: true },
   ])("Load all variants", async ({ file, stdlib }) => {
     const binary = await fs.readFile(path.join(__dirname, `./../dist/${file}`));
