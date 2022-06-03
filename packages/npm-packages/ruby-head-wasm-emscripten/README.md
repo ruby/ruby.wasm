@@ -6,7 +6,7 @@ This package distributes the latest `master` branch of CRuby.
 
 ## Installation
 
-For instaling ruby-head-wasm-emscripten, just run this command in your shell:
+For installing ruby-head-wasm-emscripten, just run this command in your shell:
 
 ```console
 $ npm install --save ruby-head-wasm-emscripten@latest

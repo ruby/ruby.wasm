@@ -1,6 +1,6 @@
 # Example for ruby-wasm-wasi
 
-This is a simple example of how to use the `ruby-wasm-wasi` faimily packages
+This is a simple example of how to use the `ruby-wasm-wasi` family packages
 
 ## For browser
 

@@ -6,7 +6,7 @@ This package distributes the latest `master` branch of CRuby.
 
 ## Installation
 
-For instaling ruby-head-wasm-wasi family, just run this command in your shell:
+For installing ruby-head-wasm-wasi family, just run this command in your shell:
 
 ```console
 $ npm install --save ruby-head-wasm-wasi@latest
@@ -51,8 +51,7 @@ $ node --experimental-wasi-unstable-preview1 index.node.js
 
 ## Quick Start (for Browser)
 
-In browser, you need a WASI polyfill
-See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example) for more details.
+In browser, you need a WASI polyfill. See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example) for more details.
 
 ```html
 <html>
@@ -60,7 +59,7 @@ See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/n
   <script>
     const { DefaultRubyVM } = window["ruby-wasm-wasi"];
     const main = async () => {
-      // Fetch and instntiate WebAssembly binary
+      // Fetch and instantiate WebAssembly binary
       const response = await fetch(
         //      Tips: Replace the binary with debug info if you want symbolicated stack trace.
         //      (only nightly release for now)
