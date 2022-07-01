@@ -37,6 +37,33 @@ describe("Manipulation of JS from Ruby", () => {
   });
 
   test.each([
+    { lhs: `24`, rhs: `24`, result: true },
+    { lhs: `null`, rhs: `null`, result: true },
+    { lhs: `undefined`, rhs: `undefined`, result: true },
+    { lhs: `"str"`, rhs: `"str"`, result: true },
+    { lhs: `48`, rhs: `24`, result: false },
+    { lhs: `NaN`, rhs: `NaN`, result: false },
+  ])("JS::Object#== (%s)", async (props) => {
+    const vm = await initRubyVM();
+    const methodResult = `require "js"; JS.eval('return ${props.lhs}').eql?(JS.eval('return ${props.rhs}'))`;
+    expect(vm.eval(methodResult).toString()).toBe(String(props.result));
+
+    const operatorResult = `require "js"; JS.eval('return ${props.lhs}') == JS.eval('return ${props.rhs}')`;
+    expect(vm.eval(operatorResult).toString()).toBe(String(props.result));
+  });
+
+  test.each([
+    { lhs: `24`, rhs: `24`, result: true },
+    { lhs: `null`, rhs: `null`, result: true },
+    { lhs: `undefined`, rhs: `undefined`, result: true },
+    { lhs: `new String("str")`, rhs: `"str"`, result: false },
+  ])("JS::Object#strictly_eql? (%s)", async (props) => {
+    const vm = await initRubyVM();
+    const result = `require "js"; JS.eval('return ${props.lhs}').strictly_eql?(JS.eval('return ${props.rhs}'))`;
+    expect(vm.eval(result).toString()).toBe(String(props.result));
+  });
+
+  test.each([
     { expr: "JS.global[:Object]", result: Object },
     { expr: "JS.global[:Object][:keys]", result: Object.keys },
     { expr: "JS.global[:Object][:unknown_key]", result: undefined },
@@ -179,5 +206,22 @@ describe("Manipulation of JS from Ruby", () => {
     const o1 = results.call("at", vm.eval("0"));
     const o1Clone = results.call("at", vm.eval("1"));
     expect(o1.toString()).toEqual(o1Clone.toString());
+  });
+
+  test("Guard null", async () => {
+    const vm = await initRubyVM();
+    const result = vm.eval(`
+      require "js"
+      intrinsics = JS.eval(<<-JS)
+        return {
+          returnNull(v) { return null },
+          returnUndef(v) { return undefined },
+        }
+      JS
+      js_null = JS.eval("return null")
+      o1 = intrinsics.call(:returnNull)
+      o1 == js_null
+    `);
+    expect(result.toString()).toEqual("true");
   });
 });

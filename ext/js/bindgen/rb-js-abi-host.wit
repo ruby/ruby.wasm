@@ -16,6 +16,9 @@ import-js-value-from-host: function() -> js-abi-value
 
 js-value-typeof: function(value: js-abi-value) -> string
 
+js-value-equal: function(lhs: js-abi-value, rhs: js-abi-value) -> bool
+js-value-strictly-equal: function(lhs: js-abi-value, rhs: js-abi-value) -> bool
+
 reflect-apply: function(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-construct: function(target: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-delete-property: function(target: js-abi-value, property-key: string) -> bool
