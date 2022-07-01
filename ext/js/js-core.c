@@ -119,14 +119,14 @@ VALUE _rb_js_try_convert(VALUE klass, VALUE obj) {
 
 /*
  * call-seq:
- *   js_obj.is_a?(js_class) -> true or false
+ *   JS.is_a?(js_obj, js_class) -> true or false
  *
  *  Returns <code>true</code> if <i>js_class</i> is the instance of
  *  <i>js_obj</i>, otherwise returns <code>false</code>.
  *  Comparison is done using the <code>instanceof</code> in JavaScript.
  *
- *   p JS.global.is_a?(JS.global[:Object]) #=> true
- *   p JS.global.is_a?(Object)             #=> false
+ *   p JS.is_a?(JS.global, JS.global[:Object]) #=> true
+ *   p JS.is_a?(JS.global, Object)             #=> false
  */
 static VALUE _rb_js_is_kind_of(VALUE klass, VALUE obj, VALUE c) {
   if (!IS_JSVALUE(obj)) {
