@@ -120,6 +120,9 @@ export class RubyVM {
             return false;
           }
         },
+        jsValueTypeof(value) {
+          return typeof value;
+        },
         reflectApply: function (target, thisArgument, args) {
           return Reflect.apply(target as any, thisArgument, args);
         },

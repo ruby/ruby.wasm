@@ -220,6 +220,25 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
 
 /*
  * call-seq:
+ *  js_value.typeof -> String
+ *
+ * Returns the result string of JavaScript 'typeof' operator.
+ * See also JS.is_a? for 'instanceof' operator.
+ *   p JS.global.typeof                     # => "object"
+ *   p JS.eval("return 1").typeof           # => "number"
+ *   p JS.eval("return 'str'").typeof       # => "string"
+ *   p JS.eval("return undefined").typeof   # => "undefined"
+ *   p JS.eval("return null").typeof        # => "object"
+ */
+static VALUE _rb_js_obj_typeof(VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  rb_js_abi_host_string_t ret0;
+  rb_js_abi_host_js_value_typeof(p->abi, &ret0);
+  return rb_str_new(ret0.ptr, ret0.len);
+}
+
+/*
+ * call-seq:
  *   inspect -> string
  *
  *  Returns a printable version of +self+:
@@ -319,6 +338,7 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "[]", _rb_js_obj_aref, 1);
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
+  rb_define_method(rb_cJS_Object, "typeof", _rb_js_obj_typeof, 0);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
   rb_define_singleton_method(rb_cJS_Object, "__import_from_js", _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);

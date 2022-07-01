@@ -14,6 +14,8 @@ js-value-to-string: function(value: js-abi-value) -> string
 export-js-value-to-host: function(value: js-abi-value)
 import-js-value-from-host: function() -> js-abi-value
 
+js-value-typeof: function(value: js-abi-value) -> string
+
 reflect-apply: function(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-construct: function(target: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-delete-property: function(target: js-abi-value, property-key: string) -> bool
