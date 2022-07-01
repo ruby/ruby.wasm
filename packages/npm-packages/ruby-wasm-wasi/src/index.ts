@@ -102,7 +102,9 @@ export class RubyVM {
           return new RbValue(abiValue, this, this.privateObject());
         },
         jsValueToString: (value) => {
-          return value.toString();
+          // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
+          // `String(value)` always returns a string.
+          return String(value);
         },
         exportJsValueToHost: (value) => {
           // See `JsValueExporter` for the reason why we need to do this
