@@ -133,6 +133,9 @@ describe("Manipulation of JS from Ruby", () => {
   test.each([
     { expr: `JS.global`, expected: "[object Object]" },
     { expr: `1.to_js`, expected: "1" },
+    { expr: `JS.eval("return null")`, expected: "null" },
+    { expr: `JS.eval("return undefined")`, expected: "undefined" },
+    { expr: `JS.eval("return Symbol('sym')")`, expected: "Symbol(sym)" },
     { expr: `JS.eval("return {}")`, expected: "[object Object]" },
     {
       expr: `JS.eval("class X {}; return new X()")`,
