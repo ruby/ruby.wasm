@@ -25,6 +25,18 @@ describe("Manipulation of JS from Ruby", () => {
   });
 
   test.each([
+    { object: `JS.eval('return 1')`, result: "number" },
+    { object: `JS.eval('return "x"')`, result: "string" },
+    { object: `JS.eval('return null')`, result: "object" },
+    { object: `JS.eval('return undefined')`, result: "undefined" },
+    { object: `JS.global`, result: "object" },
+  ])("JS::Object#typeof (%s)", async (props) => {
+    const vm = await initRubyVM();
+    const code = `require "js"; (${props.object}).typeof`;
+    expect(vm.eval(code).toString()).toBe(String(props.result));
+  });
+
+  test.each([
     { expr: "JS.global[:Object]", result: Object },
     { expr: "JS.global[:Object][:keys]", result: Object.keys },
     { expr: "JS.global[:Object][:unknown_key]", result: undefined },
