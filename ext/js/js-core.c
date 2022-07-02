@@ -188,6 +188,45 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
 
 /*
  * call-seq:
+ *   js_value.strictly_eql?(other) -> boolean
+ *
+ * Performs "===" comparison, a.k.a the "Strict Equality Comparison"
+ * algorithm defined in the ECMAScript.
+ * https://262.ecma-international.org/11.0/#sec-strict-equality-comparison
+ */
+static VALUE _rb_js_obj_strictly_eql(VALUE obj, VALUE other) {
+  struct jsvalue *lhs = check_jsvalue(obj);
+  struct jsvalue *rhs = check_jsvalue(other);
+  bool result = rb_js_abi_host_js_value_strictly_equal(lhs->abi, rhs->abi);
+  return RBOOL(result);
+}
+
+/*
+ * call-seq:
+ *   js_value.==(other) -> boolean
+ *   js_value.eql?(other) -> boolean
+ *
+ * Performs "==" comparison, a.k.a the "Abstract Equality Comparison"
+ * algorithm defined in the ECMAScript.
+ * https://262.ecma-international.org/11.0/#sec-abstract-equality-comparison
+ */
+static VALUE _rb_js_obj_eql(VALUE obj, VALUE other) {
+  struct jsvalue *lhs = check_jsvalue(obj);
+  struct jsvalue *rhs = check_jsvalue(other);
+  bool result = rb_js_abi_host_js_value_equal(lhs->abi, rhs->abi);
+  return RBOOL(result);
+}
+
+/*
+ * :nodoc: all
+ */
+static VALUE _rb_js_obj_hash(VALUE obj) {
+  // TODO(katei): Track the JS object id in JS side as Pyodide and Swift JavaScriptKit do.
+  return Qnil;
+}
+
+/*
+ * call-seq:
  *   js_value.call(name, *args) -> JS::Object
  *
  * Call a JavaScript method specified by the name with the arguments.
@@ -337,6 +376,10 @@ void Init_js() {
   rb_define_alloc_func(rb_cJS_Object, jsvalue_s_allocate);
   rb_define_method(rb_cJS_Object, "[]", _rb_js_obj_aref, 1);
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
+  rb_define_method(rb_cJS_Object, "strictly_eql?", _rb_js_obj_strictly_eql, 1);
+  rb_define_method(rb_cJS_Object, "eql?", _rb_js_obj_eql, 1);
+  rb_define_method(rb_cJS_Object, "==", _rb_js_obj_eql, 1);
+  rb_define_method(rb_cJS_Object, "hash", _rb_js_obj_hash, 0);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "typeof", _rb_js_obj_typeof, 0);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);

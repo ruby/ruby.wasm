@@ -123,6 +123,12 @@ export class RubyVM {
         jsValueTypeof(value) {
           return typeof value;
         },
+        jsValueEqual(lhs, rhs) {
+          return lhs == rhs;
+        },
+        jsValueStrictlyEqual(lhs, rhs) {
+          return lhs === rhs;
+        },
         reflectApply: function (target, thisArgument, args) {
           return Reflect.apply(target as any, thisArgument, args);
         },
