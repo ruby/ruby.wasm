@@ -139,7 +139,7 @@ export class RubyVM {
           throw new Error("Function not implemented.");
         },
         reflectGet: function (target, propertyKey) {
-          return Reflect.get(target, propertyKey);
+          return target[propertyKey];
         },
         reflectGetOwnPropertyDescriptor: function (
           target,
