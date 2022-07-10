@@ -210,7 +210,7 @@ describe("Manipulation of JS from Ruby", () => {
 
   test("Guard null", async () => {
     const vm = await initRubyVM();
-    const result = vm.eval(`
+    const results = vm.eval(`
       require "js"
       intrinsics = JS.eval(<<-JS)
         return {
@@ -218,10 +218,13 @@ describe("Manipulation of JS from Ruby", () => {
           returnUndef(v) { return undefined },
         }
       JS
-      js_null = JS.eval("return null")
       o1 = intrinsics.call(:returnNull)
-      o1 == js_null
+      o2 = intrinsics.call(:returnUndef)
+      [o1 == JS::NULL, o2 == JS::UNDEFINED]
     `);
-    expect(result.toString()).toEqual("true");
+    const e1 = results.call("at", vm.eval("0"));
+    const e2 = results.call("at", vm.eval("1"));
+    expect(e1.toString()).toEqual("true");
+    expect(e2.toString()).toEqual("true");
   });
 });
