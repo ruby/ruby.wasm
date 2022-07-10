@@ -87,6 +87,12 @@ static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
   return jsvalue_s_new(rb_js_abi_host_eval_js(&abi_str));
 }
 
+static VALUE _rb_js_eval_js_cstr(const char *code_str) {
+  rb_js_abi_host_string_t abi_str;
+  rb_js_abi_host_string_set(&abi_str, code_str);
+  return jsvalue_s_new(rb_js_abi_host_eval_js(&abi_str));
+}
+
 static VALUE _rb_js_is_js(VALUE _, VALUE obj) {
   if (!IS_JSVALUE(obj)) {
     return Qfalse;
@@ -370,6 +376,8 @@ void Init_js() {
   rb_define_module_function(rb_mJS, "try_convert", _rb_js_try_convert, 1);
   rb_define_module_function(rb_mJS, "eval", _rb_js_eval_js, 1);
   rb_define_module_function(rb_mJS, "global", _rb_js_global_this, 0);
+  rb_define_const(rb_mJS, "NULL", _rb_js_eval_js_cstr("return null"));
+  rb_define_const(rb_mJS, "UNDEFINED", _rb_js_eval_js_cstr("return undefined"));
 
   i_to_js = rb_intern("to_js");
   rb_cJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cObject);
