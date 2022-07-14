@@ -8,6 +8,7 @@ BUILD_SOURCES = [
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
+    patches: [],
   },
 ]
 
@@ -71,6 +72,10 @@ class BuildSource
       sh "curl -L #{tarball_url} | tar xz --strip-components=1", chdir: src_dir
     else
       raise "unknown source type: #{@params[:type]}"
+    end
+    (@params[:patches] || []).each do |patch_path|
+      patch_file = "#{@base_dir}/#{patch_path}"
+      sh "patch -p1 < #{patch_file}", chdir: src_dir
     end
   end
 end
