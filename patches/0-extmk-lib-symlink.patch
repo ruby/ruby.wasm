@@ -1,0 +1,28 @@
+From 84749edbb0937d824e98d57758f55b3c1f87abcb Mon Sep 17 00:00:00 2001
+From: Yuta Saito <kateinoigakukun@gmail.com>
+Date: Thu, 14 Jul 2022 17:32:29 +0000
+Subject: [PATCH] Ensure symlinks to bundled gem with exts have parent dir
+
+When configuring with `--disable-rpath` and `--static-linked-ext` (e.g.
+building for WASI), `extmk.rb` doesn't build exts under bundled gems,
+and `.bundle/gems/#{gemname}-#{ver}` are not created due to no call of
+`extmake`.
+b2491783986084770f6f97552f27b868622730cf starts creating symlink at
+`.bundle/gems/#{gemname}-#{ver}/lib`, but the parent dir is not created,
+so configuration aginst debug and rbs gems were failed.
+---
+ ext/extmk.rb | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/extmk.rb b/ext/extmk.rb
+index 7a09be6963aa..ce8e9b88c59d 100755
+--- a/ext/extmk.rb
++++ b/ext/extmk.rb
+@@ -603,6 +603,7 @@ def create_makefile(*args, &block)
+       puts "using #{gemlib}"
+     else
+       begin
++        FileUtils.mkdir_p(File.dirname(gemlib))
+         File.symlink(relative_from(src_gemlib, ".."), gemlib)
+         puts "linked #{gemlib}"
+       rescue NotImplementedError, Errno::EPERM
