@@ -130,6 +130,15 @@ describe("Manipulation of JS from Ruby", () => {
         b
       `,
       result: 1
+    },
+    {
+      expr: `
+        function_to_call = JS.eval('return { a: (callback) => { callback(1) } }')
+        b = nil
+        function_to_call.call(:a) { |a| b = a }
+        b
+      `,
+      result: 1
     }
   ])(`JS::Object#call (%s)`, async (props) => {
     const vm = await initRubyVM();
