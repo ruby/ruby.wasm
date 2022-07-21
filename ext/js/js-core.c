@@ -15,6 +15,7 @@ extern VALUE rb_cInteger;
 extern VALUE rb_cString;
 extern VALUE rb_cTrueClass;
 extern VALUE rb_cFalseClass;
+extern VALUE rb_cProc;
 
 // from js/js-core.c
 void rb_abi_lend_object(VALUE obj);
@@ -365,6 +366,10 @@ static VALUE _rb_js_false_to_js(VALUE obj) {
   return jsvalue_s_new(rb_js_abi_host_bool_to_js_bool(false));
 }
 
+static VALUE _rb_js_proc_to_js(VALUE obj) {
+  return jsvalue_s_new(rb_js_abi_host_proc_to_js_function((uint32_t) obj));
+}
+
 /*
  * JavaScript interoperations module
  */
@@ -395,4 +400,5 @@ void Init_js() {
   rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
   rb_define_method(rb_cTrueClass, "to_js", _rb_js_true_to_js, 0);
   rb_define_method(rb_cFalseClass, "to_js", _rb_js_false_to_js, 0);
+  rb_define_method(rb_cProc, "to_js", _rb_js_proc_to_js, 0);
 }

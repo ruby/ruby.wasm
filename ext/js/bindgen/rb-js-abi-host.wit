@@ -7,6 +7,7 @@ global-this: function() -> js-abi-value
 int-to-js-number: function(value: s32) -> js-abi-value
 string-to-js-string: function(value: string) -> js-abi-value
 bool-to-js-bool: function(value: bool) -> js-abi-value
+proc-to-js-function: function(value: u32) -> js-abi-value
 rb-object-to-js-rb-value: function(raw-rb-abi-value: u32) -> js-abi-value
 
 js-value-to-string: function(value: js-abi-value) -> string

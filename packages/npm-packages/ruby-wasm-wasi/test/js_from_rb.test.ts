@@ -122,6 +122,15 @@ describe("Manipulation of JS from Ruby", () => {
       expr: `JS.global[:Math].call(:min, JS.eval("return 1"), JS.eval("return 2"))`,
       result: 1,
     },
+    {
+      expr: `
+        function_to_call = JS.eval('return { a: (callback) => { callback(1) } }')
+        b = nil
+        function_to_call.call(:a, Proc.new { |a| b = a })
+        b
+      `,
+      result: 1
+    }
   ])(`JS::Object#call (%s)`, async (props) => {
     const vm = await initRubyVM();
     const result = vm.eval(`

@@ -94,12 +94,14 @@ export class RubyVM {
         boolToJsBool: (value) => {
           return value;
         },
+        procToJsFunction: (rawRbAbiValue) => {
+          const rbValue = this.rbValueofPointer(rawRbAbiValue);
+          return (...args) => {
+            rbValue.call('call', ...args.map(arg => this.wrap(arg)));
+          }
+        },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
-          const abiValue = new (RbAbi.RbAbiValue as any)(
-            rawRbAbiValue,
-            this.guest
-          );
-          return new RbValue(abiValue, this, this.privateObject());
+          return this.rbValueofPointer(rawRbAbiValue);
         },
         jsValueToString: (value) => {
           // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
@@ -215,6 +217,16 @@ export class RubyVM {
       transport: this.transport,
       exceptionFormatter: this.exceptionFormatter,
     };
+  }
+
+  private rbValueofPointer(pointer: number): RbValue {
+    const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
+    const rbValue = new RbValue(abiValue, this, this.privateObject());
+    
+    // Without doing this there is a chance that rbValue is being GC-collected.
+    // By using Object#itself, the witapi-Extension knows about this object and keeps
+    // a reference to it, which prevents GC-collection.
+    return rbValue.call('itself');
   }
 }
 
