@@ -46,7 +46,7 @@ export const DefaultRubyVM = async (
   await vm.setInstance(instance);
 
   wasi.setMemory(instance.exports.memory as WebAssembly.Memory);
-  // Manually call `_initialize`, which is a part of reactor modoel ABI,
+  // Manually call `_initialize`, which is a part of reactor model ABI,
   // because the WASI polyfill doesn't support it yet.
   (instance.exports._initialize as Function)();
   vm.initialize();
