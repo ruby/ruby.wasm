@@ -1,16 +1,17 @@
-From a0e12407abae049b9691b5075e8f432723f262bd Mon Sep 17 00:00:00 2001
+From 676a205b6ffe1e786f575132feec7c08a6c4f5f3 Mon Sep 17 00:00:00 2001
 From: Yuta Saito <kateinoigakukun@gmail.com>
 Date: Fri, 12 Aug 2022 02:01:11 +0000
 Subject: [PATCH] Add --with-static-linked-bundled-gems-ext to build exts in
  bundled gems as static lib
 
 ---
- common.mk                      | 1 +
- configure.ac                   | 6 ++++++
- ext/extmk.rb                   | 8 ++++----
- template/Makefile.in           | 1 +
- template/configure-ext.mk.tmpl | 2 +-
- 5 files changed, 13 insertions(+), 5 deletions(-)
+ common.mk                      |  1 +
+ configure.ac                   |  6 ++++++
+ ext/extmk.rb                   |  8 ++++----
+ template/Makefile.in           |  1 +
+ template/configure-ext.mk.tmpl |  2 +-
+ template/exts.mk.tmpl          | 16 +++++++---------
+ 6 files changed, 20 insertions(+), 14 deletions(-)
 
 diff --git a/common.mk b/common.mk
 index 7e7e0bb67a8a..6824f67187fa 100644
@@ -106,3 +107,30 @@ index 8ba6b963e3ec..4c1306bb5635 100644
  ].each do |t, d, o|
    exts[t] = [o, Dir.glob("#{srcdir}/#{d}/*/").map {|n| n[(srcdir.size+1)..-2]}]
  end
+diff --git a/template/exts.mk.tmpl b/template/exts.mk.tmpl
+index c5f8478d76d7..2082f05948f2 100644
+--- a/template/exts.mk.tmpl
++++ b/template/exts.mk.tmpl
+@@ -41,15 +41,13 @@ Dir.glob("{ext,.bundle/gems}/*/exts.mk") do |e|
+     end
+     break if n == "old_extensions"
+   end
+-  if gem
+-    r = ""
+-  else
+-    r = s[/^all static: (.+)$/, 1]
+-    deps << $&
+-    rubies |= r.split if r
+-    r = "(?:#{Regexp.new(r)})|"
+-  end
+-  s.scan(%r"^(ext/\S+)/[^/\s:]+:[ \t]*\1/static$|
++
++  r = s[/^all static: (.+)$/, 1]
++  deps << $&
++  rubies |= r.split if r
++  r = "(?:#{Regexp.new(r)})|"
++
++  s.scan(%r"^((?:ext|.bundle/gems)/\S+)/[^/\s:]+:[ \t]*\1/static$|
+             ^(?:#{r}
+               all|static|install(?:-(?:so|rb))?|
+               (?:dist|real)?clean
