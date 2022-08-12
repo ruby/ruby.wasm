@@ -308,6 +308,8 @@ namespace :build do
     task build.name => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
       artifact = "rubies/ruby-#{build.name}.tar.gz"
       next if File.exist?(artifact)
+      # HACK: 'make install' somehow doesn't build exts in bundled gems, so invoke 'all' explicitly
+      sh "make all", chdir: build.build_dir
       sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
       sh "tar cfz #{artifact} -C rubies #{build.name}"
     end
