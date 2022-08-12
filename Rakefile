@@ -8,21 +8,23 @@ BUILD_SOURCES = [
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
-    patches: [],
+    patches: [
+      "patches/extmk-static-ext-gems.patch",
+    ],
   },
 ]
 
-FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib"
+UNSUPPORTED_EXTS = "fiddle,io/console,openssl,pty,readline,socket,syslog,win32,win32/resolv,win32ole"
 
 BUILD_PROFILES = {
-  "minimal"          => { debug: false, default_exts: "", user_exts: [] },
-  "minimal-debug"    => { debug: true,  default_exts: "", user_exts: [] },
-  "minimal-js"       => { debug: false, default_exts: "", user_exts: ["js", "witapi"] },
-  "minimal-js-debug" => { debug: true,  default_exts: "", user_exts: ["js", "witapi"] },
-  "full"             => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
-  "full-debug"       => { debug: true,  default_exts: FULL_EXTS, user_exts: [] },
-  "full-js"          => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
-  "full-js-debug"    => { debug: true,  default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
+  "minimal"          => { debug: false, with_ext: "", user_exts: [] },
+  "minimal-debug"    => { debug: true,  with_ext: "", user_exts: [] },
+  "minimal-js"       => { debug: false, with_ext: "", user_exts: ["js", "witapi"] },
+  "minimal-js-debug" => { debug: true,  with_ext: "", user_exts: ["js", "witapi"] },
+  "full"             => { debug: false, without_ext: UNSUPPORTED_EXTS, user_exts: [] },
+  "full-debug"       => { debug: true,  without_ext: UNSUPPORTED_EXTS, user_exts: [] },
+  "full-js"          => { debug: false, without_ext: UNSUPPORTED_EXTS, user_exts: ["js", "witapi"] },
+  "full-js-debug"    => { debug: true,  without_ext: UNSUPPORTED_EXTS, user_exts: ["js", "witapi"] },
 }
 
 BUILDS = [
@@ -146,7 +148,6 @@ class BuildPlan
   def configure_args(build_triple)
     target = @params[:target]
     profile = BUILD_PROFILES[@params[:profile]]
-    default_exts = profile[:default_exts]
     user_exts = profile[:user_exts]
 
     ldflags = if profile[:debug]
@@ -160,7 +161,12 @@ class BuildPlan
 
     args = ["--host", target, "--build", build_triple]
     args << "--with-static-linked-ext"
-    args << %Q(--with-ext="#{default_exts}")
+    args << "--with-static-linked-bundled-gems-ext"
+    if profile[:with_ext]
+      # if not specified, all exts will be built
+      args << %Q(--with-ext="#{profile[:with_ext]}")
+    end
+    args << %Q(--with-out-ext="#{profile[:without_ext]}")
     args << %Q(--with-libyaml-dir="#{deps_install_dir}/libyaml/usr/local")
     args << %Q(--with-zlib-dir="#{deps_install_dir}/zlib")
     args << %Q(--with-baseruby="#{baseruby_path}")

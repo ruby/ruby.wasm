@@ -1,0 +1,108 @@
+From a0e12407abae049b9691b5075e8f432723f262bd Mon Sep 17 00:00:00 2001
+From: Yuta Saito <kateinoigakukun@gmail.com>
+Date: Fri, 12 Aug 2022 02:01:11 +0000
+Subject: [PATCH] Add --with-static-linked-bundled-gems-ext to build exts in
+ bundled gems as static lib
+
+---
+ common.mk                      | 1 +
+ configure.ac                   | 6 ++++++
+ ext/extmk.rb                   | 8 ++++----
+ template/Makefile.in           | 1 +
+ template/configure-ext.mk.tmpl | 2 +-
+ 5 files changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/common.mk b/common.mk
+index 7e7e0bb67a8a..6824f67187fa 100644
+--- a/common.mk
++++ b/common.mk
+@@ -287,6 +287,7 @@ EXTS_MK = exts.mk
+ $(EXTS_MK): ext/configure-ext.mk $(srcdir)/template/exts.mk.tmpl \
+ 	    $(TIMESTAMPDIR)/$(arch)/.time $(TIMESTAMPDIR)/.RUBYCOMMONDIR.time
+ 	$(Q)$(MAKE) -f ext/configure-ext.mk $(mflags) V=$(V) EXTSTATIC=$(EXTSTATIC) \
++		BUNDLED_GEMS_EXTSTATIC=$(BUNDLED_GEMS_EXTSTATIC) \
+ 		gnumake=$(gnumake) MINIRUBY="$(MINIRUBY)" \
+ 		EXTLDFLAGS="$(EXTLDFLAGS)" srcdir="$(srcdir)"
+ 	$(ECHO) generating makefile $@
+diff --git a/configure.ac b/configure.ac
+index 575bdf663155..75193e1d5796 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -3283,6 +3283,12 @@ AS_CASE([",$EXTSTATIC,"], [,static,|*,enc,*], [
+ AC_SUBST(ENCOBJS)
+ AC_SUBST(EXTOBJS)
+ 
++BUNDLED_GEMS_EXTSTATIC=
++AC_ARG_WITH(static-linked-bundled-gems-ext,
++	    AS_HELP_STRING([--with-static-linked-bundled-gems-ext], [link exts in bundled gems statically]),
++            [AS_CASE([$withval],[yes],[BUNDLED_GEMS_EXTSTATIC=static],[no],[],[BUNDLED_GEMS_EXTSTATIC="$withval"])])
++AC_SUBST(BUNDLED_GEMS_EXTSTATIC)dnl
++
+ AC_ARG_WITH(setup,
+ 	    AS_HELP_STRING([--with-setup=SETUP], [use extension libraries setup]),
+ 	    [setup=$withval])
+diff --git a/ext/extmk.rb b/ext/extmk.rb
+index 40fc10ea1c42..74df651daf8d 100755
+--- a/ext/extmk.rb
++++ b/ext/extmk.rb
+@@ -136,7 +136,7 @@ def extract_makefile(makefile, keep = true)
+   true
+ end
+ 
+-def extmake(target, basedir = 'ext', maybestatic = true)
++def extmake(target, basedir = 'ext')
+   FileUtils.mkpath target unless File.directory?(target)
+   begin
+     # don't build if parent library isn't build
+@@ -263,7 +263,7 @@ def extmake(target, basedir = 'ext', maybestatic = true)
+     end
+     if $static and ok and !$objs.empty? and !noinstall
+       args += ["static"]
+-      $extlist.push [(maybestatic ? $static : false), target, $target, $preload]
++      $extlist.push [$static, target, $target, $preload]
+     end
+     FileUtils.rm_f(old_cleanfiles - $distcleanfiles - $cleanfiles)
+     FileUtils.rm_f(old_objs - $objs)
+@@ -632,7 +632,7 @@ def create_makefile(*args, &block)
+   $static = $force_static ? true : $static_ext[d]
+ 
+   if !$nodynamic or $static
+-    result = extmake(d, ext_prefix, !@gemname) or abort
++    result = extmake(d, ext_prefix) or abort
+     extso |= $extso
+     fails << [d, result] unless result == true
+   end
+@@ -668,7 +668,7 @@ def initialize(src)
+     end
+     base = File.basename(feature)
+     extinits << feature
+-    $extobjs << format("ext/%s/%s.%s", target, base, $LIBEXT)
++    $extobjs << format("%s/%s/%s.%s", @ext_prefix, target, base, $LIBEXT)
+     built << target
+   end
+ 
+diff --git a/template/Makefile.in b/template/Makefile.in
+index a8581260b991..0991861310aa 100644
+--- a/template/Makefile.in
++++ b/template/Makefile.in
+@@ -211,6 +211,7 @@ SETUP         =
+ EXTSTATIC     = @EXTSTATIC@
+ ENCSTATIC     = @ENCSTATIC@
+ SET_LC_MESSAGES = env LC_MESSAGES=C
++BUNDLED_GEMS_EXTSTATIC = @BUNDLED_GEMS_EXTSTATIC@
+ 
+ MAKEDIRS      = @MKDIR_P@
+ CP            = cp
+diff --git a/template/configure-ext.mk.tmpl b/template/configure-ext.mk.tmpl
+index 8ba6b963e3ec..4c1306bb5635 100644
+--- a/template/configure-ext.mk.tmpl
++++ b/template/configure-ext.mk.tmpl
+@@ -17,7 +17,7 @@ srcdir ||= File.dirname(File.dirname(__FILE__))
+ exts = {}
+ [
+   ["exts", "ext", "--extstatic $(EXTSTATIC)"],
+-  ["gems", ".bundle/gems", "--no-extstatic"],
++  ["gems", ".bundle/gems", "--extstatic $(BUNDLED_GEMS_EXTSTATIC)"],
+ ].each do |t, d, o|
+   exts[t] = [o, Dir.glob("#{srcdir}/#{d}/*/").map {|n| n[(srcdir.size+1)..-2]}]
+ end
