@@ -1,0 +1,38 @@
+From 1ac93cc8713861a6213c4cec8aaa9a672785a438 Mon Sep 17 00:00:00 2001
+From: Yuta Saito <kateinoigakukun@gmail.com>
+Date: Sat, 13 Aug 2022 02:49:29 +0000
+Subject: [PATCH] rubygems: skip ext installation check when bundled gem exts
+ are linked statically
+
+---
+ lib/rubygems/basic_specification.rb | 4 ++++
+ lib/rubygems/specification.rb       | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/lib/rubygems/basic_specification.rb b/lib/rubygems/basic_specification.rb
+index dcc64e64096e7..62f92e4fd6b8a 100644
+--- a/lib/rubygems/basic_specification.rb
++++ b/lib/rubygems/basic_specification.rb
+@@ -91,6 +91,10 @@ def default_gem?
+       File.dirname(loaded_from) == Gem.default_specifications_dir
+   end
+ 
++  def static_bundled_gem_extension?
++    RbConfig::CONFIG["BUNDLED_GEMS_EXTSTATIC"] == "static"
++  end
++
+   ##
+   # Returns full path to the directory where gem's extensions are installed.
+ 
+diff --git a/lib/rubygems/specification.rb b/lib/rubygems/specification.rb
+index af07cd36e25e8..9de95d8ab06db 100644
+--- a/lib/rubygems/specification.rb
++++ b/lib/rubygems/specification.rb
+@@ -2170,6 +2170,7 @@ def method_missing(sym, *a, &b) # :nodoc:
+   def missing_extensions?
+     return false if extensions.empty?
+     return false if default_gem?
++    return false if static_bundled_gem_extension?
+     return false if File.exist? gem_build_complete_path
+ 
+     true

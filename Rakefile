@@ -10,6 +10,7 @@ BUILD_SOURCES = [
     rev: "master",
     patches: [
       "patches/extmk-static-ext-gems.patch",
+      "patches/rubygems-static-bundled-gem-ext.patch",
     ],
   },
 ]
