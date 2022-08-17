@@ -16,6 +16,9 @@ extern VALUE rb_cString;
 extern VALUE rb_cTrueClass;
 extern VALUE rb_cFalseClass;
 
+// from js/js-core.c
+void rb_abi_lend_object(VALUE obj);
+
 static VALUE rb_mJS;
 static VALUE rb_cJS_Object;
 
@@ -312,6 +315,7 @@ static VALUE _rb_js_import_from_js(VALUE obj) {
  *  Returns +obj+ wrapped by JS class RbValue.
  */
 static VALUE _rb_js_obj_wrap(VALUE obj, VALUE wrapping) {
+  rb_abi_lend_object(wrapping);
   return jsvalue_s_new(rb_js_abi_host_rb_object_to_js_rb_value((uint32_t)wrapping));
 }
 

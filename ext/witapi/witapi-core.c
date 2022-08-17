@@ -90,7 +90,7 @@ static VALUE rb_abi_lend_object_internal(VALUE obj) {
   }
   return Qundef;
 }
-static void rb_abi_lend_object(VALUE obj) {
+void rb_abi_lend_object(VALUE obj) {
   RB_WASM_DEBUG_LOG("rb_abi_lend_object: obj = %p\n", (void *)obj);
   int state;
   RB_WASM_LIB_RT(rb_protect(rb_abi_lend_object_internal, obj, &state));
