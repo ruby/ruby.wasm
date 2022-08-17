@@ -376,6 +376,12 @@ static VALUE _rb_js_false_to_js(VALUE obj) {
   return jsvalue_s_new(rb_js_abi_host_bool_to_js_bool(false));
 }
 
+/*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
 static VALUE _rb_js_proc_to_js(VALUE obj) {
   rb_abi_lend_object(obj);
   return jsvalue_s_new(rb_js_abi_host_proc_to_js_function((uint32_t) obj));
