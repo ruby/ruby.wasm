@@ -1,3 +1,4 @@
+import { RbValue } from "../dist/index.umd";
 import { initRubyVM } from "./init";
 
 describe("Manipulation of JS from Ruby", () => {
@@ -207,6 +208,27 @@ describe("Manipulation of JS from Ruby", () => {
     const o1Clone = results.call("at", vm.eval("1"));
     expect(o1.toString()).toEqual(o1Clone.toString());
   });
+
+  test("Wrapped Ruby object should live until wrapper will be released", async () => {
+    const vm = await initRubyVM();
+    const run = vm.eval(`
+      require "js"
+      proc do |imports|
+        imports.call(:mark_js_object_live, JS::Object.wrap(Object.new))
+      end
+    `);
+    const livingObjects = new Set<RbValue>();
+    run.call("call", vm.wrap({
+      mark_js_object_live: (object: RbValue) => {
+        livingObjects.add(object);
+      }
+    }));
+    vm.eval("GC.start");
+    for (const object of livingObjects) {
+      // Ensure that all objects are still alive
+      object.call("itself")
+    }
+  })
 
   test("Guard null", async () => {
     const vm = await initRubyVM();
