@@ -15,6 +15,7 @@ extern VALUE rb_cInteger;
 extern VALUE rb_cString;
 extern VALUE rb_cTrueClass;
 extern VALUE rb_cFalseClass;
+extern VALUE rb_cProc;
 
 // from js/js-core.c
 void rb_abi_lend_object(VALUE obj);
@@ -246,8 +247,12 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   struct jsvalue *abi_method = check_jsvalue(method);
 
   rb_js_abi_host_list_js_abi_value_t abi_args;
-  abi_args.ptr = ALLOCA_N(rb_js_abi_host_js_abi_value_t, argc - 1);
-  abi_args.len = argc - 1;
+  int function_arguments_count = argc;
+  if(!rb_block_given_p())
+    function_arguments_count -= 1;
+
+  abi_args.ptr = ALLOCA_N(rb_js_abi_host_js_abi_value_t, function_arguments_count);
+  abi_args.len = function_arguments_count;
   for (int i = 1; i < argc; i++) {
     VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);
     if (arg == Qnil) {
@@ -256,6 +261,12 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
     }
     abi_args.ptr[i - 1] = check_jsvalue(arg)->abi;
   }
+
+  if(rb_block_given_p()) {
+    VALUE proc = rb_block_proc();
+    abi_args.ptr[function_arguments_count - 1] = check_jsvalue(_rb_js_try_convert(rb_mJS, proc))->abi;
+  }
+
   return jsvalue_s_new(
       rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args));
 }
@@ -366,6 +377,17 @@ static VALUE _rb_js_false_to_js(VALUE obj) {
 }
 
 /*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
+static VALUE _rb_js_proc_to_js(VALUE obj) {
+  rb_abi_lend_object(obj);
+  return jsvalue_s_new(rb_js_abi_host_proc_to_js_function((uint32_t) obj));
+}
+
+/*
  * JavaScript interoperations module
  */
 void Init_js() {
@@ -395,4 +417,5 @@ void Init_js() {
   rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
   rb_define_method(rb_cTrueClass, "to_js", _rb_js_true_to_js, 0);
   rb_define_method(rb_cFalseClass, "to_js", _rb_js_false_to_js, 0);
+  rb_define_method(rb_cProc, "to_js", _rb_js_proc_to_js, 0);
 }
