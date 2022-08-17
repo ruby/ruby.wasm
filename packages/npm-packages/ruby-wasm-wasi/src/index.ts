@@ -221,12 +221,7 @@ export class RubyVM {
 
   private rbValueofPointer(pointer: number): RbValue {
     const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
-    const rbValue = new RbValue(abiValue, this, this.privateObject());
-    
-    // Without doing this there is a chance that rbValue is being GC-collected.
-    // By using Object#itself, the witapi-Extension knows about this object and keeps
-    // a reference to it, which prevents GC-collection.
-    return rbValue.call('itself');
+    return new RbValue(abiValue, this, this.privateObject());
   }
 }
 
