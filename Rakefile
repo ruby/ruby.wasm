@@ -9,7 +9,7 @@ BUILD_SOURCES = [
     repo: "ruby/ruby",
     rev: "master",
     patches: [
-      "patches/malloc-asyncify-stack.patch",
+      # "patches/malloc-asyncify-stack.patch",
     ],
   },
 ]
@@ -24,7 +24,7 @@ BUILD_PROFILES = {
   "full"             => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
   "full-debug"       => { debug: true,  default_exts: FULL_EXTS, user_exts: [] },
   "full-js"          => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
-  "full-js-irb"      => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"],
+  "full-js-irb"      => { debug: true, default_exts: FULL_EXTS, user_exts: ["js", "witapi"],
                           wasmoptflags: "-O2" },
   "full-js-debug"    => { debug: true,  default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
 }
