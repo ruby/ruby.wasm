@@ -289,6 +289,8 @@ namespace :build do
         args = build.configure_args(RbConfig::CONFIG["host"])
         sh "#{source.configure_file} #{args.join(" ")}", chdir: build.build_dir
       end
+      # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
+      sh "make rbconfig.rb", chdir: build.build_dir
     end
 
     desc "Build #{build.name}"
@@ -323,7 +325,24 @@ namespace :build do
       libs.each do |lib|
         objdir = "#{build.ext_build_dir}/#{lib}"
         FileUtils.mkdir_p objdir
-        make_cmd = %Q(make -C "#{base_dir}/ext/#{lib}" #{make_args.join(" ")} OBJDIR=#{objdir} obj)
+        srcdir = "#{base_dir}/ext/#{lib}"
+        extconf_args = [
+          "--disable=gems",
+          # HACK: top_srcdir is required to find ruby headers
+          "-e", %Q('$top_srcdir="#{source.src_dir}"'),
+          # HACK: extout is required to find config.h
+          "-e", %Q('$extout="#{build.build_dir}/.ext"'),
+          # HACK: force static ext build by imitating extmk
+          "-e", %Q('$static = true; trace_var(:$static) {|v| $static = true }'),
+          # HACK: $0 should be extconf.rb path due to mkmf source file detection
+          # and we want to insert some hacks before it. But -e and $0 cannot be
+          # used together, so we rewrite $0 in -e.
+          "-e", %Q('$0="#{srcdir}/extconf.rb"'),
+          "-e", %Q('require_relative "#{srcdir}/extconf.rb"'),
+          "-I#{build.build_dir}",
+        ]
+        sh "#{build.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
+        make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
         sh make_cmd
       end
       mkdir_p File.dirname(build.extinit_obj)

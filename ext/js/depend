@@ -1,0 +1,14 @@
+link.filelist:
+	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
+
+static: link.filelist
+
+bindgen/rb-js-abi-host.h bindgen/rb-js-abi-host.c &: bindgen/rb-js-abi-host.wit
+	@mkdir -p "$(@D)"
+	wit-bindgen c --import $(srcdir)/bindgen/rb-js-abi-host.wit --out-dir bindgen
+
+js-core.o: bindgen/rb-js-abi-host.h
+
+bindgen/%.o: bindgen/%.c
+	@mkdir -p "$(@D)"
+	$(CC) -c -I./bindgen -o $@ $<
