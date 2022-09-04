@@ -1,0 +1,15 @@
+link.filelist:
+	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
+	echo -mexec-model=reactor >> $@
+
+static: link.filelist
+
+bindgen/rb-abi-guest.h bindgen/rb-abi-guest.c &: bindgen/rb-abi-guest.wit
+	@mkdir -p "$(@D)"
+	wit-bindgen c --export $(srcdir)/bindgen/rb-abi-guest.wit --out-dir bindgen
+
+witapi-core.o: bindgen/rb-abi-guest.h
+
+bindgen/%.o: bindgen/%.c
+	@mkdir -p "$(@D)"
+	$(CC) -c -I./bindgen -o $@ $<
