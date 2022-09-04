@@ -11,6 +11,7 @@ BUILD_SOURCES = [
     patches: [
       "patches/extmk-static-ext-gems.patch",
       "patches/rubygems-static-bundled-gem-ext.patch",
+      "patches/malloc-asyncify-stack.patch",
     ],
   },
 ]
