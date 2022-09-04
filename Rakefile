@@ -25,7 +25,7 @@ BUILD_PROFILES = {
   "full-debug"       => { debug: true,  default_exts: FULL_EXTS, user_exts: [] },
   "full-js"          => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
   "full-js-irb"      => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"],
-                          wasmoptflags: "--pass-arg=asyncify-imports@wasi_snapshot_preview1.fd_read,wasi_snapshot_preview1.fd_pread -O2" },
+                          wasmoptflags: "-O2" },
   "full-js-debug"    => { debug: true,  default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
 }
 
