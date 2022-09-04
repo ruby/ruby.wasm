@@ -8,7 +8,9 @@ BUILD_SOURCES = [
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
-    patches: [],
+    patches: [
+      "patches/malloc-asyncify-stack.patch",
+    ],
   },
 ]
 
