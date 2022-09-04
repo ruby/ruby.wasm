@@ -344,6 +344,10 @@ namespace :build do
         sh "#{build.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
         make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
         sh make_cmd
+        # A ext can provide link args by link.filelist. It contains only built archive file by default.
+        unless File.exist?("#{objdir}/link.filelist")
+          File.write("#{objdir}/link.filelist", Dir.glob("#{objdir}/*.a").join("\n"))
+        end
       end
       mkdir_p File.dirname(build.extinit_obj)
       sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
