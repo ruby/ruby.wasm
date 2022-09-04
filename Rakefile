@@ -24,6 +24,8 @@ BUILD_PROFILES = {
   "full"             => { debug: false, default_exts: FULL_EXTS, user_exts: [] },
   "full-debug"       => { debug: true,  default_exts: FULL_EXTS, user_exts: [] },
   "full-js"          => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
+  "full-js-irb"      => { debug: false, default_exts: FULL_EXTS, user_exts: ["js", "witapi"],
+                          wasmoptflags: "--pass-arg=asyncify-imports@wasi_snapshot_preview1.fd_read,wasi_snapshot_preview1.fd_pread -O2" },
   "full-js-debug"    => { debug: true,  default_exts: FULL_EXTS, user_exts: ["js", "witapi"] },
 }
 
@@ -35,6 +37,7 @@ BUILDS = [
   { src: "head", target: "wasm32-unknown-wasi", profile: "full" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-irb" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
@@ -189,6 +192,9 @@ class BuildPlan
       args << %Q(wasmoptflags="-O3 -g")
     else
       args << %Q(debugflags="-g0")
+      if profile[:wasmoptflags]
+        args << %Q(wasmoptflags="#{profile[:wasmoptflags]}")
+      end
     end
     args << "--disable-install-doc"
     args
