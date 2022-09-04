@@ -185,8 +185,14 @@ class BuildPlan
     end
     xldflags << extinit_obj
 
+    xcflags = []
+    xcflags << %Q(-DWASM_SETJMP_STACK_BUFFER_SIZE=24576)
+    xcflags << %Q(-DWASM_FIBER_STACK_BUFFER_SIZE=24576)
+    xcflags << %Q(-DWASM_SCAN_STACK_BUFFER_SIZE=24576)
+
     args << %Q(LDFLAGS="#{ldflags.join(" ")}")
     args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
+    args << %Q(XCFLAGS="#{xcflags.join(" ")}")
     if profile[:debug]
       args << %Q(debugflags="-g")
       args << %Q(wasmoptflags="-O3 -g")
