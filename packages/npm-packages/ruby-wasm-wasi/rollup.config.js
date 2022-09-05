@@ -1,5 +1,8 @@
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import json from "@rollup/plugin-json";
+
+const typescriptOptions = { tsconfig: "./tsconfig.json", declaration: false, exclude: ["src/browser.script.ts"] }
 
 function variant(basename) {
   return {
@@ -22,8 +25,9 @@ function variant(basename) {
       },
     ],
     plugins: [
-      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      typescript(typescriptOptions),
       nodeResolve(),
+      json(),
     ],
   };
 }
@@ -32,6 +36,20 @@ function variant(basename) {
 export default [
   variant("index"),
   variant("browser"),
+  {
+    input: "src/browser.script.ts",
+    output: [
+      {
+        file: "dist/browser.script.js",
+        format: "iife"
+      }
+    ],
+    plugins: [
+      typescript(typescriptOptions),
+      nodeResolve(),
+      json(),
+    ],
+  },
   {
     input: `src/node.ts`,
     output: [
@@ -47,7 +65,7 @@ export default [
       },
     ],
     plugins: [
-      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      typescript(typescriptOptions),
       nodeResolve(),
     ],
     external: ["wasi"],
