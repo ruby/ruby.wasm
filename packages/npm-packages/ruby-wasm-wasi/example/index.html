@@ -1,35 +1,5 @@
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@0.2.0/dist/browser.umd.js"></script>
-  <script>
-    const { DefaultRubyVM } = window["ruby-wasm-wasi"];
-    const main = async () => {
-      // Fetch and instntiate WebAssembly binary
-      const response = await fetch(
-        "https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@0.2.0/dist/ruby.wasm"
-      );
-      const buffer = await response.arrayBuffer();
-      const module = await WebAssembly.compile(buffer);
-      const { vm } = await DefaultRubyVM(module);
-
-      vm.printVersion();
-
-      runRubyScriptsInHtml(vm);
-    };
-
-    const runRubyScriptsInHtml = (vm) => {
-      const tags = document.getElementsByTagName("script");
-      for (var i = 0, len = tags.length; i < len; i++) {
-        const tag = tags[i];
-        if (tag.type === "text/ruby") {
-          if (tag.innerHTML) {
-            vm.eval(tag.innerHTML);
-          }
-        }
-      }
-    };
-
-    main();
-  </script>
+  <script src="../dist/browser.script.js"></script>
   <script type="text/ruby">
     require "js"
     luckiness = ["Lucky", "Unlucky"].sample
