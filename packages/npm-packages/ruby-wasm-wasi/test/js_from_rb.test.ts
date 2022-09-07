@@ -75,6 +75,19 @@ describe("Manipulation of JS from Ruby", () => {
   });
 
   test.each([
+    { self: `24`, calee: "toString", args: [], result: "24" },
+    { self: `"hello"`, calee: "charAt", args: [4], result: "o" },
+  ])("JS::Object#method_missing (%s)", async (props) => {
+    const vm = await initRubyVM();
+    const result = `
+    require "js"
+    obj = JS.eval('return ${props.self}')
+    obj.${props.calee}(${props.args.join(", ")})
+    `;
+    expect(vm.eval(result).toString()).toBe(props.result);
+  });
+
+  test.each([
     { expr: "JS.global[:Object]", result: Object },
     { expr: "JS.global[:Object][:keys]", result: Object.keys },
     { expr: "JS.global[:Object][:unknown_key]", result: undefined },
