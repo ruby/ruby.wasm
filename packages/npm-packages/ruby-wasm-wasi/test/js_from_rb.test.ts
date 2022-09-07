@@ -65,6 +65,16 @@ describe("Manipulation of JS from Ruby", () => {
   });
 
   test.each([
+    `24`, `"hello"`, `null`, `undefined`,
+  ])("JS::Object#to_s (%s)", async (value) => {
+    const vm = await initRubyVM();
+    const to_s_result = `require "js"; JS.eval('return ${value}').to_s`;
+    const inspect_result = `require "js"; JS.eval('return ${value}').inspect`;
+    expect(vm.eval(to_s_result).toString()).toBe(String(eval(value)));
+    expect(vm.eval(inspect_result).toString()).toBe(String(eval(value)));
+  });
+
+  test.each([
     { expr: "JS.global[:Object]", result: Object },
     { expr: "JS.global[:Object][:keys]", result: Object.keys },
     { expr: "JS.global[:Object][:unknown_key]", result: undefined },
