@@ -411,6 +411,7 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
   rb_define_singleton_method(rb_cJS_Object, "__import_from_js", _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);
+  rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_inspect, 0);
   rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
 
   rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);
