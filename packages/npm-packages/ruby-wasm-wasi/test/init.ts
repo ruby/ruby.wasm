@@ -3,7 +3,7 @@ import path from "path";
 import { DefaultRubyVM } from "../dist/node.cjs";
 
 const rubyModule = (async () => {
-  const binary = await fs.readFile(path.join(__dirname, "./../dist/ruby.wasm"));
+  const binary = await fs.readFile(path.join(__dirname, "./../dist/ruby+stdlib.wasm"));
   return await WebAssembly.compile(binary.buffer);
 })();
 

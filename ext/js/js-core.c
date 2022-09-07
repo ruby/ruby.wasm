@@ -164,7 +164,7 @@ static VALUE _rb_js_global_this(VALUE _) {
  *   JS.global[:console][:log]
  */
 static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
-  struct jsvalue *p = check_jsvalue(obj);
+  struct jsvalue *p = check_jsvalue(_rb_js_try_convert(rb_mJS, obj));
   rb_js_abi_host_string_t key_abi_str;
   key = rb_obj_as_string(key);
   rstring_to_abi_string(key, &key_abi_str);
