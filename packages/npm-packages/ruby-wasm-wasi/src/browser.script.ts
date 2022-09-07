@@ -10,6 +10,8 @@ export const main = async (pkg: { name: string, version: string }) => {
 
     vm.printVersion();
 
+    globalThis.rubyVM = vm;
+
     runRubyScriptsInHtml(vm);
 };
 
