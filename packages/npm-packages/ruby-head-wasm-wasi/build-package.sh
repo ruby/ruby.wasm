@@ -22,4 +22,11 @@ rm -rf "$dist_dir"
   npm ci && \
   ./build-package.sh "$ruby_root"
 )
-cp -R "$base_package_dir/dist" "$dist_dir"
+set -ex
+(
+  cd "$package_dir" && \
+  npm ci && \
+  npx rollup -c rollup.config.js
+)
+cp -R "$base_package_dir/dist/." "$dist_dir"
+$base_package_dir/tools/pack-ruby-wasm.sh "$ruby_root" "$dist_dir"

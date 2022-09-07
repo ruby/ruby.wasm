@@ -1,9 +1,8 @@
 import { DefaultRubyVM } from "./browser";
-import * as pkg from "../package.json";
 
-const main = async () => {
+export const main = async (pkg: { name: string, version: string }) => {
     const response = await fetch(
-        `https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@${pkg.version}/dist/ruby.wasm`
+        `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby.wasm`
     );
     const buffer = await response.arrayBuffer();
     const module = await WebAssembly.compile(buffer);
@@ -25,5 +24,3 @@ const runRubyScriptsInHtml = (vm) => {
         }
     }
 };
-
-main();
