@@ -24,5 +24,9 @@
     "wasi",
     "ruby"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^2.62.0",
+    "@rollup/plugin-json": "^4.1.0"
+  }
 }
