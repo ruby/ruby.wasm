@@ -6,7 +6,8 @@ This is a simple example of how to use the `ruby-wasm-wasi` family packages
 
 ```console
 $ ruby -run -e httpd . -p 8000
-$ # Open http://localhost:8000/index.html
+$ # Open http://localhost:8000/hello.html
+$ # Open http://localhost:8000/lucky.html
 ```
 
 ## For Node.js
