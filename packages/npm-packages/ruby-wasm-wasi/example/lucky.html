@@ -1,15 +1,14 @@
 <html>
-  <script src="../../ruby-head-wasm-wasi/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@0.3.0-2022-09-06-f/dist/browser.script.iife.js"></script>
   <button id="draw">Draw Omikuji</button>
+  <div id="result"></div>
   <script type="text/ruby">
     require "js"
-    luckiness = ["Lucky", "Unlucky"].sample
     document = JS.global[:document]
-    JS.global[:document].write luckiness
     button = document.getElementById "draw"
     result = document.getElementById "result"
     button.addEventListener "click" do |e|
-      puts e
+      p e
       luckiness = ["Lucky", "Unlucky"].sample
       result[:innerText] = luckiness
     end
