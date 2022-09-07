@@ -87,6 +87,26 @@ describe("Manipulation of JS from Ruby", () => {
     expect(vm.eval(result).toString()).toBe(props.result);
   });
 
+  test("JS::Object#method_missing with block", async () => {
+    const vm = await initRubyVM();
+    const proc = vm.eval(`
+    require "js"
+    proc do |obj|
+      obj.take_block "x" do |y|
+        $y = y
+      end
+    end
+    `);
+    proc.call("call", vm.wrap({
+      take_block: (arg1: string, block: (_: any) => void) => {
+        expect(arg1).toBe("x");
+        block("y");
+      }
+    }))
+    const y = vm.eval(`$y`);
+    expect(y.toString()).toBe("y");
+  });
+
   test.each([
     { expr: "JS.global[:Object]", result: Object },
     { expr: "JS.global[:Object][:keys]", result: Object.keys },
