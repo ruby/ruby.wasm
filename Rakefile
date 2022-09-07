@@ -298,11 +298,23 @@ namespace :build do
       sh "make rbconfig.rb", chdir: build.build_dir
     end
 
+    task "#{build.name}-install" => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
+      next if File.exist?("#{build.dest_dir}-install")
+      sh "make install DESTDIR=#{build.dest_dir}-install", chdir: build.build_dir
+    end
+
     desc "Build #{build.name}"
-    task build.name => ["#{build.name}-configure", "#{build.name}-libs", build.dest_dir] do
+    task build.name => ["#{build.name}-install", build.dest_dir] do
       artifact = "rubies/ruby-#{build.name}.tar.gz"
       next if File.exist?(artifact)
-      sh "make install DESTDIR=#{build.dest_dir}", chdir: build.build_dir
+      rm_rf build.dest_dir
+      cp_r "#{build.dest_dir}-install", build.dest_dir
+      libs = BUILD_PROFILES[params[:profile]][:user_exts]
+      ruby_api_version = `#{build.baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
+      libs.each do |lib|
+        next unless File.exist?("ext/#{lib}/lib")
+        cp_r(File.join(base_dir, "ext/#{lib}/lib/."), File.join(build.dest_dir, "usr/local/lib/ruby/#{ruby_api_version}"))
+      end
       sh "tar cfz #{artifact} -C rubies #{build.name}"
     end
 
