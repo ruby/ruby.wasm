@@ -20,7 +20,7 @@ Dependencies: [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs), [wasmtime
 
 ```console
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/download/2022-03-28-a/ruby-head-wasm32-unknown-wasi-full.tar.gz
+$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-head-wasm32-unknown-wasi-full.tar.gz
 $ tar xfz ruby-head-wasm32-unknown-wasi-full.tar.gz
 
 # Extract ruby binary not to pack itself
