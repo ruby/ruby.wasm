@@ -57,14 +57,9 @@ WAPM_PACKAGES = [
 def get_toolchain(target)
   case target
   when "wasm32-unknown-wasi"
-    check_envvar("WASI_SDK_PATH")
-    if lib_wasi_vfs_a.nil?
-      STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
-    end
-    RubyWasm::WASISDK.new
+    return RubyWasm::WASISDK.new
   when "wasm32-unknown-emscripten"
-    check_executable("emcc")
-    RubyWasm::Emscripten.new
+    return RubyWasm::Emscripten.new
   end
 end
 
@@ -101,34 +96,7 @@ namespace :build do
     directory build.dest_dir
     directory build.build_dir
 
-    configure = RubyWasm::ConfigureTask.new.define_task(build, source)
-    make = RubyWasm::MakeTask.new(params).define_task(build, source, configure)
-    ext_build = RubyWasm::ExtBuildProduct.new(params, base_dir).define_task(build, source, toolchain, configure)
-  end
-end
-
-def check_executable(command)
-  (ENV["PATH"] || "").split(File::PATH_SEPARATOR).each do |path_dir|
-    bin_path = File.join(path_dir, command)
-    return bin_path if File.executable?(bin_path)
-  end
-  raise "missing executable: #{command}"
-end
-
-def check_envvar(name)
-  if ENV[name].nil?
-    raise "missing environment variable: #{name}"
-  end
-end
-
-def lib_wasi_vfs_a
-  ENV["LIB_WASI_VFS_A"]
-end
-
-def sh_or_warn(*cmd)
-  sh *cmd do |ok, status|
-    unless ok
-      warn "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
-    end
+    product = RubyWasm::CrossRubyTask.new(params, base_dir)
+    product.define_task build, source, toolchain
   end
 end

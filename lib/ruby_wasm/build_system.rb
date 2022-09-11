@@ -94,7 +94,7 @@ module RubyWasm
       end
     end
 
-    def configure_args(build_triple)
+    def configure_args(build_triple, toolchain)
       target = @params.target
       default_exts = @params.default_exts
       user_exts = @params.user_exts
@@ -118,7 +118,7 @@ module RubyWasm
 
       case target
       when "wasm32-unknown-wasi"
-        xldflags << lib_wasi_vfs_a unless lib_wasi_vfs_a.nil?
+        xldflags << toolchain.lib_wasi_vfs_a unless toolchain.lib_wasi_vfs_a.nil?
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
         args.concat(%w[CC=emcc LD=emcc AR=emar RANLIB=emranlib])

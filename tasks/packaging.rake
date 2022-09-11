@@ -127,3 +127,11 @@ task :publish, [:tag] do |t, args|
   end
   sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
 end
+
+def sh_or_warn(*cmd)
+  sh *cmd do |ok, status|
+    unless ok
+      warn "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+    end
+  end
+end
