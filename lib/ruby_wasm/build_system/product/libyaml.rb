@@ -2,7 +2,7 @@ require "rake"
 require_relative "./product"
 
 module RubyWasm
-  class LibYAMLTask < AutoconfProduct
+  class LibYAMLProduct < AutoconfProduct
     attr_reader :base_dir, :install_dir, :target
 
     def initialize(base_dir, install_dir, target, toolchain)

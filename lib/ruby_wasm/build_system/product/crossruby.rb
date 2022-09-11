@@ -2,7 +2,7 @@ require "rake"
 require_relative "./product"
 
 module RubyWasm
-  class CrossRubyTask < BuildProduct
+  class CrossRubyProduct < BuildProduct
     attr_reader :params, :base_dir
 
     def initialize(params, base_dir)

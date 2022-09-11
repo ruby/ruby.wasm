@@ -2,7 +2,7 @@ require "rake"
 require_relative "./product"
 
 module RubyWasm
-  class ZlibTask < AutoconfProduct
+  class ZlibProduct < AutoconfProduct
     attr_reader :base_dir, :install_dir, :target
 
     def initialize(base_dir, install_dir, target, toolchain)
