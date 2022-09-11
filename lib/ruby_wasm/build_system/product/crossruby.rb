@@ -8,12 +8,6 @@ module RubyWasm
       @name, @toolchain = name, toolchain
     end
 
-    def check_deps
-      if name == "js" or name == "witapi"
-        Toolchain.check_executable("wit-bindgen")
-      end
-    end
-
     def define_task(crossruby)
       task "#{crossruby.name}-ext-#{@name}" => [crossruby.configure] do
         make_args = []
@@ -69,7 +63,6 @@ module RubyWasm
 
       @configure = task "#{name}-configure", [:reconfigure] => [build_dir, source.src_dir, source.configure_file] + dep_tasks do |t, args|
         args.with_defaults(:reconfigure => false)
-        check_deps
 
         if !File.exist?("#{build_dir}/Makefile") || args[:reconfigure]
           args = configure_args(RbConfig::CONFIG["host"], toolchain)
@@ -148,12 +141,6 @@ module RubyWasm
         "deps:libyaml-#{@params[:target]}",
         "deps:zlib-#{@params[:target]}"
       ]
-    end
-
-    def check_deps
-      @params.user_exts.each do |ext|
-        ext.check_deps
-      end
     end
 
     def configure_args(build_triple, toolchain)
