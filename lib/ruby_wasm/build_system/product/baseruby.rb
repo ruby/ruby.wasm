@@ -3,14 +3,15 @@ require_relative "./product"
 
 module RubyWasm
   class BaseRubyProduct < BuildProduct
-    attr_reader :name, :base_dir
+    attr_reader :name, :base_dir, :source
 
-    def initialize(name, base_dir)
+    def initialize(name, base_dir, source)
       @name = name
       @base_dir = base_dir
+      @source = source
     end
 
-    def define_task(source)
+    def define_task
       file source.configure_file => [source.src_dir] do
         sh "./autogen.sh", chdir: source.src_dir
       end

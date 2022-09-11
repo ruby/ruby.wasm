@@ -14,7 +14,7 @@ module RubyWasm
       end
     end
 
-    def check_executable(command)
+    def self.check_executable(command)
       (ENV["PATH"] || "").split(File::PATH_SEPARATOR).each do |path_dir|
         bin_path = File.join(path_dir, command)
         return bin_path if File.executable?(bin_path)
@@ -68,7 +68,7 @@ module RubyWasm
     end
 
     def find_tool(name)
-      check_executable(@tools[name])
+      Toolchain.check_executable(@tools[name])
       @tools[name]
     end
   end

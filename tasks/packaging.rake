@@ -45,7 +45,7 @@ namespace :wapm do
 
     desc "Publish wapm package #{pkg[:name]}"
     task "#{pkg[:name]}-publish" => ["#{pkg[:name]}-build"] do
-      check_executable("wapm")
+      Toolchain.check_executable("wapm")
       sh "wapm publish", chdir: pkg_dir
     end
   end
@@ -92,7 +92,7 @@ end
 
 desc "Fetch artifacts of a run of GitHub Actions"
 task :fetch_artifacts, [:run_id] do |t, args|
-  check_executable("gh")
+  Toolchain.check_executable("gh")
 
   artifacts = JSON.load(%x(gh api repos/{owner}/{repo}/actions/runs/#{args[:run_id]}/artifacts))
   artifacts = artifacts["artifacts"].filter { RELASE_ARTIFACTS.include?(_1["name"]) }
@@ -110,7 +110,7 @@ end
 
 desc "Publish artifacts as a GitHub Release"
 task :publish, [:tag] do |t, args|
-  check_executable("gh")
+  Toolchain.check_executable("gh")
 
   files = RELASE_ARTIFACTS.flat_map do |artifact|
     Dir.glob("release/#{artifact}/*")

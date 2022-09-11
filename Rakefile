@@ -84,7 +84,7 @@ namespace :build do
   end
 
   build_srcs.each do |name, source|
-    RubyWasm::BaseRubyProduct.new(name, base_dir).define_task source
+    RubyWasm::BaseRubyProduct.new(name, base_dir, source).define_task
   end
 
   BUILDS.each do |params|
@@ -93,12 +93,7 @@ namespace :build do
     build_params = RubyWasm::BuildParams.new(
       **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source)
     )
-    build = RubyWasm::BuildPlan.new(build_params, Dir.pwd)
-
-    directory build.dest_dir
-    directory build.build_dir
-
-    product = RubyWasm::CrossRubyProduct.new(params, base_dir)
-    product.define_task build, source, toolchain
+    product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, source, toolchain)
+    product.define_task
   end
 end
