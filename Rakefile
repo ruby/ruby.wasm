@@ -90,8 +90,11 @@ namespace :build do
   BUILDS.each do |params|
     source = build_srcs[params[:src]]
     toolchain = get_toolchain params[:target]
+    user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
+      RubyWasm::CrossRubyExtProduct.new(ext, toolchain)
+    end
     build_params = RubyWasm::BuildParams.new(
-      **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source)
+      **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source, user_exts: user_exts)
     )
     product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, source, toolchain)
     product.define_task

@@ -2,8 +2,59 @@ require "rake"
 require_relative "./product"
 
 module RubyWasm
+  class CrossRubyExtProduct < BuildProduct
+    attr_reader :name, :toolchain
+    def initialize(name, toolchain)
+      @name, @toolchain = name, toolchain
+    end
+
+    def check_deps
+      if name == "js" or name == "witapi"
+        Toolchain.check_executable("wit-bindgen")
+      end
+    end
+
+    def define_task(crossruby)
+      task "#{crossruby.name}-ext-#{@name}" => [crossruby.configure] do
+        make_args = []
+        make_args << "CC=#{toolchain.cc}"
+        make_args << "RANLIB=#{toolchain.ranlib}"
+        make_args << "LD=#{toolchain.ld}"
+        make_args << "AR=#{toolchain.ar}"
+
+        lib = @name
+        source = crossruby.source
+        objdir = "#{crossruby.ext_build_dir}/#{lib}"
+        FileUtils.mkdir_p objdir
+        srcdir = "#{crossruby.base_dir}/ext/#{lib}"
+        extconf_args = [
+          "--disable=gems",
+          # HACK: top_srcdir is required to find ruby headers
+          "-e", %Q('$top_srcdir="#{source.src_dir}"'),
+          # HACK: extout is required to find config.h
+          "-e", %Q('$extout="#{crossruby.build_dir}/.ext"'),
+          # HACK: force static ext build by imitating extmk
+          "-e", "'$static = true; trace_var(:$static) {|v| $static = true }'",
+          # HACK: $0 should be extconf.rb path due to mkmf source file detection
+          # and we want to insert some hacks before it. But -e and $0 cannot be
+          # used together, so we rewrite $0 in -e.
+          "-e", %Q('$0="#{srcdir}/extconf.rb"'),
+          "-e", %Q('require_relative "#{srcdir}/extconf.rb"'),
+          "-I#{crossruby.build_dir}",
+        ]
+        sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
+        make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
+        sh make_cmd
+        # A ext can provide link args by link.filelist. It contains only built archive file by default.
+        unless File.exist?("#{objdir}/link.filelist")
+          File.write("#{objdir}/link.filelist", Dir.glob("#{objdir}/*.a").join("\n"))
+        end
+      end
+    end
+  end
+
   class CrossRubyProduct < BuildProduct
-    attr_reader :params, :base_dir, :source, :toolchain, :build
+    attr_reader :params, :base_dir, :source, :toolchain, :build, :configure
 
     def initialize(params, base_dir, source, toolchain)
       @params = params
@@ -16,7 +67,7 @@ module RubyWasm
       directory dest_dir
       directory build_dir
 
-      configure = task "#{name}-configure", [:reconfigure] => [build_dir, source.src_dir, source.configure_file] + dep_tasks do |t, args|
+      @configure = task "#{name}-configure", [:reconfigure] => [build_dir, source.src_dir, source.configure_file] + dep_tasks do |t, args|
         args.with_defaults(:reconfigure => false)
         check_deps
 
@@ -28,60 +79,29 @@ module RubyWasm
         sh "make rbconfig.rb", chdir: build_dir
       end
 
-      user_exts = task "#{name}-libs" => [configure] do
-        make_args = []
-        make_args << "CC=#{toolchain.cc}"
-        make_args << "RANLIB=#{toolchain.ranlib}"
-        make_args << "LD=#{toolchain.ld}"
-        make_args << "AR=#{toolchain.ar}"
-
-        make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{source.src_dir}/include -I#{build_dir}/.ext/include/wasm32-wasi")
-        libs = BUILD_PROFILES[params[:profile]][:user_exts]
-        libs.each do |lib|
-          objdir = "#{ext_build_dir}/#{lib}"
-          FileUtils.mkdir_p objdir
-          srcdir = "#{base_dir}/ext/#{lib}"
-          extconf_args = [
-            "--disable=gems",
-            # HACK: top_srcdir is required to find ruby headers
-            "-e", %Q('$top_srcdir="#{source.src_dir}"'),
-            # HACK: extout is required to find config.h
-            "-e", %Q('$extout="#{build_dir}/.ext"'),
-            # HACK: force static ext build by imitating extmk
-            "-e", %Q($static = true; trace_var(:$static) {|v| $static = true }),
-            # HACK: $0 should be extconf.rb path due to mkmf source file detection
-            # and we want to insert some hacks before it. But -e and $0 cannot be
-            # used together, so we rewrite $0 in -e.
-            "-e", %Q('$0="#{srcdir}/extconf.rb"'),
-            "-e", %Q('require_relative "#{srcdir}/extconf.rb"'),
-            "-I#{build_dir}",
-          ]
-          sh "#{baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
-          make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
-          sh make_cmd
-          # A ext can provide link args by link.filelist. It contains only built archive file by default.
-          unless File.exist?("#{objdir}/link.filelist")
-            File.write("#{objdir}/link.filelist", Dir.glob("#{objdir}/*.a").join("\n"))
-          end
-        end
+      user_ext_products = @params.user_exts
+      user_ext_tasks = user_ext_products.map do |prod|
+        prod.define_task(self)
+      end
+      user_ext_names = user_ext_products.map(&:name)
+      user_exts = task "#{name}-libs" => [@configure] + user_ext_tasks do
         mkdir_p File.dirname(extinit_obj)
-        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
       end
 
-      install = task "#{name}-install" => [configure, user_exts, dest_dir] do
+      install = task "#{name}-install" => [@configure, user_exts, dest_dir] do
         next if File.exist?("#{dest_dir}-install")
         sh "make install DESTDIR=#{dest_dir}-install", chdir: build_dir
       end
 
       desc "Build #{name}"
-      task name => [configure, install, dest_dir] do
+      task name => [@configure, install, dest_dir] do
         artifact = "rubies/ruby-#{name}.tar.gz"
         next if File.exist?(artifact)
         rm_rf dest_dir
         cp_r "#{dest_dir}-install", dest_dir
-        libs = BUILD_PROFILES[params[:profile]][:user_exts]
         ruby_api_version = `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
-        libs.each do |lib|
+        user_ext_names.each do |lib|
           next unless File.exist?("ext/#{lib}/lib")
           cp_r(File.join(base_dir, "ext/#{lib}/lib/."), File.join(dest_dir, "usr/local/lib/ruby/#{ruby_api_version}"))
         end
@@ -131,11 +151,8 @@ module RubyWasm
     end
 
     def check_deps
-      target = @params.target
-      user_exts = @params.user_exts
-
-      if user_exts.include?("js") or user_exts.include?("witapi")
-        Toolchain.check_executable("wit-bindgen")
+      @params.user_exts.each do |ext|
+        ext.check_deps
       end
     end
 
@@ -172,7 +189,7 @@ module RubyWasm
       end
 
       (user_exts || []).each do |lib|
-        xldflags << "@#{ext_build_dir}/#{lib}/link.filelist"
+        xldflags << "@#{ext_build_dir}/#{lib.name}/link.filelist"
       end
       xldflags << extinit_obj
 
