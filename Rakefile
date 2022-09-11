@@ -63,12 +63,21 @@ def get_toolchain(target)
   end
 end
 
+products_by_target = {}
+
 namespace :deps do
   ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"].each do |target|
     toolchain = get_toolchain(target)
     install_dir = File.join(Dir.pwd, "/build/deps/#{target}/opt")
-    RubyWasm::LibYAMLProduct.new(Dir.pwd, install_dir, target, toolchain).define_task
-    RubyWasm::ZlibProduct.new(Dir.pwd, install_dir, target, toolchain).define_task
+    target_products = products_by_target[target] = {}
+
+    libyaml = RubyWasm::LibYAMLProduct.new(Dir.pwd, install_dir, target, toolchain)
+    target_products[RubyWasm::LibYAMLProduct] = libyaml
+    libyaml.define_task
+
+    zlib = RubyWasm::ZlibProduct.new(Dir.pwd, install_dir, target, toolchain)
+    target_products[RubyWasm::ZlibProduct] = zlib
+    zlib.define_task
   end
 end
 
@@ -101,6 +110,8 @@ namespace :build do
       **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source, user_exts: user_exts)
     )
     product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, baseruby, source, toolchain)
+    product.with_libyaml products_by_target[params[:target]][RubyWasm::LibYAMLProduct]
+    product.with_zlib products_by_target[params[:target]][RubyWasm::ZlibProduct]
     product.define_task
   end
 end

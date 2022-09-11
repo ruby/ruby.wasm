@@ -3,7 +3,7 @@ require_relative "./product"
 
 module RubyWasm
   class LibYAMLProduct < AutoconfProduct
-    attr_reader :base_dir, :install_dir, :target
+    attr_reader :base_dir, :install_dir, :target, :install_task
 
     def initialize(base_dir, install_dir, target, toolchain)
       @base_dir = base_dir
@@ -12,11 +12,15 @@ module RubyWasm
       super(target, toolchain)
     end
 
+    def install_root
+      File.join(install_dir, "usr/local")
+    end
+
     def define_task
       libyaml_version = "0.2.5"
       desc "build libyaml #{libyaml_version} for #{target}"
-      task "libyaml-#{target}" do
-        next if Dir.exist?("#{install_dir}/libyaml")
+      @install_task = task "libyaml-#{target}" do
+        next if Dir.exist?(install_root)
 
         build_dir =
           File.join(base_dir, "/build/deps/#{target}/yaml-#{libyaml_version}")
@@ -30,7 +34,7 @@ module RubyWasm
         sh "curl -o #{build_dir}/config/config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'"
 
         sh "./configure #{configure_args.join(" ")}", chdir: build_dir
-        sh "make install DESTDIR=#{install_dir}/libyaml", chdir: build_dir
+        sh "make install DESTDIR=#{install_root}", chdir: build_dir
       end
     end
   end

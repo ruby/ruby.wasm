@@ -136,6 +136,16 @@ module RubyWasm
       "#{@base_dir}/build/deps/#{@params.target}/opt"
     end
 
+    def with_libyaml(libyaml)
+      @libyaml = libyaml
+      @dep_tasks << libyaml.install_task
+    end
+
+    def with_zlib(zlib)
+      @zlib = zlib
+      @dep_tasks << zlib.install_task
+    end
+
     def dest_dir
       "#{@base_dir}/rubies/#{name}"
     end
@@ -149,12 +159,7 @@ module RubyWasm
     end
 
     def dep_tasks
-      return [@baseruby.build_task] if @params.profile == "minimal"
-      [
-        @baseruby.build_task,
-        "deps:libyaml-#{@params[:target]}",
-        "deps:zlib-#{@params[:target]}"
-      ]
+      [@baseruby.install_task] + @dep_tasks
     end
 
     def configure_args(build_triple, toolchain)
@@ -175,8 +180,8 @@ module RubyWasm
       args = ["--host", target, "--build", build_triple]
       args << "--with-static-linked-ext"
       args << %Q(--with-ext="#{default_exts}")
-      args << %Q(--with-libyaml-dir="#{deps_install_dir}/libyaml/usr/local")
-      args << %Q(--with-zlib-dir="#{deps_install_dir}/zlib")
+      args << %Q(--with-libyaml-dir="#{@libyaml.install_root}")
+      args << %Q(--with-zlib-dir="#{@zlib.install_root}")
       args << %Q(--with-baseruby="#{baseruby_path}")
 
       case target
