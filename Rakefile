@@ -63,8 +63,8 @@ namespace :deps do
   ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"].each do |target|
     toolchain = TOOLCHAIN_BY_TARGET[target].call
     install_dir = File.join(Dir.pwd, "/build/deps/#{target}/opt")
-    RubyWasm::LibYAMLTask.new(Dir.pwd, install_dir, target).define_task toolchain
-    RubyWasm::ZlibTask.new(Dir.pwd, install_dir, target).define_task toolchain
+    RubyWasm::LibYAMLTask.new(Dir.pwd, install_dir, target, toolchain).define_task
+    RubyWasm::ZlibTask.new(Dir.pwd, install_dir, target, toolchain).define_task
   end
 end
 
@@ -92,8 +92,8 @@ namespace :build do
     directory build.dest_dir
     directory build.build_dir
 
-    configure = RubyWasm::ConfigureTask.new.define_task build, source
-    make = RubyWasm::MakeTask.new.define_task build, source, configure
+    configure = RubyWasm::ConfigureTask.new.define_task(build, source)
+    make = RubyWasm::MakeTask.new(params).define_task(build, source, configure)
     ext_build = RubyWasm::ExtBuildProduct.new(params, base_dir).define_task(build, source, toolchain, configure)
   end
 end

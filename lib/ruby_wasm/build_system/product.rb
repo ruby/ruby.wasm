@@ -22,6 +22,12 @@ module RubyWasm
   end
 
   class MakeTask < BuildProduct
+    attr_reader :params
+
+    def initialize(params)
+      @params = params
+    end
+
     def define_task(build, source, configure)
       desc "Build #{build.name}"
       task build.name => [configure, "#{build.name}-libs", build.dest_dir] do

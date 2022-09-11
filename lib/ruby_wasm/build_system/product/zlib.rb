@@ -2,16 +2,17 @@ require "rake"
 require_relative "./product"
 
 module RubyWasm
-  class ZlibTask < BuildProduct
+  class ZlibTask < AutoconfProduct
     attr_reader :base_dir, :install_dir, :target
 
-    def initialize(base_dir, install_dir, target)
+    def initialize(base_dir, install_dir, target, toolchain)
       @base_dir = base_dir
       @install_dir = install_dir
       @target = target
+      super(target, toolchain)
     end
 
-    def define_task(toolchain)
+    def define_task
       zlib_version = "1.2.12"
       desc "build zlib #{zlib_version} for #{target}"
       task "zlib-#{target}" do
@@ -23,12 +24,7 @@ module RubyWasm
 
         sh "curl -L https://zlib.net/zlib-#{zlib_version}.tar.gz | tar xz", chdir: File.dirname(build_dir)
 
-        configure_args = []
-        configure_args << "CC=#{toolchain.cc}"
-        configure_args << "RANLIB=#{toolchain.ranlib}"
-        configure_args << "LD=#{toolchain.ld}"
-        configure_args << "AR=#{toolchain.ar}"
-        sh "#{configure_args.join(" ")} ./configure --prefix=#{install_dir}/zlib --static", chdir: build_dir
+        sh "#{tools_args.join(" ")} ./configure --prefix=#{install_dir}/zlib --static", chdir: build_dir
         sh "make install", chdir: build_dir
       end
     end
