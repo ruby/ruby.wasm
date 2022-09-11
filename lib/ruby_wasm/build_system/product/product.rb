@@ -14,9 +14,9 @@ module RubyWasm
       args = []
       case @target
       when "wasm32-unknown-wasi"
-        args.concat(%W(--host wasm32-wasi))
+        args.concat(%W[--host wasm32-wasi])
       when "wasm32-unknown-emscripten"
-        args.concat(%W(--host wasm32-emscripten))
+        args.concat(%W[--host wasm32-emscripten])
       else
         raise "unknown target: #{@target}"
       end

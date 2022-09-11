@@ -24,24 +24,32 @@ module RubyWasm
         extconf_args = [
           "--disable=gems",
           # HACK: top_srcdir is required to find ruby headers
-          "-e", %Q('$top_srcdir="#{source.src_dir}"'),
+          "-e",
+          %Q('$top_srcdir="#{source.src_dir}"'),
           # HACK: extout is required to find config.h
-          "-e", %Q('$extout="#{crossruby.build_dir}/.ext"'),
+          "-e",
+          %Q('$extout="#{crossruby.build_dir}/.ext"'),
           # HACK: force static ext build by imitating extmk
-          "-e", "'$static = true; trace_var(:$static) {|v| $static = true }'",
+          "-e",
+          "'$static = true; trace_var(:$static) {|v| $static = true }'",
           # HACK: $0 should be extconf.rb path due to mkmf source file detection
           # and we want to insert some hacks before it. But -e and $0 cannot be
           # used together, so we rewrite $0 in -e.
-          "-e", %Q('$0="#{srcdir}/extconf.rb"'),
-          "-e", %Q('require_relative "#{srcdir}/extconf.rb"'),
-          "-I#{crossruby.build_dir}",
+          "-e",
+          %Q('$0="#{srcdir}/extconf.rb"'),
+          "-e",
+          %Q('require_relative "#{srcdir}/extconf.rb"'),
+          "-I#{crossruby.build_dir}"
         ]
         sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
         make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
         sh make_cmd
         # A ext can provide link args by link.filelist. It contains only built archive file by default.
         unless File.exist?("#{objdir}/link.filelist")
-          File.write("#{objdir}/link.filelist", Dir.glob("#{objdir}/*.a").join("\n"))
+          File.write(
+            "#{objdir}/link.filelist",
+            Dir.glob("#{objdir}/*.a").join("\n")
+          )
         end
       end
     end
@@ -61,31 +69,35 @@ module RubyWasm
       directory dest_dir
       directory build_dir
 
-      @configure = task "#{name}-configure", [:reconfigure] => [build_dir, source.src_dir, source.configure_file] + dep_tasks do |t, args|
-        args.with_defaults(:reconfigure => false)
+      @configure =
+        task "#{name}-configure",
+             [:reconfigure] =>
+               [build_dir, source.src_dir, source.configure_file] +
+                 dep_tasks do |t, args|
+          args.with_defaults(reconfigure: false)
 
-        if !File.exist?("#{build_dir}/Makefile") || args[:reconfigure]
-          args = configure_args(RbConfig::CONFIG["host"], toolchain)
-          sh "#{source.configure_file} #{args.join(" ")}", chdir: build_dir
+          if !File.exist?("#{build_dir}/Makefile") || args[:reconfigure]
+            args = configure_args(RbConfig::CONFIG["host"], toolchain)
+            sh "#{source.configure_file} #{args.join(" ")}", chdir: build_dir
+          end
+          # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
+          sh "make rbconfig.rb", chdir: build_dir
         end
-        # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
-        sh "make rbconfig.rb", chdir: build_dir
-      end
 
       user_ext_products = @params.user_exts
-      user_ext_tasks = user_ext_products.map do |prod|
-        prod.define_task(self)
-      end
+      user_ext_tasks = user_ext_products.map { |prod| prod.define_task(self) }
       user_ext_names = user_ext_products.map(&:name)
-      user_exts = task "#{name}-libs" => [@configure] + user_ext_tasks do
-        mkdir_p File.dirname(extinit_obj)
-        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
-      end
+      user_exts =
+        task "#{name}-libs" => [@configure] + user_ext_tasks do
+          mkdir_p File.dirname(extinit_obj)
+          sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+        end
 
-      install = task "#{name}-install" => [@configure, user_exts, dest_dir] do
-        next if File.exist?("#{dest_dir}-install")
-        sh "make install DESTDIR=#{dest_dir}-install", chdir: build_dir
-      end
+      install =
+        task "#{name}-install" => [@configure, user_exts, dest_dir] do
+          next if File.exist?("#{dest_dir}-install")
+          sh "make install DESTDIR=#{dest_dir}-install", chdir: build_dir
+        end
 
       desc "Build #{name}"
       task name => [@configure, install, dest_dir] do
@@ -93,10 +105,14 @@ module RubyWasm
         next if File.exist?(artifact)
         rm_rf dest_dir
         cp_r "#{dest_dir}-install", dest_dir
-        ruby_api_version = `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
+        ruby_api_version =
+          `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
         user_ext_names.each do |lib|
           next unless File.exist?("ext/#{lib}/lib")
-          cp_r(File.join(base_dir, "ext/#{lib}/lib/."), File.join(dest_dir, "usr/local/lib/ruby/#{ruby_api_version}"))
+          cp_r(
+            File.join(base_dir, "ext/#{lib}/lib/."),
+            File.join(dest_dir, "usr/local/lib/ruby/#{ruby_api_version}")
+          )
         end
         sh "tar cfz #{artifact} -C rubies #{name}"
       end
@@ -167,7 +183,9 @@ module RubyWasm
 
       case target
       when "wasm32-unknown-wasi"
-        xldflags << toolchain.lib_wasi_vfs_a unless toolchain.lib_wasi_vfs_a.nil?
+        unless toolchain.lib_wasi_vfs_a.nil?
+          xldflags << toolchain.lib_wasi_vfs_a
+        end
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
         args.concat(%w[CC=emcc LD=emcc AR=emar RANLIB=emranlib])

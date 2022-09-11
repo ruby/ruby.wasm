@@ -9,20 +9,20 @@ module RubyWasm
     end
 
     def check_envvar(name)
-      if ENV[name].nil?
-        raise "missing environment variable: #{name}"
-      end
+      raise "missing environment variable: #{name}" if ENV[name].nil?
     end
 
     def self.check_executable(command)
-      (ENV["PATH"] || "").split(File::PATH_SEPARATOR).each do |path_dir|
-        bin_path = File.join(path_dir, command)
-        return bin_path if File.executable?(bin_path)
-      end
+      (ENV["PATH"] || "")
+        .split(File::PATH_SEPARATOR)
+        .each do |path_dir|
+          bin_path = File.join(path_dir, command)
+          return bin_path if File.executable?(bin_path)
+        end
       raise "missing executable: #{command}"
     end
 
-    [:cc, :ranlib, :ld, :ar].each do |name|
+    %i[cc ranlib ld ar].each do |name|
       define_method(name) do
         @tools[name] ||= find_tool(name)
         @tools[name]
@@ -36,7 +36,7 @@ module RubyWasm
         cc: "#{wasi_sdk_path}/bin/clang",
         ld: "#{wasi_sdk_path}/bin/clang",
         ar: "#{wasi_sdk_path}/bin/llvm-ar",
-        ranlib: "#{wasi_sdk_path}/bin/llvm-ranlib",
+        ranlib: "#{wasi_sdk_path}/bin/llvm-ranlib"
       }
     end
 
@@ -59,12 +59,7 @@ module RubyWasm
 
   class Emscripten < Toolchain
     def initialize
-      @tools = {
-        cc: "emcc",
-        ld: "emcc",
-        ar: "emar",
-        ranlib: "emranlib",
-      }
+      @tools = { cc: "emcc", ld: "emcc", ar: "emar", ranlib: "emranlib" }
     end
 
     def find_tool(name)
@@ -72,5 +67,4 @@ module RubyWasm
       @tools[name]
     end
   end
-
 end

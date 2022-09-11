@@ -18,10 +18,12 @@ module RubyWasm
       task "libyaml-#{target}" do
         next if Dir.exist?("#{install_dir}/libyaml")
 
-        build_dir = File.join(base_dir, "/build/deps/#{target}/yaml-#{libyaml_version}")
+        build_dir =
+          File.join(base_dir, "/build/deps/#{target}/yaml-#{libyaml_version}")
         mkdir_p File.dirname(build_dir)
         rm_rf build_dir
-        sh "curl -L https://github.com/yaml/libyaml/releases/download/#{libyaml_version}/yaml-#{libyaml_version}.tar.gz | tar xz", chdir: File.dirname(build_dir)
+        sh "curl -L https://github.com/yaml/libyaml/releases/download/#{libyaml_version}/yaml-#{libyaml_version}.tar.gz | tar xz",
+           chdir: File.dirname(build_dir)
 
         # obtain the latest config.guess and config.sub for Emscripten and WASI triple support
         sh "curl -o #{build_dir}/config/config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'"

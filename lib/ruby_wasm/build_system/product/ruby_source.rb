@@ -3,7 +3,6 @@ require_relative "./product"
 
 module RubyWasm
   class BuildSource < BuildProduct
-
     def initialize(params, base_dir)
       @params = params
       @base_dir = base_dir
