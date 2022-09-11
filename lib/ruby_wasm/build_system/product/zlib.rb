@@ -19,21 +19,22 @@ module RubyWasm
     def define_task
       zlib_version = "1.2.12"
       desc "build zlib #{zlib_version} for #{target}"
-      @install_task = task "zlib-#{target}" do
-        next if Dir.exist?(install_root)
+      @install_task =
+        task "zlib-#{target}" do
+          next if Dir.exist?(install_root)
 
-        build_dir =
-          File.join(base_dir, "/build/deps/#{target}/zlib-#{zlib_version}")
-        mkdir_p File.dirname(build_dir)
-        rm_rf build_dir
+          build_dir =
+            File.join(base_dir, "/build/deps/#{target}/zlib-#{zlib_version}")
+          mkdir_p File.dirname(build_dir)
+          rm_rf build_dir
 
-        sh "curl -L https://zlib.net/zlib-#{zlib_version}.tar.gz | tar xz",
-           chdir: File.dirname(build_dir)
+          sh "curl -L https://zlib.net/zlib-#{zlib_version}.tar.gz | tar xz",
+             chdir: File.dirname(build_dir)
 
-        sh "#{tools_args.join(" ")} ./configure --prefix=#{install_root} --static",
-           chdir: build_dir
-        sh "make install", chdir: build_dir
-      end
+          sh "#{tools_args.join(" ")} ./configure --prefix=#{install_root} --static",
+             chdir: build_dir
+          sh "make install", chdir: build_dir
+        end
     end
   end
 end
