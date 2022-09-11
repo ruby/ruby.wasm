@@ -4,7 +4,7 @@ require "open-uri"
 
 $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
-require "rubywasm/build"
+require "ruby_wasm/build"
 
 Dir.glob("rake/**.rake").each { |f| import f }
 
