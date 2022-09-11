@@ -89,16 +89,6 @@ module RubyWasm
       target = @params.target
       user_exts = @params.user_exts
 
-      case target
-      when "wasm32-unknown-wasi"
-        check_envvar("WASI_SDK_PATH")
-        if lib_wasi_vfs_a.nil?
-          STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
-        end
-      when "wasm32-unknown-emscripten"
-        check_executable("emcc")
-      end
-
       if user_exts.include?("js") or user_exts.include?("witapi")
         check_executable("wit-bindgen")
       end

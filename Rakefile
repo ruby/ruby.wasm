@@ -54,14 +54,23 @@ WAPM_PACKAGES = [
   { name: "irb", build: "head-wasm32-unknown-wasi-full" },
 ]
 
-TOOLCHAIN_BY_TARGET = {
-  "wasm32-unknown-wasi" => -> { RubyWasm::WASISDK.new },
-  "wasm32-unknown-emscripten" => -> { RubyWasm::Emscripten.new },
-}
+def get_toolchain(target)
+  case target
+  when "wasm32-unknown-wasi"
+    check_envvar("WASI_SDK_PATH")
+    if lib_wasi_vfs_a.nil?
+      STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
+    end
+    RubyWasm::WASISDK.new
+  when "wasm32-unknown-emscripten"
+    check_executable("emcc")
+    RubyWasm::Emscripten.new
+  end
+end
 
 namespace :deps do
   ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"].each do |target|
-    toolchain = TOOLCHAIN_BY_TARGET[target].call
+    toolchain = get_toolchain(target)
     install_dir = File.join(Dir.pwd, "/build/deps/#{target}/opt")
     RubyWasm::LibYAMLTask.new(Dir.pwd, install_dir, target, toolchain).define_task
     RubyWasm::ZlibTask.new(Dir.pwd, install_dir, target, toolchain).define_task
@@ -83,7 +92,7 @@ namespace :build do
 
   BUILDS.each do |params|
     source = build_srcs[params[:src]]
-    toolchain = TOOLCHAIN_BY_TARGET[params[:target]].call
+    toolchain = get_toolchain params[:target]
     build_params = RubyWasm::BuildParams.new(
       **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source)
     )
