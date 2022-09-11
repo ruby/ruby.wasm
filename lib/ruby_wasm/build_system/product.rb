@@ -41,26 +41,14 @@ module RubyWasm
       @base_dir = base_dir
     end
 
-    def define_task(build, source, configure)
+    def define_task(build, source, toolchain, configure)
       task "#{build.name}-libs" => [configure] do
         make_args = []
-        case params[:target]
-        when "wasm32-unknown-wasi"
-          wasi_sdk_path = ENV["WASI_SDK_PATH"]
-          cc = "#{wasi_sdk_path}/bin/clang"
-          make_args << "CC=#{cc}"
-          make_args << "LD=#{wasi_sdk_path}/bin/wasm-ld"
-          make_args << "AR=#{wasi_sdk_path}/bin/llvm-ar"
-          make_args << "RANLIB=#{wasi_sdk_path}/bin/llvm-ranlib"
-        when "wasm32-unknown-emscripten"
-          cc = "emcc"
-          make_args << "CC=#{cc}"
-          make_args << "LD=emcc"
-          make_args << "AR=emar"
-          make_args << "RANLIB=emranlib"
-        else
-          raise "unknown target: #{params[:target]}"
-        end
+        make_args << "CC=#{toolchain.cc}"
+        make_args << "RANLIB=#{toolchain.ranlib}"
+        make_args << "LD=#{toolchain.ld}"
+        make_args << "AR=#{toolchain.ar}"
+
         make_args << %Q(RUBY_INCLUDE_FLAGS="-I#{source.src_dir}/include -I#{build.build_dir}/.ext/include/wasm32-wasi")
         libs = BUILD_PROFILES[params[:profile]][:user_exts]
         libs.each do |lib|
@@ -91,7 +79,7 @@ module RubyWasm
           end
         end
         mkdir_p File.dirname(build.extinit_obj)
-        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{cc} -c -x c - -o #{build.extinit_obj})
+        sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{libs.join(" ")} | #{toolchain.cc} -c -x c - -o #{build.extinit_obj})
       end
     end
   end

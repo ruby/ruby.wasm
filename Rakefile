@@ -54,11 +54,17 @@ WAPM_PACKAGES = [
   { name: "irb", build: "head-wasm32-unknown-wasi-full" },
 ]
 
+TOOLCHAIN_BY_TARGET = {
+  "wasm32-unknown-wasi" => -> { RubyWasm::WASISDK.new },
+  "wasm32-unknown-emscripten" => -> { RubyWasm::Emscripten.new },
+}
+
 namespace :deps do
   ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"].each do |target|
+    toolchain = TOOLCHAIN_BY_TARGET[target].call
     install_dir = File.join(Dir.pwd, "/build/deps/#{target}/opt")
-    RubyWasm::LibYAMLTask.new(Dir.pwd, install_dir, target).define_task
-    RubyWasm::ZlibTask.new(Dir.pwd, install_dir, target).define_task
+    RubyWasm::LibYAMLTask.new(Dir.pwd, install_dir, target).define_task toolchain
+    RubyWasm::ZlibTask.new(Dir.pwd, install_dir, target).define_task toolchain
   end
 end
 
@@ -77,6 +83,7 @@ namespace :build do
 
   BUILDS.each do |params|
     source = build_srcs[params[:src]]
+    toolchain = TOOLCHAIN_BY_TARGET[params[:target]].call
     build_params = RubyWasm::BuildParams.new(
       **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source)
     )
@@ -87,7 +94,7 @@ namespace :build do
 
     configure = RubyWasm::ConfigureTask.new.define_task build, source
     make = RubyWasm::MakeTask.new.define_task build, source, configure
-    ext_build = RubyWasm::ExtBuildProduct.new(params, base_dir).define_task build, source, configure
+    ext_build = RubyWasm::ExtBuildProduct.new(params, base_dir).define_task(build, source, toolchain, configure)
   end
 end
 

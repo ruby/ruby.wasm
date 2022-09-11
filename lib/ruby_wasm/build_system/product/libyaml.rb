@@ -11,7 +11,7 @@ module RubyWasm
       @target = target
     end
 
-    def define_task
+    def define_task(toolchain)
       libyaml_version = "0.2.5"
       desc "build libyaml #{libyaml_version} for #{target}"
       task "libyaml-#{target}" do
@@ -29,12 +29,16 @@ module RubyWasm
         configure_args = []
         case target
         when "wasm32-unknown-wasi"
-          configure_args.concat(%W(--host wasm32-wasi CC=#{ENV["WASI_SDK_PATH"]}/bin/clang RANLIB=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ranlib LD=#{ENV["WASI_SDK_PATH"]}/bin/clang AR=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ar))
+          configure_args.concat(%W(--host wasm32-wasi))
         when "wasm32-unknown-emscripten"
-          configure_args.concat(%W(--host wasm32-emscripten CC=emcc RANLIB=emranlib LD=emcc AR=emar))
+          configure_args.concat(%W(--host wasm32-emscripten))
         else
           raise "unknown target: #{target}"
         end
+        configure_args << "CC=#{toolchain.cc}"
+        configure_args << "RANLIB=#{toolchain.ranlib}"
+        configure_args << "LD=#{toolchain.ld}"
+        configure_args << "AR=#{toolchain.ar}"
         sh "./configure #{configure_args.join(" ")}", chdir: build_dir
         sh "make install DESTDIR=#{install_dir}/libyaml", chdir: build_dir
       end

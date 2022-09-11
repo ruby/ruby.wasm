@@ -11,7 +11,7 @@ module RubyWasm
       @target = target
     end
 
-    def define_task
+    def define_task(toolchain)
       zlib_version = "1.2.12"
       desc "build zlib #{zlib_version} for #{target}"
       task "zlib-#{target}" do
@@ -24,14 +24,10 @@ module RubyWasm
         sh "curl -L https://zlib.net/zlib-#{zlib_version}.tar.gz | tar xz", chdir: File.dirname(build_dir)
 
         configure_args = []
-        case target
-        when "wasm32-unknown-wasi"
-          configure_args.concat(%W(CC=#{ENV["WASI_SDK_PATH"]}/bin/clang RANLIB=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ranlib AR=#{ENV["WASI_SDK_PATH"]}/bin/llvm-ar))
-        when "wasm32-unknown-emscripten"
-          configure_args.concat(%W(CC=emcc RANLIB=emranlib AR=emar))
-        else
-          raise "unknown target: #{target}"
-        end
+        configure_args << "CC=#{toolchain.cc}"
+        configure_args << "RANLIB=#{toolchain.ranlib}"
+        configure_args << "LD=#{toolchain.ld}"
+        configure_args << "AR=#{toolchain.ar}"
         sh "#{configure_args.join(" ")} ./configure --prefix=#{install_dir}/zlib --static", chdir: build_dir
         sh "make install", chdir: build_dir
       end
