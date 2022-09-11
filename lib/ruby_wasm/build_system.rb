@@ -4,40 +4,6 @@ require_relative "build_system/product"
 require_relative "build_system/toolchain"
 
 module RubyWasm
-  class BuildSource
-    include Rake::FileUtilsExt
-
-    def initialize(params, base_dir)
-      @params = params
-      @base_dir = base_dir
-    end
-
-    def name
-      @params[:name]
-    end
-
-    def src_dir
-      "#{@base_dir}/build/src/#{@params[:name]}"
-    end
-
-    def configure_file
-      "#{src_dir}/configure"
-    end
-
-    def fetch
-      case @params[:type]
-      when "github"
-        tarball_url =
-          "https://api.github.com/repos/#{@params[:repo]}/tarball/#{@params[:rev]}"
-        mkdir_p src_dir
-        sh "curl -L #{tarball_url} | tar xz --strip-components=1",
-           chdir: src_dir
-      else
-        raise "unknown source type: #{@params[:type]}"
-      end
-    end
-  end
-
   class BuildPlan
     def initialize(params, base_dir)
       @params = params

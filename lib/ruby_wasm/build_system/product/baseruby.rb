@@ -11,9 +11,6 @@ module RubyWasm
     end
 
     def define_task(source)
-      directory source.src_dir do
-        source.fetch
-      end
       file source.configure_file => [source.src_dir] do
         sh "./autogen.sh", chdir: source.src_dir
       end

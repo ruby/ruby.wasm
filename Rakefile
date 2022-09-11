@@ -78,7 +78,9 @@ namespace :build do
 
   build_srcs = {}
   BUILD_SOURCES.each do |src|
-    build_srcs[src[:name]] = RubyWasm::BuildSource.new(src, Dir.pwd)
+    source = RubyWasm::BuildSource.new(src, Dir.pwd)
+    build_srcs[src[:name]] = source
+    source.define_task
   end
 
   build_srcs.each do |name, source|
