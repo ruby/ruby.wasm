@@ -1,4 +1,5 @@
 require "rake"
+require_relative "build_system/build_params"
 
 module RubyWasm
   class BuildSource
@@ -7,6 +8,10 @@ module RubyWasm
     def initialize(params, base_dir)
       @params = params
       @base_dir = base_dir
+    end
+
+    def name
+      @params[:name]
     end
 
     def src_dir
@@ -38,7 +43,7 @@ module RubyWasm
     end
 
     def name
-      "#{@params[:src]}-#{@params[:target]}-#{@params[:profile]}"
+      "#{@params.src.name}-#{@params.target}-#{@params.profile}"
     end
 
     def build_dir
@@ -50,7 +55,7 @@ module RubyWasm
     end
 
     def deps_install_dir
-      "#{@base_dir}/build/deps/#{@params[:target]}/opt"
+      "#{@base_dir}/build/deps/#{@params.target}/opt"
     end
 
     def dest_dir
@@ -62,7 +67,7 @@ module RubyWasm
     end
 
     def baseruby_name
-      "baseruby-#{@params[:src]}"
+      "baseruby-#{@params.src.name}"
     end
 
     def baseruby_path
@@ -70,7 +75,7 @@ module RubyWasm
     end
 
     def dep_tasks
-      return [baseruby_name] if @params[:profile] == "minimal"
+      return [baseruby_name] if @params.profile == "minimal"
       [
         baseruby_name,
         "deps:libyaml-#{@params[:target]}",
@@ -79,9 +84,8 @@ module RubyWasm
     end
 
     def check_deps
-      target = @params[:target]
-      profile = BUILD_PROFILES[@params[:profile]]
-      user_exts = profile[:user_exts]
+      target = @params.target
+      user_exts = @params.user_exts
 
       case target
       when "wasm32-unknown-wasi"
@@ -99,13 +103,12 @@ module RubyWasm
     end
 
     def configure_args(build_triple)
-      target = @params[:target]
-      profile = BUILD_PROFILES[@params[:profile]]
-      default_exts = profile[:default_exts]
-      user_exts = profile[:user_exts]
+      target = @params.target
+      default_exts = @params.default_exts
+      user_exts = @params.user_exts
 
       ldflags =
-        if profile[:debug]
+        if @params.debug
           # use --stack-first to detect stack overflow easily
           %w[-Xlinker --stack-first -Xlinker -z -Xlinker stack-size=16777216]
         else
@@ -144,7 +147,7 @@ module RubyWasm
       args << %Q(LDFLAGS="#{ldflags.join(" ")}")
       args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
       args << %Q(XCFLAGS="#{xcflags.join(" ")}")
-      if profile[:debug]
+      if @params.debug
         args << %Q(debugflags="-g")
         args << %Q(wasmoptflags="-O3 -g")
       else

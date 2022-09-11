@@ -4,7 +4,7 @@ require "open-uri"
 
 $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
-require "ruby_wasm/build"
+require "ruby_wasm/build_system"
 
 Dir.glob("rake/**.rake").each { |f| import f }
 
@@ -142,7 +142,10 @@ namespace :build do
 
   BUILDS.each do |params|
     source = build_srcs[params[:src]]
-    build = RubyWasm::BuildPlan.new(params, Dir.pwd)
+    build_params = RubyWasm::BuildParams.new(
+      **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source)
+    )
+    build = RubyWasm::BuildPlan.new(build_params, Dir.pwd)
 
     directory build.dest_dir
     directory build.build_dir
