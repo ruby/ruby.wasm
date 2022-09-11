@@ -83,8 +83,11 @@ namespace :build do
     source.define_task
   end
 
+  baserubies = {}
   build_srcs.each do |name, source|
-    RubyWasm::BaseRubyProduct.new(name, base_dir, source).define_task
+    baseruby = RubyWasm::BaseRubyProduct.new(name, base_dir, source)
+    baseruby.define_task
+    baserubies[name] = baseruby
   end
 
   BUILDS.each do |params|
@@ -93,10 +96,11 @@ namespace :build do
     user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
       RubyWasm::CrossRubyExtProduct.new(ext, toolchain)
     end
+    baseruby = baserubies[params[:src]]
     build_params = RubyWasm::BuildParams.new(
       **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source, user_exts: user_exts)
     )
-    product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, source, toolchain)
+    product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, baseruby, source, toolchain)
     product.define_task
   end
 end

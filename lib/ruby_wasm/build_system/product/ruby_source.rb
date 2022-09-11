@@ -37,6 +37,9 @@ module RubyWasm
       directory src_dir do
         fetch
       end
+      file configure_file => [src_dir] do
+        sh "./autogen.sh", chdir: src_dir
+      end
     end
   end
 end

@@ -58,11 +58,13 @@ module RubyWasm
   class CrossRubyProduct < BuildProduct
     attr_reader :params, :base_dir, :source, :toolchain, :build, :configure
 
-    def initialize(params, base_dir, source, toolchain)
+    def initialize(params, base_dir, baseruby, source, toolchain)
       @params = params
       @base_dir = base_dir
+      @baseruby = baseruby
       @source = source
       @toolchain = toolchain
+      @dep_tasks = []
     end
 
     def define_task
@@ -142,18 +144,14 @@ module RubyWasm
       "#{ext_build_dir}/extinit.o"
     end
 
-    def baseruby_name
-      "baseruby-#{@params.src.name}"
-    end
-
     def baseruby_path
-      "#{@base_dir}/build/deps/#{RbConfig::CONFIG["host"]}/opt/#{baseruby_name}/bin/ruby"
+      File.join(@baseruby.install_dir, "bin/ruby")
     end
 
     def dep_tasks
-      return [baseruby_name] if @params.profile == "minimal"
+      return [@baseruby.build_task] if @params.profile == "minimal"
       [
-        baseruby_name,
+        @baseruby.build_task,
         "deps:libyaml-#{@params[:target]}",
         "deps:zlib-#{@params[:target]}"
       ]
