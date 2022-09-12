@@ -89,14 +89,14 @@ module RubyWasm
       user_ext_products = @params.user_exts
       user_ext_tasks = user_ext_products.map { |prod| prod.define_task(self) }
       user_ext_names = user_ext_products.map(&:name)
-      user_exts =
-        task "#{name}-libs" => [@configure] + user_ext_tasks do
+      extinit_task =
+        task extinit_obj => [@configure, extinit_c_erb] + user_ext_tasks do
           mkdir_p File.dirname(extinit_obj)
-          sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+          sh %Q(ruby #{extinit_c_erb} #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
         end
 
       install =
-        task "#{name}-install" => [@configure, user_exts, dest_dir] do
+        task "#{name}-install" => [@configure, extinit_task, dest_dir] do
           next if File.exist?("#{dest_dir}-install")
           sh "make install DESTDIR=#{dest_dir}-install", chdir: build_dir
         end
@@ -149,6 +149,11 @@ module RubyWasm
 
     def extinit_obj
       "#{ext_build_dir}/extinit.o"
+    end
+
+    def extinit_c_erb
+      lib_root = File.expand_path("../../../../..", __FILE__)
+      File.join(lib_root, "ext", "extinit.c.erb")
     end
 
     def baseruby_path
