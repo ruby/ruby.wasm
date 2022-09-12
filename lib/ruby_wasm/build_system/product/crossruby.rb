@@ -56,11 +56,12 @@ module RubyWasm
   end
 
   class CrossRubyProduct < BuildProduct
-    attr_reader :base_dir, :source, :toolchain, :build, :configure
+    attr_reader :source, :toolchain, :build, :configure
 
-    def initialize(params, base_dir, baseruby, source, toolchain)
+    def initialize(params, build_dir, rubies_dir, baseruby, source, toolchain)
       @params = params
-      @base_dir = base_dir
+      @rubies_dir = rubies_dir
+      @build_dir = build_dir
       @baseruby = baseruby
       @source = source
       @toolchain = toolchain
@@ -127,11 +128,11 @@ module RubyWasm
     end
 
     def build_dir
-      "#{@base_dir}/build/build/#{name}"
+      File.join(@build_dir, @params.target, name)
     end
 
     def ext_build_dir
-      "#{@base_dir}/build/ext-build/#{name}"
+      File.join(@build_dir, @params.target, name + "-ext")
     end
 
     def with_libyaml(libyaml)
@@ -145,7 +146,7 @@ module RubyWasm
     end
 
     def dest_dir
-      "#{@base_dir}/rubies/#{name}"
+      File.join(@rubies_dir, name)
     end
 
     def extinit_obj
