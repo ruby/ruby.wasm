@@ -106,8 +106,9 @@ namespace :build do
       RubyWasm::CrossRubyExtProduct.new(ext, toolchain)
     end
     baseruby = baserubies[params[:src]]
+    name = "#{source.name}-#{params[:target]}-#{params[:profile]}"
     build_params = RubyWasm::BuildParams.new(
-      **params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source, user_exts: user_exts)
+      **params.merge(BUILD_PROFILES[params[:profile]]).merge(name: name, src: source, user_exts: user_exts)
     )
     product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, baseruby, source, toolchain)
     product.with_libyaml products_by_target[params[:target]][RubyWasm::LibYAMLProduct]

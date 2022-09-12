@@ -1,6 +1,7 @@
 module RubyWasm
   BuildParams =
     Struct.new(
+      :name,
       :src,
       :target,
       :debug,

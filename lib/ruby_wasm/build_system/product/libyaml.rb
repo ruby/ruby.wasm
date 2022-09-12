@@ -35,7 +35,7 @@ module RubyWasm
           sh "curl -o #{build_dir}/config/config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'"
 
           sh "./configure #{configure_args.join(" ")}", chdir: build_dir
-          sh "make install DESTDIR=#{install_root}", chdir: build_dir
+          sh "make install DESTDIR=#{install_dir}", chdir: build_dir
         end
     end
   end

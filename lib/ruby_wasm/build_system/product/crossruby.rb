@@ -56,7 +56,7 @@ module RubyWasm
   end
 
   class CrossRubyProduct < BuildProduct
-    attr_reader :params, :base_dir, :source, :toolchain, :build, :configure
+    attr_reader :base_dir, :source, :toolchain, :build, :configure
 
     def initialize(params, base_dir, baseruby, source, toolchain)
       @params = params
@@ -121,7 +121,7 @@ module RubyWasm
     end
 
     def name
-      "#{@params.src.name}-#{@params.target}-#{@params.profile}"
+      @params.name
     end
 
     def build_dir
@@ -130,10 +130,6 @@ module RubyWasm
 
     def ext_build_dir
       "#{@base_dir}/build/ext-build/#{name}"
-    end
-
-    def deps_install_dir
-      "#{@base_dir}/build/deps/#{@params.target}/opt"
     end
 
     def with_libyaml(libyaml)
