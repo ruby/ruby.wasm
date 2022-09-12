@@ -28,7 +28,7 @@ module RubyWasm
           next if Dir.exist?(install_root)
 
           build_dir =
-            File.join(base_dir, "/build/deps/#{target}/yaml-#{libyaml_version}")
+            File.join(base_dir, "build", target, "yaml-#{libyaml_version}")
           mkdir_p File.dirname(build_dir)
           rm_rf build_dir
           sh "curl -L https://github.com/yaml/libyaml/releases/download/#{libyaml_version}/yaml-#{libyaml_version}.tar.gz | tar xz",

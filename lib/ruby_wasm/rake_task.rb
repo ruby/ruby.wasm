@@ -12,7 +12,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     zlib = add_product RubyWasm::ZlibProduct.new(base_dir, install_dir, target, toolchain)
 
     source = add_product RubyWasm::BuildSource.new(src, base_dir)
-    baseruby = add_product RubyWasm::BaseRubyProduct.new(name, base_dir, source)
+    baseruby = add_product RubyWasm::BaseRubyProduct.new(base_dir, source)
 
     build_params = RubyWasm::BuildParams.new(
       options.merge(

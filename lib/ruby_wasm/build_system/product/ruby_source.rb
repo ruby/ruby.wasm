@@ -13,11 +13,11 @@ module RubyWasm
     end
 
     def src_dir
-      "#{@base_dir}/build/src/#{@params[:name]}"
+      File.join(@base_dir, "build", "checkouts", @params[:name])
     end
 
     def configure_file
-      "#{src_dir}/configure"
+      File.join(src_dir, "configure")
     end
 
     def fetch

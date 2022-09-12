@@ -28,7 +28,7 @@ module RubyWasm
           next if Dir.exist?(install_root)
 
           build_dir =
-            File.join(base_dir, "/build/deps/#{target}/zlib-#{zlib_version}")
+            File.join(base_dir, "build", target, "zlib-#{zlib_version}")
           mkdir_p File.dirname(build_dir)
           rm_rf build_dir
 
