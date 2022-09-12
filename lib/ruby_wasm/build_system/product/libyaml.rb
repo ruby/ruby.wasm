@@ -16,11 +16,15 @@ module RubyWasm
       File.join(install_dir, "usr/local")
     end
 
+    def name
+      "libyaml-#{target}"
+    end
+
     def define_task
       libyaml_version = "0.2.5"
       desc "build libyaml #{libyaml_version} for #{target}"
       @install_task =
-        task "libyaml-#{target}" do
+        task(name) do
           next if Dir.exist?(install_root)
 
           build_dir =

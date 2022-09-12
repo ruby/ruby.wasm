@@ -16,11 +16,15 @@ module RubyWasm
       File.join(install_dir, "zlib")
     end
 
+    def name
+      "zlib-#{target}"
+    end
+
     def define_task
       zlib_version = "1.2.12"
       desc "build zlib #{zlib_version} for #{target}"
       @install_task =
-        task "zlib-#{target}" do
+        task(name) do
           next if Dir.exist?(install_root)
 
           build_dir =

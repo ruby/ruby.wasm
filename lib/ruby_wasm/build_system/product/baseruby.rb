@@ -3,10 +3,10 @@ require_relative "./product"
 
 module RubyWasm
   class BaseRubyProduct < BuildProduct
-    attr_reader :name, :base_dir, :source, :install_task
+    attr_reader :base_dir, :source, :install_task
 
-    def initialize(name, base_dir, source)
-      @name = name
+    def initialize(channel, base_dir, source)
+      @channel = channel
       @base_dir = base_dir
       @source = source
     end
@@ -14,22 +14,26 @@ module RubyWasm
     def install_dir
       File.join(
         base_dir,
-        "/build/deps/#{RbConfig::CONFIG["host"]}/opt/baseruby-#{name}"
+        "/build/deps/#{RbConfig::CONFIG["host"]}/opt/baseruby-#{@channel}"
       )
+    end
+
+    def name
+      "baseruby-#{@channel}"
     end
 
     def define_task
       baseruby_build_dir =
         File.join(
           base_dir,
-          "/build/deps/#{RbConfig::CONFIG["host"]}/baseruby-#{name}"
+          "/build/deps/#{RbConfig::CONFIG["host"]}/baseruby-#{@channel}"
         )
 
       directory baseruby_build_dir
 
-      desc "build baseruby #{name}"
+      desc "build baseruby #{@channel}"
       @install_task =
-        task "baseruby-#{name}" => [
+        task name => [
                source.src_dir,
                source.configure_file,
                baseruby_build_dir
