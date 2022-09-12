@@ -5,15 +5,15 @@ module RubyWasm
   class BaseRubyProduct < BuildProduct
     attr_reader :base_dir, :source, :install_task
 
-    def initialize(base_dir, source)
-      @base_dir = base_dir
+    def initialize(build_dir, source)
+      @build_dir = build_dir
       @source = source
       @channel = source.name
     end
 
     def install_dir
       File.join(
-        base_dir, "build", RbConfig::CONFIG["host"], "opt", "baseruby-#{@channel}"
+        @build_dir, RbConfig::CONFIG["host"], "opt", "baseruby-#{@channel}"
       )
     end
 
@@ -23,7 +23,7 @@ module RubyWasm
 
     def define_task
       baseruby_build_dir =
-        File.join(base_dir, "build", RbConfig::CONFIG["host"], "baseruby-#{@channel}")
+        File.join(@build_dir, RbConfig::CONFIG["host"], "baseruby-#{@channel}")
 
       directory baseruby_build_dir
 

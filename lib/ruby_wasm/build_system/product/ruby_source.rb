@@ -3,9 +3,9 @@ require_relative "./product"
 
 module RubyWasm
   class BuildSource < BuildProduct
-    def initialize(params, base_dir)
+    def initialize(params, build_dir)
       @params = params
-      @base_dir = base_dir
+      @build_dir = build_dir
     end
 
     def name
@@ -13,7 +13,7 @@ module RubyWasm
     end
 
     def src_dir
-      File.join(@base_dir, "build", "checkouts", @params[:name])
+      File.join(@build_dir, "checkouts", @params[:name])
     end
 
     def configure_file

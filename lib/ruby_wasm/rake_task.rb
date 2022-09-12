@@ -5,14 +5,15 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
 
   def initialize(name, target:, src:, extensions: [], toolchain: nil, **options, &task_block)
     base_dir = Dir.pwd
+    build_dir = File.join(base_dir, "build")
     install_dir = File.join(base_dir, "/build/deps/#{target}/opt")
     toolchain ||= RubyWasm::Toolchain.get target
 
-    libyaml = add_product RubyWasm::LibYAMLProduct.new(base_dir, install_dir, target, toolchain)
-    zlib = add_product RubyWasm::ZlibProduct.new(base_dir, install_dir, target, toolchain)
+    libyaml = add_product RubyWasm::LibYAMLProduct.new(build_dir, install_dir, target, toolchain)
+    zlib = add_product RubyWasm::ZlibProduct.new(build_dir, install_dir, target, toolchain)
 
-    source = add_product RubyWasm::BuildSource.new(src, base_dir)
-    baseruby = add_product RubyWasm::BaseRubyProduct.new(base_dir, source)
+    source = add_product RubyWasm::BuildSource.new(src, build_dir)
+    baseruby = add_product RubyWasm::BaseRubyProduct.new(build_dir, source)
 
     build_params = RubyWasm::BuildParams.new(
       options.merge(
