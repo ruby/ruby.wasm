@@ -3,7 +3,7 @@ require_relative "./product"
 
 module RubyWasm
   class CrossRubyExtProduct < BuildProduct
-    attr_reader :name, :toolchain
+    attr_reader :name, :srcdir
     def initialize(srcdir, toolchain, name: nil)
       @srcdir, @toolchain = srcdir, toolchain
       @name = name || File.basename(srcdir)
@@ -12,10 +12,10 @@ module RubyWasm
     def define_task(crossruby)
       task "#{crossruby.name}-ext-#{@name}" => [crossruby.configure] do
         make_args = []
-        make_args << "CC=#{toolchain.cc}"
-        make_args << "RANLIB=#{toolchain.ranlib}"
-        make_args << "LD=#{toolchain.ld}"
-        make_args << "AR=#{toolchain.ar}"
+        make_args << "CC=#{@toolchain.cc}"
+        make_args << "LD=#{@toolchain.ld}"
+        make_args << "AR=#{@toolchain.ar}"
+        make_args << "RANLIB=#{@toolchain.ranlib}"
 
         lib = @name
         source = crossruby.source
@@ -110,10 +110,11 @@ module RubyWasm
         ruby_api_version =
           `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
         # TODO: move copying logic to ext product
-        user_ext_names.each do |lib|
-          next unless File.exist?("ext/#{lib}/lib")
+        user_ext_products.each do |ext|
+          ext_lib = File.join(ext.srcdir, "lib")
+          next unless File.exist?(ext_lib)
           cp_r(
-            File.join(base_dir, "ext/#{lib}/lib/."),
+            File.join(ext_lib, "."),
             File.join(dest_dir, "usr/local/lib/ruby/#{ruby_api_version}")
           )
         end
