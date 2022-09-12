@@ -1,5 +1,6 @@
 require "rake"
 require_relative "build_system/build_params"
+require_relative "build_system/product"
 
 module RubyWasm
   class BuildSource
