@@ -3,7 +3,7 @@ require_relative "./product"
 
 module RubyWasm
   class BaseRubyProduct < BuildProduct
-    attr_reader :base_dir, :source, :install_task
+    attr_reader :source, :install_task
 
     def initialize(build_dir, source)
       @build_dir = build_dir

@@ -7,11 +7,10 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     base_dir = Dir.pwd
     build_dir = File.join(base_dir, "build")
     rubies_dir = File.join(base_dir, "rubies")
-    install_dir = File.join(base_dir, "/build/deps/#{target}/opt")
     toolchain ||= RubyWasm::Toolchain.get target
 
     libyaml = add_product RubyWasm::LibYAMLProduct.new(build_dir, target, toolchain)
-    zlib = add_product RubyWasm::ZlibProduct.new(build_dir, install_dir, target, toolchain)
+    zlib = add_product RubyWasm::ZlibProduct.new(build_dir, target, toolchain)
 
     source = add_product RubyWasm::BuildSource.new(src, build_dir)
     baseruby = add_product RubyWasm::BaseRubyProduct.new(build_dir, source)

@@ -3,13 +3,12 @@ require_relative "./product"
 
 module RubyWasm
   class ZlibProduct < AutoconfProduct
-    attr_reader :install_dir, :target, :install_task
+    attr_reader :target, :install_task
 
     ZLIB_VERSION = "1.2.12"
 
-    def initialize(build_dir, install_dir, target, toolchain)
+    def initialize(build_dir, target, toolchain)
       @build_dir = build_dir
-      @install_dir = install_dir
       @target = target
       super(target, toolchain)
     end
