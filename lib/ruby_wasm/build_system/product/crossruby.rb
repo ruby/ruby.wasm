@@ -4,8 +4,9 @@ require_relative "./product"
 module RubyWasm
   class CrossRubyExtProduct < BuildProduct
     attr_reader :name, :toolchain
-    def initialize(name, toolchain)
-      @name, @toolchain = name, toolchain
+    def initialize(srcdir, toolchain, name: nil)
+      @srcdir, @toolchain = srcdir, toolchain
+      @name = name || File.basename(srcdir)
     end
 
     def define_task(crossruby)
@@ -20,7 +21,6 @@ module RubyWasm
         source = crossruby.source
         objdir = "#{crossruby.ext_build_dir}/#{lib}"
         FileUtils.mkdir_p objdir
-        srcdir = "#{crossruby.base_dir}/ext/#{lib}"
         extconf_args = [
           "--disable=gems",
           # HACK: top_srcdir is required to find ruby headers
@@ -36,9 +36,9 @@ module RubyWasm
           # and we want to insert some hacks before it. But -e and $0 cannot be
           # used together, so we rewrite $0 in -e.
           "-e",
-          %Q('$0="#{srcdir}/extconf.rb"'),
+          %Q('$0="#{@srcdir}/extconf.rb"'),
           "-e",
-          %Q('require_relative "#{srcdir}/extconf.rb"'),
+          %Q('require_relative "#{@srcdir}/extconf.rb"'),
           "-I#{crossruby.build_dir}"
         ]
         sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
