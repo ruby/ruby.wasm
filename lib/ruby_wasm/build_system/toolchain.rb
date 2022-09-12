@@ -12,6 +12,17 @@ module RubyWasm
       raise "missing environment variable: #{name}" if ENV[name].nil?
     end
 
+    def self.get(target)
+      case target
+      when "wasm32-unknown-wasi"
+        return RubyWasm::WASISDK.new
+      when "wasm32-unknown-emscripten"
+        return RubyWasm::Emscripten.new
+      else
+        raise "unknown target: #{target}"
+      end
+    end
+
     def self.check_executable(command)
       (ENV["PATH"] || "")
         .split(File::PATH_SEPARATOR)

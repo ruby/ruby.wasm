@@ -109,6 +109,7 @@ module RubyWasm
         cp_r "#{dest_dir}-install", dest_dir
         ruby_api_version =
           `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
+        # TODO: move copying logic to ext product
         user_ext_names.each do |lib|
           next unless File.exist?("ext/#{lib}/lib")
           cp_r(

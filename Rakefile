@@ -4,19 +4,18 @@ require "open-uri"
 
 $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
-require "ruby_wasm/build_system"
+require "ruby_wasm/rake_task"
 
 Dir.glob("tasks/**.rake").each { |f| import f }
 
-BUILD_SOURCES = [
-  {
-    name: "head",
+BUILD_SOURCES = {
+  "head" => {
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
     patches: [],
   },
-]
+}
 
 FULL_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib"
 
@@ -54,65 +53,17 @@ WAPM_PACKAGES = [
   { name: "irb", build: "head-wasm32-unknown-wasi-full" },
 ]
 
-def get_toolchain(target)
-  case target
-  when "wasm32-unknown-wasi"
-    return RubyWasm::WASISDK.new
-  when "wasm32-unknown-emscripten"
-    return RubyWasm::Emscripten.new
-  end
-end
-
-products_by_target = {}
-
-namespace :deps do
-  ["wasm32-unknown-wasi", "wasm32-unknown-emscripten"].each do |target|
-    toolchain = get_toolchain(target)
-    install_dir = File.join(Dir.pwd, "/build/deps/#{target}/opt")
-    target_products = products_by_target[target] = {}
-
-    libyaml = RubyWasm::LibYAMLProduct.new(Dir.pwd, install_dir, target, toolchain)
-    target_products[RubyWasm::LibYAMLProduct] = libyaml
-    libyaml.define_task
-
-    zlib = RubyWasm::ZlibProduct.new(Dir.pwd, install_dir, target, toolchain)
-    target_products[RubyWasm::ZlibProduct] = zlib
-    zlib.define_task
-  end
-end
-
 namespace :build do
-
-  base_dir = Dir.pwd
-
-  build_srcs = {}
-  BUILD_SOURCES.each do |src|
-    source = RubyWasm::BuildSource.new(src, Dir.pwd)
-    build_srcs[src[:name]] = source
-    source.define_task
-  end
-
-  baserubies = {}
-  build_srcs.each do |name, source|
-    baseruby = RubyWasm::BaseRubyProduct.new(name, base_dir, source)
-    baseruby.define_task
-    baserubies[name] = baseruby
-  end
-
   BUILDS.each do |params|
-    source = build_srcs[params[:src]]
-    toolchain = get_toolchain params[:target]
+    name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
+    source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
+    toolchain = RubyWasm::Toolchain.get params[:target]
     user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
       RubyWasm::CrossRubyExtProduct.new(ext, toolchain)
     end
-    baseruby = baserubies[params[:src]]
-    name = "#{source.name}-#{params[:target]}-#{params[:profile]}"
-    build_params = RubyWasm::BuildParams.new(
-      **params.merge(BUILD_PROFILES[params[:profile]]).merge(name: name, src: source, user_exts: user_exts)
-    )
-    product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, baseruby, source, toolchain)
-    product.with_libyaml products_by_target[params[:target]][RubyWasm::LibYAMLProduct]
-    product.with_zlib products_by_target[params[:target]][RubyWasm::ZlibProduct]
-    product.define_task
+    options = params
+        .merge(BUILD_PROFILES[params[:profile]])
+        .merge(name: name, src: source, extensions: user_exts, toolchain: toolchain)
+    RubyWasm::BuildTask.new(name, **options)
   end
 end
