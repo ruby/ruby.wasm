@@ -3,16 +3,16 @@ require_relative "./build_system"
 
 class RubyWasm::BuildTask < ::Rake::TaskLib
 
-  def initialize(name, target:, src:, extensions: [], toolchain: nil, **options, &task_block)
-    base_dir = Dir.pwd
-    install_dir = File.join(base_dir, "/build/deps/#{target}/opt")
+  def initialize(name, target:, src:, extensions: [], toolchain: nil, build_dir: nil, rubies_dir: nil, **options, &task_block)
+    build_dir ||= File.join(Dir.pwd, "build")
+    rubies_dir ||= File.join(Dir.pwd, "rubies")
     toolchain ||= RubyWasm::Toolchain.get target
 
-    libyaml = add_product RubyWasm::LibYAMLProduct.new(base_dir, install_dir, target, toolchain)
-    zlib = add_product RubyWasm::ZlibProduct.new(base_dir, install_dir, target, toolchain)
+    libyaml = add_product RubyWasm::LibYAMLProduct.new(build_dir, target, toolchain)
+    zlib = add_product RubyWasm::ZlibProduct.new(build_dir, target, toolchain)
 
-    source = add_product RubyWasm::BuildSource.new(src, base_dir)
-    baseruby = add_product RubyWasm::BaseRubyProduct.new(name, base_dir, source)
+    source = add_product RubyWasm::BuildSource.new(src, build_dir)
+    baseruby = add_product RubyWasm::BaseRubyProduct.new(build_dir, source)
 
     build_params = RubyWasm::BuildParams.new(
       options.merge(
@@ -20,10 +20,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
       )
     )
 
-    exts = extensions.map do |ext|
-      RubyWasm::CrossRubyExtProduct.new(ext, toolchain)
-    end
-    product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, baseruby, source, toolchain)
+    product = RubyWasm::CrossRubyProduct.new(build_params, build_dir, rubies_dir, baseruby, source, toolchain)
     product.with_libyaml libyaml
     product.with_zlib zlib
     product.define_task

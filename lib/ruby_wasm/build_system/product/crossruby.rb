@@ -3,24 +3,24 @@ require_relative "./product"
 
 module RubyWasm
   class CrossRubyExtProduct < BuildProduct
-    attr_reader :name, :toolchain
-    def initialize(name, toolchain)
-      @name, @toolchain = name, toolchain
+    attr_reader :name, :srcdir
+    def initialize(srcdir, toolchain, name: nil)
+      @srcdir, @toolchain = srcdir, toolchain
+      @name = name || File.basename(srcdir)
     end
 
     def define_task(crossruby)
       task "#{crossruby.name}-ext-#{@name}" => [crossruby.configure] do
         make_args = []
-        make_args << "CC=#{toolchain.cc}"
-        make_args << "RANLIB=#{toolchain.ranlib}"
-        make_args << "LD=#{toolchain.ld}"
-        make_args << "AR=#{toolchain.ar}"
+        make_args << "CC=#{@toolchain.cc}"
+        make_args << "LD=#{@toolchain.ld}"
+        make_args << "AR=#{@toolchain.ar}"
+        make_args << "RANLIB=#{@toolchain.ranlib}"
 
         lib = @name
         source = crossruby.source
         objdir = "#{crossruby.ext_build_dir}/#{lib}"
         FileUtils.mkdir_p objdir
-        srcdir = "#{crossruby.base_dir}/ext/#{lib}"
         extconf_args = [
           "--disable=gems",
           # HACK: top_srcdir is required to find ruby headers
@@ -36,9 +36,9 @@ module RubyWasm
           # and we want to insert some hacks before it. But -e and $0 cannot be
           # used together, so we rewrite $0 in -e.
           "-e",
-          %Q('$0="#{srcdir}/extconf.rb"'),
+          %Q('$0="#{@srcdir}/extconf.rb"'),
           "-e",
-          %Q('require_relative "#{srcdir}/extconf.rb"'),
+          %Q('require_relative "#{@srcdir}/extconf.rb"'),
           "-I#{crossruby.build_dir}"
         ]
         sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
@@ -56,11 +56,12 @@ module RubyWasm
   end
 
   class CrossRubyProduct < BuildProduct
-    attr_reader :base_dir, :source, :toolchain, :build, :configure
+    attr_reader :source, :toolchain, :build, :configure
 
-    def initialize(params, base_dir, baseruby, source, toolchain)
+    def initialize(params, build_dir, rubies_dir, baseruby, source, toolchain)
       @params = params
-      @base_dir = base_dir
+      @rubies_dir = rubies_dir
+      @build_dir = build_dir
       @baseruby = baseruby
       @source = source
       @toolchain = toolchain
@@ -89,14 +90,14 @@ module RubyWasm
       user_ext_products = @params.user_exts
       user_ext_tasks = user_ext_products.map { |prod| prod.define_task(self) }
       user_ext_names = user_ext_products.map(&:name)
-      user_exts =
-        task "#{name}-libs" => [@configure] + user_ext_tasks do
+      extinit_task =
+        task extinit_obj => [@configure, extinit_c_erb] + user_ext_tasks do
           mkdir_p File.dirname(extinit_obj)
-          sh %Q(ruby #{base_dir}/ext/extinit.c.erb #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+          sh %Q(ruby #{extinit_c_erb} #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
         end
 
       install =
-        task "#{name}-install" => [@configure, user_exts, dest_dir] do
+        task "#{name}-install" => [@configure, extinit_task, dest_dir] do
           next if File.exist?("#{dest_dir}-install")
           sh "make install DESTDIR=#{dest_dir}-install", chdir: build_dir
         end
@@ -110,10 +111,11 @@ module RubyWasm
         ruby_api_version =
           `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
         # TODO: move copying logic to ext product
-        user_ext_names.each do |lib|
-          next unless File.exist?("ext/#{lib}/lib")
+        user_ext_products.each do |ext|
+          ext_lib = File.join(ext.srcdir, "lib")
+          next unless File.exist?(ext_lib)
           cp_r(
-            File.join(base_dir, "ext/#{lib}/lib/."),
+            File.join(ext_lib, "."),
             File.join(dest_dir, "usr/local/lib/ruby/#{ruby_api_version}")
           )
         end
@@ -126,11 +128,11 @@ module RubyWasm
     end
 
     def build_dir
-      "#{@base_dir}/build/build/#{name}"
+      File.join(@build_dir, @params.target, name)
     end
 
     def ext_build_dir
-      "#{@base_dir}/build/ext-build/#{name}"
+      File.join(@build_dir, @params.target, name + "-ext")
     end
 
     def with_libyaml(libyaml)
@@ -144,11 +146,16 @@ module RubyWasm
     end
 
     def dest_dir
-      "#{@base_dir}/rubies/#{name}"
+      File.join(@rubies_dir, name)
     end
 
     def extinit_obj
       "#{ext_build_dir}/extinit.o"
+    end
+
+    def extinit_c_erb
+      lib_root = File.expand_path("../../../../..", __FILE__)
+      File.join(lib_root, "ext", "extinit.c.erb")
     end
 
     def baseruby_path
