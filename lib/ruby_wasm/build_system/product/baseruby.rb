@@ -11,10 +11,12 @@ module RubyWasm
       @channel = source.name
     end
 
+    def product_build_dir
+      File.join(@build_dir, RbConfig::CONFIG["host"], "baseruby-#{@channel}")
+    end
+
     def install_dir
-      File.join(
-        @build_dir, RbConfig::CONFIG["host"], "opt", "baseruby-#{@channel}"
-      )
+      File.join(product_build_dir, "opt")
     end
 
     def name
@@ -22,22 +24,20 @@ module RubyWasm
     end
 
     def define_task
-      baseruby_build_dir =
-        File.join(@build_dir, RbConfig::CONFIG["host"], "baseruby-#{@channel}")
 
-      directory baseruby_build_dir
+      directory product_build_dir
 
       desc "build baseruby #{@channel}"
       @install_task =
         task name => [
                source.src_dir,
                source.configure_file,
-               baseruby_build_dir
+               product_build_dir
              ] do
           next if Dir.exist?(install_dir)
           sh "#{source.configure_file} --prefix=#{install_dir} --disable-install-doc",
-             chdir: baseruby_build_dir
-          sh "make install", chdir: baseruby_build_dir
+             chdir: product_build_dir
+          sh "make install", chdir: product_build_dir
         end
     end
   end
