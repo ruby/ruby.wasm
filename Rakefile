@@ -43,16 +43,6 @@ BUILDS = [
   { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
 ]
 
-NPM_PACKAGES = [
-  { name: "ruby-head-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
-  { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js-debug" },
-]
-
-WAPM_PACKAGES = [
-  { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
-  { name: "irb", build: "head-wasm32-unknown-wasi-full" },
-]
-
 namespace :build do
   BUILDS.each do |params|
     name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
