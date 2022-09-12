@@ -3,10 +3,9 @@ require_relative "./build_system"
 
 class RubyWasm::BuildTask < ::Rake::TaskLib
 
-  def initialize(name, target:, src:, extensions: [], toolchain: nil, **options, &task_block)
-    base_dir = Dir.pwd
-    build_dir = File.join(base_dir, "build")
-    rubies_dir = File.join(base_dir, "rubies")
+  def initialize(name, target:, src:, extensions: [], toolchain: nil, build_dir: nil, rubies_dir: nil, **options, &task_block)
+    build_dir ||= File.join(Dir.pwd, "build")
+    rubies_dir ||= File.join(Dir.pwd, "rubies")
     toolchain ||= RubyWasm::Toolchain.get target
 
     libyaml = add_product RubyWasm::LibYAMLProduct.new(build_dir, target, toolchain)
