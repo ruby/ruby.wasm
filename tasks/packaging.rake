@@ -55,7 +55,7 @@ namespace :wapm do
 
     desc "Publish wapm package #{pkg[:name]}"
     task "#{pkg[:name]}-publish" => ["#{pkg[:name]}-build"] do
-      Toolchain.check_executable("wapm")
+      RubyWasm::Toolchain.check_executable("wapm")
       sh "wapm publish", chdir: pkg_dir
     end
   end
@@ -85,14 +85,14 @@ def release_note
 |:-------:|:------:|
 EOS
 
-  BUILD_SOURCES.each do |source|
+  BUILD_SOURCES.each do |name, source|
     case source[:type]
     when "github"
       url = "https://api.github.com/repos/#{source[:repo]}/commits/#{source[:rev]}"
       commit = OpenURI.open_uri(url) do |f|
         JSON.load(f.read)
       end
-      output += "| #{source[:name]} | [`#{source[:repo]}@#{commit["sha"]}`](https://github.com/ruby/ruby/tree/#{commit["sha"]}) |\n"
+      output += "| #{name} | [`#{source[:repo]}@#{commit["sha"]}`](https://github.com/ruby/ruby/tree/#{commit["sha"]}) |\n"
     else
       raise "unknown source type: #{source[:type]}"
     end
@@ -102,7 +102,7 @@ end
 
 desc "Fetch artifacts of a run of GitHub Actions"
 task :fetch_artifacts, [:run_id] do |t, args|
-  Toolchain.check_executable("gh")
+  RubyWasm::Toolchain.check_executable("gh")
 
   artifacts = JSON.load(%x(gh api repos/{owner}/{repo}/actions/runs/#{args[:run_id]}/artifacts))
   artifacts = artifacts["artifacts"].filter { RELASE_ARTIFACTS.include?(_1["name"]) }
@@ -120,7 +120,7 @@ end
 
 desc "Publish artifacts as a GitHub Release"
 task :publish, [:tag] do |t, args|
-  Toolchain.check_executable("gh")
+  RubyWasm::Toolchain.check_executable("gh")
 
   files = RELASE_ARTIFACTS.flat_map do |artifact|
     Dir.glob("release/#{artifact}/*")
