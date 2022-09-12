@@ -21,9 +21,6 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
       )
     )
 
-    exts = extensions.map do |ext|
-      RubyWasm::CrossRubyExtProduct.new(ext, toolchain)
-    end
     product = RubyWasm::CrossRubyProduct.new(build_params, base_dir, baseruby, source, toolchain)
     product.with_libyaml libyaml
     product.with_zlib zlib
