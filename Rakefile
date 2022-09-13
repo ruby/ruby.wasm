@@ -56,7 +56,7 @@ namespace :build do
     end
     options = params
         .merge(BUILD_PROFILES[params[:profile]])
-        .merge(name: name, src: source, toolchain: toolchain)
+        .merge(src: source, toolchain: toolchain)
     options.delete :profile
     options.delete :user_exts
     RubyWasm::BuildTask.new(name, **options) do |t|
