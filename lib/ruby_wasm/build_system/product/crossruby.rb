@@ -25,6 +25,8 @@ module RubyWasm
         make_args << "AR=#{@toolchain.ar}"
         make_args << "RANLIB=#{@toolchain.ranlib}"
 
+        make_args << "DESTDIR=#{crossruby.dest_dir}"
+
         lib = @name
         source = crossruby.source
         objdir = product_build_dir crossruby
@@ -125,15 +127,6 @@ module RubyWasm
         cp_r "#{dest_dir}-install", dest_dir
         ruby_api_version =
           `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
-        # TODO: move copying logic to ext product
-        @user_exts.each do |ext|
-          ext_lib = File.join(ext.srcdir, "lib")
-          next unless File.exist?(ext_lib)
-          cp_r(
-            File.join(ext_lib, "."),
-            File.join(dest_dir, "usr/local/lib/ruby/#{ruby_api_version}")
-          )
-        end
         sh "tar cfz #{artifact} -C rubies #{name}"
       end
     end
