@@ -10,7 +10,7 @@ module RubyWasm
     end
 
     def product_build_dir(crossruby)
-      File.join(crossruby.ext_build_dir, lib)
+      File.join(crossruby.ext_build_dir, @name)
     end
 
     def linklist(crossruby)
