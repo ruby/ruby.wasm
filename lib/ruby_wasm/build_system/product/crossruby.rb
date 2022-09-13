@@ -125,10 +125,11 @@ module RubyWasm
           sh %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
         end
 
+      install_dir = File.join(build_dir, "install")
       install =
-        task "#{name}-install" => [@configure, extinit_task, dest_dir] do
-          next if File.exist?("#{dest_dir}-install")
-          sh "make install DESTDIR=#{dest_dir}-install", chdir: build_dir
+        task install_dir => [@configure, extinit_task, dest_dir] do
+          next if File.exist?(install_dir)
+          sh "make install DESTDIR=#{install_dir}", chdir: build_dir
         end
 
       desc "Build #{name}"
@@ -136,7 +137,7 @@ module RubyWasm
         artifact = "rubies/ruby-#{name}.tar.gz"
         next if File.exist?(artifact)
         rm_rf dest_dir
-        cp_r "#{dest_dir}-install", dest_dir
+        cp_r install_dir, dest_dir
         @user_exts.each { |ext| ext.do_install_rb(self) }
         sh "tar cfz #{artifact} -C rubies #{name}"
       end
