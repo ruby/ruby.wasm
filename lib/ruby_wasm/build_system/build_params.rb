@@ -7,6 +7,7 @@ module RubyWasm
       :debug,
       :default_exts,
       :user_exts,
+      :wasmoptflags,
       keyword_init: true
     )
 end
