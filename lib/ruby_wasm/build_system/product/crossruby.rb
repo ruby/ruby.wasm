@@ -54,10 +54,7 @@ module RubyWasm
         sh make_cmd
         # A ext can provide link args by link.filelist. It contains only built archive file by default.
         unless File.exist?(linklist(crossruby))
-          File.write(
-            linklist(crossruby),
-            Dir.glob("#{objdir}/*.a").join("\n")
-          )
+          File.write(linklist(crossruby), Dir.glob("#{objdir}/*.a").join("\n"))
         end
       end
     end
@@ -207,9 +204,7 @@ module RubyWasm
         raise "unknown target: #{target}"
       end
 
-      (user_exts || []).each do |lib|
-        xldflags << "@#{lib.linklist(self)}"
-      end
+      (user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
       xldflags << extinit_obj
 
       xcflags = []

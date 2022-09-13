@@ -24,7 +24,6 @@ module RubyWasm
     end
 
     def define_task
-
       directory product_build_dir
 
       desc "build baseruby #{@channel}"
