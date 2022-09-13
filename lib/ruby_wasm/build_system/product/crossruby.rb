@@ -165,6 +165,11 @@ module RubyWasm
       @dep_tasks << zlib.install_task
     end
 
+    def with_wasi_vfs(wasi_vfs)
+      @wasi_vfs = wasi_vfs
+      @dep_tasks << wasi_vfs.install_task
+    end
+
     def dest_dir
       File.join(@rubies_dir, name)
     end
@@ -209,9 +214,7 @@ module RubyWasm
 
       case target
       when "wasm32-unknown-wasi"
-        unless toolchain.lib_wasi_vfs_a.nil?
-          xldflags << toolchain.lib_wasi_vfs_a
-        end
+        xldflags << @wasi_vfs.lib_wasi_vfs_a if @wasi_vfs
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
         args.concat(%w[CC=emcc LD=emcc AR=emar RANLIB=emranlib])

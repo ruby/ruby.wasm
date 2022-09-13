@@ -43,6 +43,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
       add_product RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
     @zlib =
       add_product RubyWasm::ZlibProduct.new(@build_dir, @target, @toolchain)
+    @wasi_vfs = add_product RubyWasm::WasiVfsProduct.new(@build_dir)
     @source = add_product RubyWasm::BuildSource.new(src, @build_dir)
     @baseruby = add_product RubyWasm::BaseRubyProduct.new(@build_dir, @source)
 
@@ -64,6 +65,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
 
     @crossruby.with_libyaml @libyaml
     @crossruby.with_zlib @zlib
+    @crossruby.with_wasi_vfs @wasi_vfs
 
     @crossruby.define_task
   end
