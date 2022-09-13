@@ -62,7 +62,7 @@ module RubyWasm
 
   class CrossRubyProduct < BuildProduct
     attr_reader :source, :toolchain, :build, :configure
-    attr_accessor :user_exts
+    attr_accessor :user_exts, :wasmoptflags
 
     def initialize(
       params,
@@ -81,6 +81,7 @@ module RubyWasm
       @toolchain = toolchain
       @dep_tasks = []
       @user_exts = user_exts
+      @wasmoptflags = nil
     end
 
     def define_task
@@ -229,6 +230,7 @@ module RubyWasm
         args << %Q(wasmoptflags="-O3 -g")
       else
         args << %Q(debugflags="-g0")
+        args << %Q(wasmoptflags="#{wasmoptflags}") if @wasmoptflags
       end
       args << "--disable-install-doc"
       args
