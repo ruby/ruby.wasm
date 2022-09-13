@@ -9,6 +9,14 @@ module RubyWasm
       @name = name || File.basename(srcdir)
     end
 
+    def product_build_dir(crossruby)
+      File.join(crossruby.ext_build_dir, lib)
+    end
+
+    def linklist(crossruby)
+      File.join(product_build_dir(crossruby), "link.filelist")
+    end
+
     def define_task(crossruby)
       task "#{crossruby.name}-ext-#{@name}" => [crossruby.configure] do
         make_args = []
@@ -19,7 +27,7 @@ module RubyWasm
 
         lib = @name
         source = crossruby.source
-        objdir = "#{crossruby.ext_build_dir}/#{lib}"
+        objdir = product_build_dir crossruby
         FileUtils.mkdir_p objdir
         extconf_args = [
           "--disable=gems",
@@ -45,9 +53,9 @@ module RubyWasm
         make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
         sh make_cmd
         # A ext can provide link args by link.filelist. It contains only built archive file by default.
-        unless File.exist?("#{objdir}/link.filelist")
+        unless File.exist?(linklist(crossruby))
           File.write(
-            "#{objdir}/link.filelist",
+            linklist(crossruby),
             Dir.glob("#{objdir}/*.a").join("\n")
           )
         end
@@ -89,11 +97,10 @@ module RubyWasm
 
       user_ext_products = @params.user_exts
       user_ext_tasks = user_ext_products.map { |prod| prod.define_task(self) }
-      user_ext_names = user_ext_products.map(&:name)
       extinit_task =
         task extinit_obj => [@configure, extinit_c_erb] + user_ext_tasks do
           mkdir_p File.dirname(extinit_obj)
-          sh %Q(ruby #{extinit_c_erb} #{user_ext_names.join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+          sh %Q(ruby #{extinit_c_erb} #{user_ext_products.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
         end
 
       install =
@@ -201,7 +208,7 @@ module RubyWasm
       end
 
       (user_exts || []).each do |lib|
-        xldflags << "@#{ext_build_dir}/#{lib.name}/link.filelist"
+        xldflags << "@#{lib.linklist(self)}"
       end
       xldflags << extinit_obj
 
