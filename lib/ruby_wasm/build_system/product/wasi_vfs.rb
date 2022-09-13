@@ -20,7 +20,7 @@ module RubyWasm
     end
 
     def lib_wasi_vfs_a
-      File.join(lib_product_build_dir, "libwasi_vfs.a")
+      ENV["LIB_WASI_VFS_A"] || File.join(lib_product_build_dir, "libwasi_vfs.a")
     end
 
     def name
@@ -28,6 +28,7 @@ module RubyWasm
     end
 
     def define_task
+      return if ENV["LIB_WASI_VFS_A"]
       @install_task =
         file(lib_wasi_vfs_a) do
           require "tmpdir"

@@ -167,7 +167,8 @@ module RubyWasm
 
     def with_wasi_vfs(wasi_vfs)
       @wasi_vfs = wasi_vfs
-      @dep_tasks << wasi_vfs.install_task
+      install_task = wasi_vfs.install_task
+      @dep_tasks << install_task if install_task
     end
 
     def dest_dir
