@@ -1,7 +1,7 @@
 link.filelist:
 	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
 
-static: link.filelist
+js.a: link.filelist
 
 bindgen/rb-js-abi-host.h bindgen/rb-js-abi-host.c &: bindgen/rb-js-abi-host.wit
 	@mkdir -p "$(@D)"
