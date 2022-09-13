@@ -62,8 +62,17 @@ module RubyWasm
 
   class CrossRubyProduct < BuildProduct
     attr_reader :source, :toolchain, :build, :configure
+    attr_accessor :user_exts
 
-    def initialize(params, build_dir, rubies_dir, baseruby, source, toolchain)
+    def initialize(
+      params,
+      build_dir,
+      rubies_dir,
+      baseruby,
+      source,
+      toolchain,
+      user_exts: []
+    )
       @params = params
       @rubies_dir = rubies_dir
       @build_dir = build_dir
@@ -71,6 +80,7 @@ module RubyWasm
       @source = source
       @toolchain = toolchain
       @dep_tasks = []
+      @user_exts = user_exts
     end
 
     def define_task
@@ -92,12 +102,12 @@ module RubyWasm
           sh "make rbconfig.rb", chdir: build_dir
         end
 
-      user_ext_products = @params.user_exts
-      user_ext_tasks = user_ext_products.map { |prod| prod.define_task(self) }
+      user_ext_products = @user_exts
+      user_ext_tasks = @user_exts.map { |prod| prod.define_task(self) }
       extinit_task =
         task extinit_obj => [@configure, extinit_c_erb] + user_ext_tasks do
           mkdir_p File.dirname(extinit_obj)
-          sh %Q(ruby #{extinit_c_erb} #{user_ext_products.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+          sh %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
         end
 
       install =
@@ -115,7 +125,7 @@ module RubyWasm
         ruby_api_version =
           `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
         # TODO: move copying logic to ext product
-        user_ext_products.each do |ext|
+        @user_exts.each do |ext|
           ext_lib = File.join(ext.srcdir, "lib")
           next unless File.exist?(ext_lib)
           cp_r(
@@ -173,7 +183,6 @@ module RubyWasm
     def configure_args(build_triple, toolchain)
       target = @params.target
       default_exts = @params.default_exts
-      user_exts = @params.user_exts
 
       ldflags =
         if @params.debug
@@ -204,7 +213,7 @@ module RubyWasm
         raise "unknown target: #{target}"
       end
 
-      (user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
+      (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
       xldflags << extinit_obj
 
       xcflags = []

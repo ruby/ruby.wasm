@@ -28,7 +28,6 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     name,
     target:,
     src:,
-    user_exts: [],
     toolchain: nil,
     build_dir: nil,
     rubies_dir: nil,
@@ -39,7 +38,6 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @build_dir = build_dir || File.join(Dir.pwd, "build")
     @rubies_dir = rubies_dir || File.join(Dir.pwd, "rubies")
     @toolchain = toolchain || RubyWasm::Toolchain.get(target)
-    @user_exts = user_exts
 
     @libyaml =
       add_product RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
@@ -49,14 +47,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @baseruby = add_product RubyWasm::BaseRubyProduct.new(@build_dir, @source)
 
     build_params =
-      RubyWasm::BuildParams.new(
-        options.merge(
-          name: name,
-          src: @source,
-          target: @target,
-          user_exts: @user_exts
-        )
-      )
+      RubyWasm::BuildParams.new(options.merge(name: name, target: @target))
 
     @crossruby =
       add_product RubyWasm::CrossRubyProduct.new(
