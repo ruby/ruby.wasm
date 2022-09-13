@@ -26,11 +26,10 @@ module RubyWasm
     end
 
     def name
-      "zlib-#{target}"
+      product_build_dir
     end
 
     def define_task
-      desc "build zlib #{ZLIB_VERSION} for #{target}"
       @install_task =
         task(name) do
           next if Dir.exist?(install_root)
