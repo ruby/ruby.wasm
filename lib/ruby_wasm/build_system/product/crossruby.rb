@@ -17,48 +17,60 @@ module RubyWasm
       File.join(product_build_dir(crossruby), "link.filelist")
     end
 
+    def make_args(crossruby)
+      make_args = []
+      make_args << "CC=#{@toolchain.cc}"
+      make_args << "LD=#{@toolchain.ld}"
+      make_args << "AR=#{@toolchain.ar}"
+      make_args << "RANLIB=#{@toolchain.ranlib}"
+
+      make_args << "DESTDIR=#{crossruby.dest_dir}"
+      make_args
+    end
+
     def define_task(crossruby)
       task "#{crossruby.name}-ext-#{@name}" => [crossruby.configure] do
-        make_args = []
-        make_args << "CC=#{@toolchain.cc}"
-        make_args << "LD=#{@toolchain.ld}"
-        make_args << "AR=#{@toolchain.ar}"
-        make_args << "RANLIB=#{@toolchain.ranlib}"
-
-        make_args << "DESTDIR=#{crossruby.dest_dir}"
-
         lib = @name
-        source = crossruby.source
         objdir = product_build_dir crossruby
         FileUtils.mkdir_p objdir
-        extconf_args = [
-          "--disable=gems",
-          # HACK: top_srcdir is required to find ruby headers
-          "-e",
-          %Q('$top_srcdir="#{source.src_dir}"'),
-          # HACK: extout is required to find config.h
-          "-e",
-          %Q('$extout="#{crossruby.build_dir}/.ext"'),
-          # HACK: force static ext build by imitating extmk
-          "-e",
-          "'$static = true; trace_var(:$static) {|v| $static = true }'",
-          # HACK: $0 should be extconf.rb path due to mkmf source file detection
-          # and we want to insert some hacks before it. But -e and $0 cannot be
-          # used together, so we rewrite $0 in -e.
-          "-e",
-          %Q('$0="#{@srcdir}/extconf.rb"'),
-          "-e",
-          %Q('require_relative "#{@srcdir}/extconf.rb"'),
-          "-I#{crossruby.build_dir}"
-        ]
-        sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
-        make_cmd = %Q(make -C "#{objdir}" #{make_args.join(" ")} static)
-        sh make_cmd
+        do_extconf crossruby
+        sh %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} #{lib}.a)
         # A ext can provide link args by link.filelist. It contains only built archive file by default.
         unless File.exist?(linklist(crossruby))
           File.write(linklist(crossruby), Dir.glob("#{objdir}/*.a").join("\n"))
         end
       end
+    end
+
+    def do_extconf(crossruby)
+      objdir = product_build_dir crossruby
+      source = crossruby.source
+      extconf_args = [
+        "--disable=gems",
+        # HACK: top_srcdir is required to find ruby headers
+        "-e",
+        %Q('$top_srcdir="#{source.src_dir}"'),
+        # HACK: extout is required to find config.h
+        "-e",
+        %Q('$extout="#{crossruby.build_dir}/.ext"'),
+        # HACK: force static ext build by imitating extmk
+        "-e",
+        "'$static = true; trace_var(:$static) {|v| $static = true }'",
+        # HACK: $0 should be extconf.rb path due to mkmf source file detection
+        # and we want to insert some hacks before it. But -e and $0 cannot be
+        # used together, so we rewrite $0 in -e.
+        "-e",
+        %Q('$0="#{@srcdir}/extconf.rb"'),
+        "-e",
+        %Q('require_relative "#{@srcdir}/extconf.rb"'),
+        "-I#{crossruby.build_dir}"
+      ]
+      sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
+    end
+
+    def do_install_rb(crossruby)
+      objdir = product_build_dir crossruby
+      sh %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} install-rb)
     end
   end
 
@@ -125,8 +137,7 @@ module RubyWasm
         next if File.exist?(artifact)
         rm_rf dest_dir
         cp_r "#{dest_dir}-install", dest_dir
-        ruby_api_version =
-          `#{baseruby_path} -e 'print RbConfig::CONFIG["ruby_version"]'`
+        @user_exts.each { |ext| ext.do_install_rb(self) }
         sh "tar cfz #{artifact} -C rubies #{name}"
       end
     end
