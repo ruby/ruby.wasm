@@ -58,13 +58,14 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
                     @source,
                     @toolchain
                   )
+    yield self if block_given?
+
+    @products_to_define.each(&:define_task)
+
     @crossruby.with_libyaml @libyaml
     @crossruby.with_zlib @zlib
 
-    yield self if block_given?
-
-    add_product @crossruby
-    define
+    @crossruby.define_task
   end
 
   private
@@ -78,7 +79,4 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     product
   end
 
-  def define
-    @products_to_define.each(&:define_task)
-  end
 end
