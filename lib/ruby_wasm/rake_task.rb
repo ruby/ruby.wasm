@@ -78,5 +78,4 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @products_to_define << product
     product
   end
-
 end
