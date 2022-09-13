@@ -2,7 +2,7 @@ link.filelist:
 	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
 	echo -mexec-model=reactor >> $@
 
-static: link.filelist
+witapi.a: link.filelist
 
 bindgen/rb-abi-guest.h bindgen/rb-abi-guest.c &: bindgen/rb-abi-guest.wit
 	@mkdir -p "$(@D)"
