@@ -51,14 +51,6 @@ module RubyWasm
       }
     end
 
-    def lib_wasi_vfs_a
-      archive = ENV["LIB_WASI_VFS_A"]
-      if archive.nil?
-        STDERR.puts "warning: vfs feature is not enabled due to no LIB_WASI_VFS_A"
-      end
-      archive
-    end
-
     def find_tool(name)
       unless File.exist? @tools[name]
         check_envvar("WASI_SDK_PATH")
