@@ -164,7 +164,8 @@ module RubyWasm
       end
 
       if @need_fetch_binaryen
-        binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
+        binaryen_tarball =
+          File.expand_path("../binaryen.tar.gz", @binaryen_path)
         file binaryen_tarball do
           mkdir_p File.dirname(binaryen_tarball)
           sh "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
