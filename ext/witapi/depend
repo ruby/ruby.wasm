@@ -8,4 +8,4 @@ witapi-core.o: $(srcdir)/bindgen/rb-abi-guest.h
 
 bindgen/%.o: $(srcdir)/bindgen/%.c
 	@mkdir -p "$(@D)"
-	$(CC) -c -I./bindgen -o $@ $<
+	$(CC) -c -I$(srcdir)/bindgen -o $@ $<
