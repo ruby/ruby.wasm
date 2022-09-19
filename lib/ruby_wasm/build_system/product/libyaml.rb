@@ -31,7 +31,7 @@ module RubyWasm
 
     def define_task
       @install_task =
-        task(name) do
+        task name => [@toolchain.define_task] do
           next if Dir.exist?(install_root)
 
           mkdir_p File.dirname(product_build_dir)

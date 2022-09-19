@@ -49,18 +49,17 @@ namespace :build do
   BUILDS.each do |params|
     name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
     source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
-    toolchain = RubyWasm::Toolchain.get params[:target]
-    user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
-      srcdir = File.join(LIB_ROOT, "ext", ext)
-      RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
-    end
     options = params
         .merge(BUILD_PROFILES[params[:profile]])
-        .merge(src: source, toolchain: toolchain)
+        .merge(src: source)
     options.delete :profile
     options.delete :user_exts
     RubyWasm::BuildTask.new(name, **options) do |t|
-      t.crossruby.user_exts = user_exts
+      toolchain = t.toolchain
+      t.crossruby.user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
+        srcdir = File.join(LIB_ROOT, "ext", ext)
+        RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
+      end
     end
   end
 end
