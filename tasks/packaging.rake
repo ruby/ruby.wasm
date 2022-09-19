@@ -22,7 +22,7 @@ namespace :npm do
     desc "Build npm package #{pkg[:name]}"
     task pkg[:name] => ["build:#{pkg[:build]}", wasi_vfs.cli_install_task] do
       sh "npm ci", chdir: pkg_dir
-      sh "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
+      sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
       sh "npm pack", chdir: pkg_dir
     end
 
