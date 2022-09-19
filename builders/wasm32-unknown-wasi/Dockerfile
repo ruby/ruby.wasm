@@ -1,10 +1,3 @@
-FROM rust:1.57-buster as wit-bindgen-builder
-
-ARG WIT_BINDGEN_REV=bb33644b4fd21ecf43761f63c472cdfffe57e300
-RUN cargo install --git https://github.com/bytecodealliance/wit-bindgen \
-  --rev $WIT_BINDGEN_REV \
-  --root /tmp/install wit-bindgen-cli
-
 FROM debian:buster
 
 ARG WASI_SDK_VERSION_MAJOR=14
@@ -53,5 +46,3 @@ RUN set -eux pipefail; \
   curl -LO "$wasi_preset_args_url"; \
   unzip wasi-preset-args-x86_64-unknown-linux-gnu.zip; \
   mv wasi-preset-args /usr/local/bin/wasi-preset-args
-
-COPY --from=wit-bindgen-builder /tmp/install/bin/wit-bindgen /usr/local/bin/wit-bindgen
