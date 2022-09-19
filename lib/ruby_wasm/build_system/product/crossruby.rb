@@ -74,7 +74,7 @@ module RubyWasm
     end
   end
 
-  class CrossRubyProduct < BuildProduct
+  class CrossRubyProduct < AutoconfProduct
     attr_reader :source, :toolchain, :build, :configure
     attr_accessor :user_exts, :wasmoptflags
 
@@ -96,6 +96,7 @@ module RubyWasm
       @dep_tasks = []
       @user_exts = user_exts
       @wasmoptflags = nil
+      super(@params.target, @toolchain)
     end
 
     def define_task
@@ -189,7 +190,7 @@ module RubyWasm
     end
 
     def dep_tasks
-      [@baseruby.install_task] + @dep_tasks
+      [@baseruby.install_task, @toolchain.install_task] + @dep_tasks
     end
 
     def configure_args(build_triple, toolchain)
@@ -206,7 +207,7 @@ module RubyWasm
 
       xldflags = []
 
-      args = ["--host", target, "--build", build_triple]
+      args = self.system_triplet_args
       args << "--with-static-linked-ext"
       args << %Q(--with-ext="#{default_exts}")
       args << %Q(--with-libyaml-dir="#{@libyaml.install_root}")
@@ -218,11 +219,11 @@ module RubyWasm
         xldflags << @wasi_vfs.lib_wasi_vfs_a if @wasi_vfs
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
-        args.concat(%w[CC=emcc LD=emcc AR=emar RANLIB=emranlib])
       else
         raise "unknown target: #{target}"
       end
 
+      args.concat(self.tools_args)
       (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
       xldflags << extinit_obj
 
