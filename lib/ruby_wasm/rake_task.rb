@@ -74,6 +74,20 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @crossruby.define_task
   end
 
+  def hexdigest
+    require 'digest'
+    digest = Digest::SHA256.new
+    digest << @source.name
+    digest << @build_dir
+    digest << @rubies_dir
+    digest << @target
+    digest << @toolchain.name
+    digest << @libyaml.name
+    digest << @zlib.name
+    digest << @wasi_vfs.name
+    digest.hexdigest
+  end
+
   private
 
   def add_product(product)
