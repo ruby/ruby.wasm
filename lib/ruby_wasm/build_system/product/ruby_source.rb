@@ -38,7 +38,8 @@ module RubyWasm
         fetch
       end
       file configure_file => [src_dir] do
-        sh "ruby tool/downloader.rb -d tool -e gnu config.guess config.sub", chdir: src_dir
+        sh "ruby tool/downloader.rb -d tool -e gnu config.guess config.sub",
+           chdir: src_dir
         sh "./autogen.sh", chdir: src_dir
       end
     end
