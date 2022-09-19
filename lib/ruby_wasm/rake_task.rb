@@ -18,6 +18,9 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
   # zlib product to build.
   attr_reader :zlib
 
+  # wasi-vfs product used by the crossruby.
+  attr_reader :wasi_vfs
+
   # BaseRuby product to build.
   attr_reader :baseruby
 
