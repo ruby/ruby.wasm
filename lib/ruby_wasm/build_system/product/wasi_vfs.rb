@@ -9,6 +9,7 @@ module RubyWasm
 
     def initialize(build_dir)
       @build_dir = build_dir
+      @need_fetch_lib = ENV["LIB_WASI_VFS_A"].nil?
       @cli_path = ENV["WASI_VFS_CLI"] || Toolchain.find_path("wasi-vfs")
       @need_fetch_cli = @cli_path.nil?
       @cli_path ||= File.join(cli_product_build_dir, "wasi-vfs")
@@ -43,19 +44,19 @@ module RubyWasm
     end
 
     def define_task
-      return if ENV["LIB_WASI_VFS_A"]
-      @install_task =
-        file(lib_wasi_vfs_a) do
-          require "tmpdir"
-          lib_wasi_vfs_url =
-            "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
-          Dir.mktmpdir do |tmpdir|
-            sh "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
-            sh "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
-            mkdir_p File.dirname(lib_wasi_vfs_a)
-            mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
-          end
+      file(lib_wasi_vfs_a) do
+        require "tmpdir"
+        lib_wasi_vfs_url =
+          "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
+        Dir.mktmpdir do |tmpdir|
+          sh "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
+          sh "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
+          mkdir_p File.dirname(lib_wasi_vfs_a)
+          mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
         end
+      end
+      lib_install_deps = @need_fetch_lib ? [lib_wasi_vfs_a] : []
+      @install_task = task "wasi-vfs:install" => lib_install_deps
 
       file(cli_bin_path) do
         mkdir_p cli_product_build_dir
