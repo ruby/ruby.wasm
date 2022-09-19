@@ -207,7 +207,7 @@ module RubyWasm
 
       xldflags = []
 
-      args = self.system_triplet_args
+      args = self.system_triplet_args + ["--build", build_triple]
       args << "--with-static-linked-ext"
       args << %Q(--with-ext="#{default_exts}")
       args << %Q(--with-libyaml-dir="#{@libyaml.install_root}")
