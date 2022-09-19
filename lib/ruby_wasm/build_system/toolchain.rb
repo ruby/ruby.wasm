@@ -74,8 +74,7 @@ module RubyWasm
         if build_dir.nil?
           raise "build_dir is required when wasm-opt not installed in PATH"
         end
-        @wasm_opt_path =
-          File.join(build_dir, "toolchain", "binaryen", "bin", "wasm-opt")
+        @binaryen_path = File.join(build_dir, "toolchain", "binaryen")
         @binaryen_version = binaryen_version
       end
 
@@ -95,6 +94,10 @@ module RubyWasm
         raise "missing tool '#{name}' at #{@tools[name]}"
       end
       @tools[name]
+    end
+
+    def wasm_opt
+      File.join(@binaryen_path, "bin", "wasm-opt")
     end
 
     def define_task
@@ -152,17 +155,15 @@ module RubyWasm
           sh "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
         end
 
-      binaryen_path = File.expand_path("../..", @wasm_opt_path)
-      binaryen_tarball =
-        File.expand_path("../../../binaryen.tar.gz", @wasm_opt_path)
+      binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
       file binaryen_tarball do
         mkdir_p File.dirname(binaryen_tarball)
         sh "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
       end
       binaryen =
-        file_create binaryen_path => binaryen_tarball do
-          mkdir_p binaryen_path
-          sh "tar -C #{binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
+        file_create @binaryen_path => binaryen_tarball do
+          mkdir_p @binaryen_path
+          sh "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
         end
 
       required = []
