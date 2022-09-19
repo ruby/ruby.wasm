@@ -28,6 +28,7 @@ jobs:
           fetch-depth: 0
       - run: sudo apt-get install clang-format
       - run: ./tools/clang-format-diff.sh
+      - run: rake check:bindgen
 
   build-builder-image:
     strategy:
