@@ -29,6 +29,7 @@ jobs:
       - run: sudo apt-get install clang-format
       - run: ./tools/clang-format-diff.sh
       - run: rake check:bindgen
+      - run: git diff --exit-code
 
   build-builder-image:
     strategy:
