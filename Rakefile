@@ -45,6 +45,8 @@ BUILDS = [
 
 LIB_ROOT = File.dirname(__FILE__)
 
+TOOLCHAINS = {}
+
 namespace :build do
   BUILDS.each do |params|
     name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
@@ -59,6 +61,9 @@ namespace :build do
       t.crossruby.user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
         srcdir = File.join(LIB_ROOT, "ext", ext)
         RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
+      end
+      unless TOOLCHAINS.key? toolchain.name
+        TOOLCHAINS[toolchain.name] = toolchain
       end
     end
   end
