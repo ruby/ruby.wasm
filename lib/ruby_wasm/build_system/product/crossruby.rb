@@ -65,7 +65,10 @@ module RubyWasm
         %Q('require_relative "#{@srcdir}/extconf.rb"'),
         "-I#{crossruby.build_dir}"
       ]
-      sh "#{crossruby.baseruby_path} #{extconf_args.join(" ")}", chdir: objdir
+      # Clear RUBYOPT to avoid loading unrelated bundle setup
+      sh ({ "RUBYOPT" => "" }),
+         "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
+         chdir: objdir
     end
 
     def do_install_rb(crossruby)
