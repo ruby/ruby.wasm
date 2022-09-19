@@ -152,11 +152,12 @@ module RubyWasm
         wasi_sdk_tarball =
           File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
         file wasi_sdk_tarball do
-          mkdir_p @wasi_sdk_path
+          mkdir_p File.dirname(wasi_sdk_tarball)
           sh "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
         end
         wasi_sdk =
           file_create @wasi_sdk_path => wasi_sdk_tarball do
+            mkdir_p @wasi_sdk_path
             sh "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
           end
         required << wasi_sdk
