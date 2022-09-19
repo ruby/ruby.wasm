@@ -217,6 +217,7 @@ module RubyWasm
       case target
       when "wasm32-unknown-wasi"
         xldflags << @wasi_vfs.lib_wasi_vfs_a if @wasi_vfs
+        args << %Q(WASMOPT=#{@toolchain.wasm_opt})
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
       else
