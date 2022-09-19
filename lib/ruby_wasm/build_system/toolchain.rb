@@ -25,14 +25,20 @@ module RubyWasm
       end
     end
 
-    def self.check_executable(command)
+    def self.find_path(command)
       (ENV["PATH"] || "")
         .split(File::PATH_SEPARATOR)
         .each do |path_dir|
           bin_path = File.join(path_dir, command)
           return bin_path if File.executable?(bin_path)
         end
-      raise "missing executable: #{command}"
+      nil
+    end
+
+    def self.check_executable(command)
+      tool = find_path(command)
+      raise "missing executable: #{command}" unless tool
+      tool
     end
 
     %i[cc ranlib ld ar].each do |name|
@@ -48,19 +54,31 @@ module RubyWasm
       wasi_sdk_path = ENV["WASI_SDK_PATH"],
       build_dir: nil,
       version_major: 14,
-      version_minor: 0
+      version_minor: 0,
+      binaryen_version: 108
     )
-      if wasi_sdk_path.nil?
+      @wasm_opt_path = Toolchain.find_path("wasm-opt")
+      @need_fetch_wasi_sdk = wasi_sdk_path.nil?
+      @need_fetch_binaryen = @wasm_opt_path.nil?
+
+      if @need_fetch_wasi_sdk
         if build_dir.nil?
           raise "build_dir is required when WASI_SDK_PATH is not set"
         end
         wasi_sdk_path = File.join(build_dir, "toolchain", "wasi-sdk")
-        @need_fetch = true
         @version_major = version_major
         @version_minor = version_minor
-      else
-        @need_fetch = false
       end
+
+      if @need_fetch_binaryen
+        if build_dir.nil?
+          raise "build_dir is required when wasm-opt not installed in PATH"
+        end
+        @wasm_opt_path =
+          File.join(build_dir, "toolchain", "binaryen", "bin", "wasm-opt")
+        @binaryen_version = binaryen_version
+      end
+
       @tools = {
         cc: "#{wasi_sdk_path}/bin/clang",
         ld: "#{wasi_sdk_path}/bin/clang",
@@ -80,7 +98,7 @@ module RubyWasm
     end
 
     def define_task
-      @task ||= fetch_task(@wasi_sdk_path)
+      @task ||= fetch_task
     end
 
     def install_task
@@ -100,19 +118,57 @@ module RubyWasm
       "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-#{version_major}/#{asset}"
     end
 
-    def fetch_task(output_dir)
-      unless @need_fetch
-        return task "wasi-sdk:fetch" => [] do
+    def binaryen_download_url(version)
+      assets = [
+        [
+          /x86_64-linux/,
+          "binaryen-version_#{@binaryen_version}-x86_64-linux.tar.gz"
+        ],
+        [
+          /x86_64-darwin/,
+          "binaryen-version_#{@binaryen_version}-x86_64-macos.tar.gz"
+        ],
+        [
+          /arm64-darwin/,
+          "binaryen-version_#{@binaryen_version}-arm64-macos.tar.gz"
+        ]
+      ]
+      asset = assets.find { |os, _| os =~ RUBY_PLATFORM }&.at(1)
+      if asset.nil?
+        raise "unsupported platform for fetching Binaryen: #{RUBY_PLATFORM}"
+      end
+      "https://github.com/WebAssembly/binaryen/releases/download/version_#{@binaryen_version}/#{asset}"
+    end
+
+    def fetch_task
+      wasi_sdk_tarball =
+        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
+      file wasi_sdk_tarball do
+        mkdir_p @wasi_sdk_path
+        sh "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
+      end
+      wasi_sdk =
+        file_create @wasi_sdk_path => wasi_sdk_tarball do
+          sh "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
         end
+
+      binaryen_path = File.expand_path("../..", @wasm_opt_path)
+      binaryen_tarball =
+        File.expand_path("../../../binaryen.tar.gz", @wasm_opt_path)
+      file binaryen_tarball do
+        mkdir_p File.dirname(binaryen_tarball)
+        sh "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
       end
-      tarball = File.join(File.dirname(output_dir), "wasi-sdk.tar.gz")
-      file tarball do
-        mkdir_p output_dir
-        sh "curl -L -o #{tarball} #{self.download_url(@version_major, @version_minor)}"
-      end
-      task "wasi-sdk:fetch" => tarball do
-        sh "tar -C #{output_dir} --strip-component 1 -xzf #{tarball}"
-      end
+      binaryen =
+        file_create binaryen_path => binaryen_tarball do
+          mkdir_p binaryen_path
+          sh "tar -C #{binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
+        end
+
+      required = []
+      required << wasi_sdk if @need_fetch_wasi_sdk
+      required << binaryen if @need_fetch_binaryen
+      multitask "wasi-sdk:install" => required
     end
   end
 
@@ -123,8 +179,11 @@ module RubyWasm
     end
 
     def define_task
+      @task ||= task "emscripten:install"
     end
+
     def install_task
+      @task
     end
 
     def find_tool(name)
