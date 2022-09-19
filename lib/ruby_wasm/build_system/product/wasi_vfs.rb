@@ -24,16 +24,15 @@ module RubyWasm
     end
 
     def cli_product_build_dir
-      ENV["WASI_VFS_CLI"] ||
-        File.join(
-          @build_dir,
-          RbConfig::CONFIG["host"],
-          "wasi-vfs-#{WASI_VFS_VERSION}"
-        )
+      File.join(
+        @build_dir,
+        RbConfig::CONFIG["host"],
+        "wasi-vfs-#{WASI_VFS_VERSION}"
+      )
     end
 
     def cli_bin_path
-      File.join(cli_product_build_dir, "wasi-vfs")
+      ENV["WASI_VFS_CLI"] || File.join(cli_product_build_dir, "wasi-vfs")
     end
 
     def name
