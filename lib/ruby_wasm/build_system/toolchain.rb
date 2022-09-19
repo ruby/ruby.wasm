@@ -76,6 +76,7 @@ module RubyWasm
         end
         @binaryen_path = File.join(build_dir, "toolchain", "binaryen")
         @binaryen_version = binaryen_version
+        @wasm_opt_path = File.join(@binaryen_path, "bin", "wasm-opt")
       end
 
       @tools = {
@@ -97,7 +98,7 @@ module RubyWasm
     end
 
     def wasm_opt
-      File.join(@binaryen_path, "bin", "wasm-opt")
+      @wasm_opt_path
     end
 
     def define_task
