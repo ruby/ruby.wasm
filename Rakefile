@@ -51,12 +51,23 @@ namespace :build do
   BUILDS.each do |params|
     name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
     source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
+    debug = params[:debug]
     options = params
         .merge(BUILD_PROFILES[params[:profile]])
         .merge(src: source)
     options.delete :profile
     options.delete :user_exts
+    options.delete :debug
     RubyWasm::BuildTask.new(name, **options) do |t|
+      if debug
+        t.crossruby.debugflags = %w[-g]
+        t.crossruby.wasmoptflags = %w[-O3 -g]
+        t.crossruby.ldflags = %w[-Xlinker --stack-first -Xlinker -z -Xlinker stack-size=16777216]
+      else
+        t.crossruby.debugflags = %w[-g0]
+        t.crossruby.ldflags = %w[-Xlinker -zstack-size=16777216]
+      end
+
       toolchain = t.toolchain
       t.crossruby.user_exts = BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
         srcdir = File.join(LIB_ROOT, "ext", ext)
