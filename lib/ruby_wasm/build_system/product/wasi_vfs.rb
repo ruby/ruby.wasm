@@ -9,6 +9,9 @@ module RubyWasm
 
     def initialize(build_dir)
       @build_dir = build_dir
+      @cli_path = ENV["WASI_VFS_CLI"] || Toolchain.find_path("wasi-vfs")
+      @need_fetch_cli = @cli_path.nil?
+      @cli_path ||= File.join(cli_product_build_dir, "wasi-vfs")
     end
 
     def lib_product_build_dir
@@ -32,7 +35,7 @@ module RubyWasm
     end
 
     def cli_bin_path
-      ENV["WASI_VFS_CLI"] || File.join(cli_product_build_dir, "wasi-vfs")
+      @cli_path
     end
 
     def name
@@ -60,7 +63,7 @@ module RubyWasm
         sh "curl -L -o #{zipfiel} #{self.cli_download_url}"
         sh "unzip #{zipfiel} -d #{cli_product_build_dir}"
       end
-      cli_install_deps = ENV["WASI_VFS_CLI"] ? [] : [cli_bin_path]
+      cli_install_deps = @need_fetch_cli ? [cli_bin_path] : []
       @cli_install_task = task "wasi-vfs-cli:install" => cli_install_deps
     end
 
