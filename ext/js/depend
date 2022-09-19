@@ -3,12 +3,13 @@ link.filelist:
 
 js.a: link.filelist
 
-bindgen/rb-js-abi-host.h bindgen/rb-js-abi-host.c &: bindgen/rb-js-abi-host.wit
+.PHONY: check-bindgen
+check-bindgen: $(srcdir)/bindgen/rb-js-abi-host.wit
 	@mkdir -p "$(@D)"
-	wit-bindgen c --import $(srcdir)/bindgen/rb-js-abi-host.wit --out-dir bindgen
+	wit-bindgen c --import $(srcdir)/bindgen/rb-js-abi-host.wit --out-dir $(srcdir)/bindgen
 
-js-core.o: bindgen/rb-js-abi-host.h
+js-core.o: $(srcdir)/bindgen/rb-js-abi-host.h
 
-bindgen/%.o: bindgen/%.c
+bindgen/%.o: $(srcdir)/bindgen/%.c
 	@mkdir -p "$(@D)"
-	$(CC) -c -I./bindgen -o $@ $<
+	$(CC) -c -I$(srcdir)/bindgen -o $@ $<

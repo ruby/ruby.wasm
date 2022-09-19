@@ -4,12 +4,13 @@ link.filelist:
 
 witapi.a: link.filelist
 
-bindgen/rb-abi-guest.h bindgen/rb-abi-guest.c &: bindgen/rb-abi-guest.wit
+.PHONY: check-bindgen
+check-bindgen: $(srcdir)/bindgen/rb-abi-guest.wit
 	@mkdir -p "$(@D)"
-	wit-bindgen c --export $(srcdir)/bindgen/rb-abi-guest.wit --out-dir bindgen
+	wit-bindgen c --export $(srcdir)/bindgen/rb-abi-guest.wit --out-dir $(srcdir)/bindgen
 
-witapi-core.o: bindgen/rb-abi-guest.h
+witapi-core.o: $(srcdir)/bindgen/rb-abi-guest.h
 
-bindgen/%.o: bindgen/%.c
+bindgen/%.o: $(srcdir)/bindgen/%.c
 	@mkdir -p "$(@D)"
 	$(CC) -c -I./bindgen -o $@ $<
