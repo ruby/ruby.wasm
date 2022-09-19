@@ -79,7 +79,14 @@ module RubyWasm
 
   class CrossRubyProduct < AutoconfProduct
     attr_reader :source, :toolchain, :build, :configure
-    attr_accessor :user_exts, :wasmoptflags
+    attr_accessor :user_exts,
+                  :wasmoptflags,
+                  :cppflags,
+                  :cflags,
+                  :ldflags,
+                  :debugflags,
+                  :xcflags,
+                  :xldflags
 
     def initialize(
       params,
@@ -98,7 +105,13 @@ module RubyWasm
       @toolchain = toolchain
       @dep_tasks = []
       @user_exts = user_exts
-      @wasmoptflags = nil
+      @wasmoptflags = []
+      @cppflags = []
+      @cflags = []
+      @ldflags = []
+      @debugflags = []
+      @xcflags = []
+      @xldflags = []
       super(@params.target, @toolchain)
     end
 
@@ -200,15 +213,8 @@ module RubyWasm
       target = @params.target
       default_exts = @params.default_exts
 
-      ldflags =
-        if @params.debug
-          # use --stack-first to detect stack overflow easily
-          %w[-Xlinker --stack-first -Xlinker -z -Xlinker stack-size=16777216]
-        else
-          %w[-Xlinker -zstack-size=16777216]
-        end
-
-      xldflags = []
+      ldflags = @ldflags.dup
+      xldflags = @xldflags.dup
 
       args = self.system_triplet_args + ["--build", build_triple]
       args << "--with-static-linked-ext"
@@ -231,7 +237,7 @@ module RubyWasm
       (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
       xldflags << extinit_obj
 
-      xcflags = []
+      xcflags = @xcflags.dup
       xcflags << "-DWASM_SETJMP_STACK_BUFFER_SIZE=24576"
       xcflags << "-DWASM_FIBER_STACK_BUFFER_SIZE=24576"
       xcflags << "-DWASM_SCAN_STACK_BUFFER_SIZE=24576"
@@ -239,12 +245,10 @@ module RubyWasm
       args << %Q(LDFLAGS="#{ldflags.join(" ")}")
       args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
       args << %Q(XCFLAGS="#{xcflags.join(" ")}")
-      if @params.debug
-        args << %Q(debugflags="-g")
-        args << %Q(wasmoptflags="-O3 -g")
-      else
-        args << %Q(debugflags="-g0")
-        args << %Q(wasmoptflags="#{wasmoptflags}") if @wasmoptflags
+      args << %Q(debugflags="#{@debugflags.join(" ")}")
+      args << %Q(cppflags="#{@cppflags.join(" ")}")
+      unless wasmoptflags.empty?
+        args << %Q(wasmoptflags="#{@wasmoptflags.join(" ")}")
       end
       args << "--disable-install-doc"
       args
