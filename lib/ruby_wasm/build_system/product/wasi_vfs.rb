@@ -3,7 +3,7 @@ require_relative "./product"
 
 module RubyWasm
   class WasiVfsProduct < BuildProduct
-    attr_reader :install_task
+    attr_reader :install_task, :cli_install_task
 
     WASI_VFS_VERSION = "0.1.1"
 
@@ -21,6 +21,19 @@ module RubyWasm
 
     def lib_wasi_vfs_a
       ENV["LIB_WASI_VFS_A"] || File.join(lib_product_build_dir, "libwasi_vfs.a")
+    end
+
+    def cli_product_build_dir
+      ENV["WASI_VFS_CLI"] ||
+        File.join(
+          @build_dir,
+          RbConfig::CONFIG["host"],
+          "wasi-vfs-#{WASI_VFS_VERSION}"
+        )
+    end
+
+    def cli_bin_path
+      File.join(cli_product_build_dir, "wasi-vfs")
     end
 
     def name
@@ -41,6 +54,28 @@ module RubyWasm
             mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
           end
         end
+
+      file(cli_bin_path) do
+        mkdir_p cli_product_build_dir
+        zipfiel = File.join(cli_product_build_dir, "wasi-vfs-cli.zip")
+        sh "curl -L -o #{zipfiel} #{self.cli_download_url}"
+        sh "unzip #{zipfiel} -d #{cli_product_build_dir}"
+      end
+      cli_install_deps = ENV["WASI_VFS_CLI"] ? [] : [cli_bin_path]
+      @cli_install_task = task "wasi-vfs-cli:install" => cli_install_deps
+    end
+
+    def cli_download_url
+      assets = [
+        [/x86_64-linux/, "wasi-vfs-cli-x86_64-unknown-linux-gnu.zip"],
+        [/x86_64-darwin/, "wasi-vfs-cli-x86_64-apple-darwin.zip"],
+        [/arm64-darwin/, "wasi-vfs-cli-aarch64-apple-darwin.zip"]
+      ]
+      asset = assets.find { |os, _| os =~ RUBY_PLATFORM }&.at(1)
+      if asset.nil?
+        raise "unsupported platform for fetching wasi-vfs CLI: #{RUBY_PLATFORM}"
+      end
+      "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/#{asset}"
     end
   end
 end
