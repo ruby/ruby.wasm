@@ -1,3 +1,5 @@
+require_relative "./toolchain/wit_bindgen"
+
 module RubyWasm
   class Toolchain < ::Rake::TaskLib
     attr_reader :name
