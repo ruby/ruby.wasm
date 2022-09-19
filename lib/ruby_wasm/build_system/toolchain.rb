@@ -147,31 +147,35 @@ module RubyWasm
     end
 
     def fetch_task
-      wasi_sdk_tarball =
-        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
-      file wasi_sdk_tarball do
-        mkdir_p @wasi_sdk_path
-        sh "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
-      end
-      wasi_sdk =
-        file_create @wasi_sdk_path => wasi_sdk_tarball do
-          sh "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
-        end
-
-      binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
-      file binaryen_tarball do
-        mkdir_p File.dirname(binaryen_tarball)
-        sh "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
-      end
-      binaryen =
-        file_create @binaryen_path => binaryen_tarball do
-          mkdir_p @binaryen_path
-          sh "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
-        end
-
       required = []
-      required << wasi_sdk if @need_fetch_wasi_sdk
-      required << binaryen if @need_fetch_binaryen
+      if @need_fetch_wasi_sdk
+        wasi_sdk_tarball =
+          File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
+        file wasi_sdk_tarball do
+          mkdir_p @wasi_sdk_path
+          sh "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
+        end
+        wasi_sdk =
+          file_create @wasi_sdk_path => wasi_sdk_tarball do
+            sh "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
+          end
+        required << wasi_sdk
+      end
+
+      if @need_fetch_binaryen
+        binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
+        file binaryen_tarball do
+          mkdir_p File.dirname(binaryen_tarball)
+          sh "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
+        end
+
+        binaryen =
+          file_create @binaryen_path => binaryen_tarball do
+            mkdir_p @binaryen_path
+            sh "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
+          end
+        required << binaryen
+      end
       multitask "wasi-sdk:install" => required
     end
   end
