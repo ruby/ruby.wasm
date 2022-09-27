@@ -1,4 +1,4 @@
-import { clamp_host, data_view, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, Slab } from './intrinsics.js';
+import { data_view, to_uint32, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, Slab } from './intrinsics.js';
 export class RbAbiGuest {
   constructor() {
     this._resource0_slab = new Slab();
@@ -58,14 +58,14 @@ export class RbAbiGuest {
     this._registry1 = new FinalizationRegistry(this._exports['canonical_abi_drop_rb-abi-value']);
   }
   rubyShowVersion() {
-    this._exports['ruby-show-version']();
+    this._exports['ruby-show-version: func() -> ()']();
   }
   rubyInit() {
-    this._exports['ruby-init']();
+    this._exports['ruby-init: func() -> ()']();
   }
   rubySysinit(arg0) {
     const memory = this._exports.memory;
-    const realloc = this._exports["canonical_abi_realloc"];
+    const realloc = this._exports["cabi_realloc"];
     const vec1 = arg0;
     const len1 = vec1.length;
     const result1 = realloc(0, 0, 4, len1 * 8);
@@ -77,11 +77,11 @@ export class RbAbiGuest {
       data_view(memory).setInt32(base + 4, len0, true);
       data_view(memory).setInt32(base + 0, ptr0, true);
     }
-    this._exports['ruby-sysinit'](result1, len1);
+    this._exports['ruby-sysinit: func(args: list<string>) -> ()'](result1, len1);
   }
   rubyOptions(arg0) {
     const memory = this._exports.memory;
-    const realloc = this._exports["canonical_abi_realloc"];
+    const realloc = this._exports["cabi_realloc"];
     const vec1 = arg0;
     const len1 = vec1.length;
     const result1 = realloc(0, 0, 4, len1 * 8);
@@ -93,30 +93,30 @@ export class RbAbiGuest {
       data_view(memory).setInt32(base + 4, len0, true);
       data_view(memory).setInt32(base + 0, ptr0, true);
     }
-    const ret = this._exports['ruby-options'](result1, len1);
+    const ret = this._exports['ruby-options: func(args: list<string>) -> handle<rb-iseq>'](result1, len1);
     return this._resource0_slab.remove(ret);
   }
   rubyScript(arg0) {
     const memory = this._exports.memory;
-    const realloc = this._exports["canonical_abi_realloc"];
+    const realloc = this._exports["cabi_realloc"];
     const ptr0 = utf8_encode(arg0, realloc, memory);
     const len0 = UTF8_ENCODED_LEN;
-    this._exports['ruby-script'](ptr0, len0);
+    this._exports['ruby-script: func(name: string) -> ()'](ptr0, len0);
   }
   rubyInitLoadpath() {
-    this._exports['ruby-init-loadpath']();
+    this._exports['ruby-init-loadpath: func() -> ()']();
   }
   rbEvalStringProtect(arg0) {
     const memory = this._exports.memory;
-    const realloc = this._exports["canonical_abi_realloc"];
+    const realloc = this._exports["cabi_realloc"];
     const ptr0 = utf8_encode(arg0, realloc, memory);
     const len0 = UTF8_ENCODED_LEN;
-    const ret = this._exports['rb-eval-string-protect'](ptr0, len0);
-    return [this._resource1_slab.remove(data_view(memory).getInt32(ret + 0, true)), data_view(memory).getInt32(ret + 8, true)];
+    const ret = this._exports['rb-eval-string-protect: func(str: string) -> tuple<handle<rb-abi-value>, s32>'](ptr0, len0);
+    return [this._resource1_slab.remove(data_view(memory).getInt32(ret + 0, true)), data_view(memory).getInt32(ret + 4, true)];
   }
   rbFuncallvProtect(arg0, arg1, arg2) {
     const memory = this._exports.memory;
-    const realloc = this._exports["canonical_abi_realloc"];
+    const realloc = this._exports["cabi_realloc"];
     const obj0 = arg0;
     if (!(obj0 instanceof RbAbiValue)) throw new TypeError('expected instance of RbAbiValue');
     const vec2 = arg2;
@@ -129,35 +129,34 @@ export class RbAbiGuest {
       if (!(obj1 instanceof RbAbiValue)) throw new TypeError('expected instance of RbAbiValue');
       data_view(memory).setInt32(base + 0, this._resource1_slab.insert(obj1.clone()), true);
     }
-    const ret = this._exports['rb-funcallv-protect'](this._resource1_slab.insert(obj0.clone()), clamp_host(arg1, 0, 4294967295), result2, len2);
-    return [this._resource1_slab.remove(data_view(memory).getInt32(ret + 0, true)), data_view(memory).getInt32(ret + 8, true)];
+    const ret = this._exports['rb-funcallv-protect: func(recv: handle<rb-abi-value>, mid: u32, args: list<handle<rb-abi-value>>) -> tuple<handle<rb-abi-value>, s32>'](this._resource1_slab.insert(obj0.clone()), to_uint32(arg1), result2, len2);
+    return [this._resource1_slab.remove(data_view(memory).getInt32(ret + 0, true)), data_view(memory).getInt32(ret + 4, true)];
   }
   rbIntern(arg0) {
     const memory = this._exports.memory;
-    const realloc = this._exports["canonical_abi_realloc"];
+    const realloc = this._exports["cabi_realloc"];
     const ptr0 = utf8_encode(arg0, realloc, memory);
     const len0 = UTF8_ENCODED_LEN;
-    const ret = this._exports['rb-intern'](ptr0, len0);
+    const ret = this._exports['rb-intern: func(name: string) -> u32'](ptr0, len0);
     return ret >>> 0;
   }
   rbErrinfo() {
-    const ret = this._exports['rb-errinfo']();
+    const ret = this._exports['rb-errinfo: func() -> handle<rb-abi-value>']();
     return this._resource1_slab.remove(ret);
   }
   rbClearErrinfo() {
-    this._exports['rb-clear-errinfo']();
+    this._exports['rb-clear-errinfo: func() -> ()']();
   }
   rstringPtr(arg0) {
     const memory = this._exports.memory;
-    const free = this._exports["canonical_abi_free"];
     const obj0 = arg0;
     if (!(obj0 instanceof RbAbiValue)) throw new TypeError('expected instance of RbAbiValue');
-    const ret = this._exports['rstring-ptr'](this._resource1_slab.insert(obj0.clone()));
+    const ret = this._exports['rstring-ptr: func(value: handle<rb-abi-value>) -> string'](this._resource1_slab.insert(obj0.clone()));
     const ptr1 = data_view(memory).getInt32(ret + 0, true);
-    const len1 = data_view(memory).getInt32(ret + 8, true);
-    const list1 = UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr1, len1));
-    free(ptr1, len1, 1);
-    return list1;
+    const len1 = data_view(memory).getInt32(ret + 4, true);
+    const result1 = UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr1, len1));
+    this._exports["cabi_post_rstring-ptr"](ret);
+    return result1;
   }
 }
 

@@ -19,7 +19,7 @@ export class RbAbiGuest {
   */
   constructor();
   
-  /** 
+  /**
   * This is a low-level method which can be used to add any
   * intrinsics necessary for this instance to operate to an
   * import object.

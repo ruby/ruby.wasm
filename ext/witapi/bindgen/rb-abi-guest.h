@@ -46,6 +46,11 @@ extern "C"
   } rb_abi_guest_list_string_t;
   void rb_abi_guest_list_string_free(rb_abi_guest_list_string_t *ptr);
   typedef struct {
+    rb_abi_guest_rb_abi_value_t f0;
+    int32_t f1;
+  } rb_abi_guest_tuple2_rb_abi_value_s32_t;
+  void rb_abi_guest_tuple2_rb_abi_value_s32_free(rb_abi_guest_tuple2_rb_abi_value_s32_t *ptr);
+  typedef struct {
     rb_abi_guest_rb_abi_value_t *ptr;
     size_t len;
   } rb_abi_guest_list_rb_abi_value_t;
@@ -56,8 +61,8 @@ extern "C"
   rb_abi_guest_rb_iseq_t rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args);
   void rb_abi_guest_ruby_script(rb_abi_guest_string_t *name);
   void rb_abi_guest_ruby_init_loadpath(void);
-  void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str, rb_abi_guest_rb_abi_value_t *ret0, int32_t *ret1);
-  void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_abi_value_t recv, rb_abi_guest_rb_id_t mid, rb_abi_guest_list_rb_abi_value_t *args, rb_abi_guest_rb_abi_value_t *ret0, int32_t *ret1);
+  void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0);
+  void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_abi_value_t recv, rb_abi_guest_rb_id_t mid, rb_abi_guest_list_rb_abi_value_t *args, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0);
   rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name);
   rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_errinfo(void);
   void rb_abi_guest_rb_clear_errinfo(void);
