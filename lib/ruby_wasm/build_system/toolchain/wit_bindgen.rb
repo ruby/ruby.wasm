@@ -4,7 +4,7 @@ module RubyWasm
 
     def initialize(
       build_dir:,
-      revision: "bb33644b4fd21ecf43761f63c472cdfffe57e300"
+      revision: "251e84b89121751f79ac268629e9285082b2596d"
     )
       @build_dir = build_dir
       @tool_dir = File.join(@build_dir, "toolchain", "wit-bindgen")
