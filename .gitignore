@@ -3,5 +3,5 @@ dist
 /build
 /rubies
 /release
-
+/Gemfile.lock
 wapm_packages
