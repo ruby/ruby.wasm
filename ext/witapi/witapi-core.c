@@ -173,19 +173,18 @@ void rb_abi_guest_ruby_init_loadpath(void) {
   RB_WASM_LIB_RT(ruby_init_loadpath())
 }
 
-void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str,
-                                         rb_abi_guest_rb_abi_value_t *result,
-                                         int32_t *state) {
+void rb_abi_guest_rb_eval_string_protect(
+    rb_abi_guest_string_t *str, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0) {
   VALUE retval;
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: str = %s\n", str->ptr);
-  RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, state));
+  RB_WASM_LIB_RT(retval = rb_eval_string_protect(str->ptr, &ret0->f1));
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: retval = %p, state = %d\n",
-                    (void *)retval, *state);
+                    (void *)retval, ret0->f1);
 
-  if (*state == TAG_NONE) {
+  if (ret0->f1 == TAG_NONE) {
     rb_abi_lend_object(retval);
   }
-  *result = rb_abi_guest_rb_abi_value_new((void *)retval);
+  ret0->f0 = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
 struct rb_funcallv_thunk_ctx {
@@ -203,23 +202,23 @@ VALUE rb_funcallv_thunk(VALUE arg) {
   return rb_funcallv(ctx->recv, ctx->mid, ctx->args->len, c_argv);
 }
 
-void rb_abi_guest_rb_funcallv_protect(rb_abi_guest_rb_abi_value_t recv,
-                                      rb_abi_guest_rb_id_t mid,
-                                      rb_abi_guest_list_rb_abi_value_t *args,
-                                      rb_abi_guest_rb_abi_value_t *ret0,
-                                      int32_t *ret1) {
+void rb_abi_guest_rb_funcallv_protect(
+    rb_abi_guest_rb_abi_value_t recv, rb_abi_guest_rb_id_t mid,
+    rb_abi_guest_list_rb_abi_value_t *args,
+    rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0) {
   VALUE retval;
   VALUE r_recv = (VALUE)rb_abi_guest_rb_abi_value_get(&recv);
   struct rb_funcallv_thunk_ctx ctx = {.recv = r_recv, .mid = mid, .args = args};
-  RB_WASM_LIB_RT(retval = rb_protect(rb_funcallv_thunk, (VALUE)&ctx, ret1));
+  RB_WASM_LIB_RT(retval =
+                     rb_protect(rb_funcallv_thunk, (VALUE)&ctx, &ret0->f1));
   RB_WASM_DEBUG_LOG(
       "rb_abi_guest_rb_funcallv_protect: retval = %p, state = %d\n",
-      (void *)retval, *ret1);
+      (void *)retval, ret0->f1);
 
-  if (*ret1 == TAG_NONE) {
+  if (ret0->f1 == TAG_NONE) {
     rb_abi_lend_object(retval);
   }
-  *ret0 = rb_abi_guest_rb_abi_value_new((void *)retval);
+  ret0->f0 = rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
 rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
