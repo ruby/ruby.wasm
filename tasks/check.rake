@@ -8,13 +8,13 @@ namespace :check do
     ]
     wits.each do |wit|
       path, mode = wit
-      sh "#{wit_bindgen.bin_path} c #{mode} #{path} --out-dir #{File.dirname(path)}"
+      sh "#{wit_bindgen.bin_path} guest c #{mode} #{path} --out-dir #{File.dirname(path)}"
     end
   end
 
   task :bindgen_js => wit_bindgen.install_task do
     sh *[
-      wit_bindgen.bin_path, "js",
+      wit_bindgen.bin_path, "host", "js",
       "--import", "ext/witapi/bindgen/rb-abi-guest.wit",
       "--export", "ext/js/bindgen/rb-js-abi-host.wit",
       "--out-dir", "packages/npm-packages/ruby-wasm-wasi/src/bindgen",
