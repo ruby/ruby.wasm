@@ -26,7 +26,6 @@ module RubyWasm
     def define_task
       directory product_build_dir
 
-      desc "build baseruby #{@channel}"
       @install_task =
         task name => [
                source.src_dir,
