@@ -15,12 +15,18 @@ export const main = async (pkg: { name: string, version: string }) => {
     runRubyScriptsInHtml(vm);
 };
 
-const runRubyScriptsInHtml = (vm) => {
+const runRubyScriptsInHtml = async (vm) => {
     const tags = document.getElementsByTagName("script");
     for (var i = 0, len = tags.length; i < len; i++) {
         const tag = tags[i];
         if (tag.type === "text/ruby") {
-            if (tag.innerHTML) {
+            if (tag.hasAttribute('src')){
+                const response = await fetch(
+                    tag.getAttribute('src')
+                );
+                const rubyScript = await response.text();
+                vm.eval(rubyScript);
+            } else if (tag.innerHTML) {
                 vm.eval(tag.innerHTML);
             }
         }
