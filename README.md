@@ -5,14 +5,22 @@
 ruby.wasm is a collection of WebAssembly ports of the [CRuby](https://github.com/ruby/ruby).
 It enables running Ruby application on browsers, WASI compatible WebAssembly runtimes, and Edge Computing platforms.
 
-## npm packages (for JavaScript host environments)
+## Try ruby.wasm (no installation needed)
 
-See the `README.md` of each package for more detail and its usage.
+Try ruby.wasm in [TryRuby](https://try.ruby-lang.org/playground/#code=3.times+do%0A++print+'Welcome+'%0Aend&engine=cruby-3.2.0dev) in your browser.
 
-| Package                                                                        | Description                                      | npm                                                                                                                          |
-| ------------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| [ruby-head-wasm-wasi](./packages/npm-packages/ruby-head-wasm-wasi)             | HEAD CRuby built on WASI with JS interop support | [![npm version](https://badge.fury.io/js/ruby-head-wasm-wasi.svg)](https://badge.fury.io/js/ruby-head-wasm-wasi)             |
-| [ruby-head-wasm-emscripten](./packages/npm-packages/ruby-head-wasm-emscripten) | HEAD CRuby built on Emscripten (not well tested) | [![npm version](https://badge.fury.io/js/ruby-head-wasm-emscripten.svg)](https://badge.fury.io/js/ruby-head-wasm-emscripten) |
+## Quick Example: Ruby on browser
+
+Create and save `index.html` page with the following contents:
+
+```html
+<html>
+  <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@0.3.0-2022-09-06-f/dist/browser.script.iife.js"></script>
+  <script type="text/ruby">
+    puts "Hello, world!"
+  </script>
+</html>
+```
 
 ## Quick Example: How to package your Ruby application as a WASI application
 
@@ -37,6 +45,15 @@ $ wasi-vfs pack ruby.wasm --mapdir /src::./src --mapdir /usr::./head-wasm32-unkn
 $ wasmtime my-ruby-app.wasm -- /src/my_app.rb
 Hello
 ```
+
+## npm packages (for JavaScript host environments)
+
+See the `README.md` of each package for more detail and its usage.
+
+| Package                                                                        | Description                                      | npm                                                                                                                          |
+| ------------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| [ruby-head-wasm-wasi](./packages/npm-packages/ruby-head-wasm-wasi)             | HEAD CRuby built on WASI with JS interop support | [![npm version](https://badge.fury.io/js/ruby-head-wasm-wasi.svg)](https://badge.fury.io/js/ruby-head-wasm-wasi)             |
+| [ruby-head-wasm-emscripten](./packages/npm-packages/ruby-head-wasm-emscripten) | HEAD CRuby built on Emscripten (not well tested) | [![npm version](https://badge.fury.io/js/ruby-head-wasm-emscripten.svg)](https://badge.fury.io/js/ruby-head-wasm-emscripten) |
 
 ## Prebuilt binaries
 
