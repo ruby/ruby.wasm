@@ -134,18 +134,15 @@ jnode.setRNode(rnode);
   - [wrap](#wrap)
     - [Parameters](#parameters-4)
     - [Examples](#examples-2)
-- [JsValueTransport](#jsvaluetransport)
 - [RbValue](#rbvalue)
-  - [Parameters](#parameters-5)
   - [call](#call)
-    - [Parameters](#parameters-6)
+    - [Parameters](#parameters-5)
     - [Examples](#examples-3)
   - [toPrimitive](#toprimitive)
-    - [Parameters](#parameters-7)
+    - [Parameters](#parameters-6)
   - [toString](#tostring)
   - [toJS](#tojs)
 - [RbError](#rberror)
-  - [Parameters](#parameters-8)
 
 ### RubyVM
 
@@ -237,36 +234,9 @@ hash.call("store", vm.eval(`"key1"`), vm.wrap(new Object()));
 
 Returns **any** the RbValue object representing the given JS value
 
-### JsValueTransport
-
-Export a JS value held by the Ruby VM to the JS environment.
-This is implemented in a dirty way since wit cannot reference resources
-defined in other interfaces.
-In our case, we can't express `function(v: rb-abi-value) -> js-abi-value`
-because `rb-js-abi-host.wit`, that defines `js-abi-value`, is implemented
-by embedder side (JS) but `rb-abi-guest.wit`, that defines `rb-abi-value`
-is implemented by guest side (Wasm).
-
-This class is a helper to export by:
-
-1.  Call `function __export_to_js(v: rb-abi-value)` defined in guest from embedder side.
-2.  Call `function takeJsValue(v: js-abi-value)` defined in embedder from guest side with
-    underlying JS value of given `rb-abi-value`.
-3.  Then `takeJsValue` implementation escapes the given JS value to the `_takenJsValues`
-    stored in embedder side.
-4.  Finally, embedder side can take `_takenJsValues`.
-
-Note that `exportJsValue` is not reentrant.
-
 ### RbValue
 
 A RbValue is an object that represents a value in Ruby
-
-#### Parameters
-
-- `inner`
-- `vm`
-- `privateObject`
 
 #### call
 
@@ -291,7 +261,7 @@ console.log(ary.call("sample").toString());
 
 ##### Parameters
 
-- `hint`
+- `hint` Preferred type of the result primitive value. `"number"`, `"string"`, or `"default"`.
 
 #### toString
 
@@ -309,10 +279,6 @@ Returns null if the value is not convertible to a JavaScript object.
 **Extends Error**
 
 Error class thrown by Ruby execution
-
-#### Parameters
-
-- `message`
 
 ## Building the package from source
 

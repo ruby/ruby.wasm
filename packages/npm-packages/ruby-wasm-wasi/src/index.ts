@@ -243,6 +243,8 @@ export class RubyVM {
  * 4. Finally, embedder side can take `_takenJsValues`.
  *
  * Note that `exportJsValue` is not reentrant.
+ *
+ * @private
  */
 class JsValueTransport {
   private _takenJsValue: JsAbiValue = null;
@@ -271,6 +273,10 @@ class JsValueTransport {
  * A RbValue is an object that represents a value in Ruby
  */
 export class RbValue {
+
+  /**
+   * @hideconstructor
+   */
   constructor(
     private inner: RbAbi.RbAbiValue,
     private vm: RubyVM,
@@ -300,6 +306,7 @@ export class RbValue {
 
   /**
    * @see {@link https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive}
+   * @param hint Preferred type of the result primitive value. `"number"`, `"string"`, or `"default"`.
    */
   [Symbol.toPrimitive](hint: string) {
     if (hint === "string" || hint === "default") {
@@ -454,6 +461,9 @@ const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
  * Error class thrown by Ruby execution
  */
 export class RbError extends Error {
+  /**
+   * @hideconstructor
+   */
   constructor(message: string) {
     super(message);
   }
