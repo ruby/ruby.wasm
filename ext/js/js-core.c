@@ -225,7 +225,8 @@ static VALUE _rb_js_obj_eql(VALUE obj, VALUE other) {
  * :nodoc: all
  */
 static VALUE _rb_js_obj_hash(VALUE obj) {
-  // TODO(katei): Track the JS object id in JS side as Pyodide and Swift JavaScriptKit do.
+  // TODO(katei): Track the JS object id in JS side as Pyodide and Swift
+  // JavaScriptKit do.
   return Qnil;
 }
 
@@ -248,10 +249,11 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
 
   rb_js_abi_host_list_js_abi_value_t abi_args;
   int function_arguments_count = argc;
-  if(!rb_block_given_p())
+  if (!rb_block_given_p())
     function_arguments_count -= 1;
 
-  abi_args.ptr = ALLOCA_N(rb_js_abi_host_js_abi_value_t, function_arguments_count);
+  abi_args.ptr =
+      ALLOCA_N(rb_js_abi_host_js_abi_value_t, function_arguments_count);
   abi_args.len = function_arguments_count;
   for (int i = 1; i < argc; i++) {
     VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);
@@ -262,9 +264,10 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
     abi_args.ptr[i - 1] = check_jsvalue(arg)->abi;
   }
 
-  if(rb_block_given_p()) {
+  if (rb_block_given_p()) {
     VALUE proc = rb_block_proc();
-    abi_args.ptr[function_arguments_count - 1] = check_jsvalue(_rb_js_try_convert(rb_mJS, proc))->abi;
+    abi_args.ptr[function_arguments_count - 1] =
+        check_jsvalue(_rb_js_try_convert(rb_mJS, proc))->abi;
   }
 
   return jsvalue_s_new(
@@ -327,7 +330,8 @@ static VALUE _rb_js_import_from_js(VALUE obj) {
  */
 static VALUE _rb_js_obj_wrap(VALUE obj, VALUE wrapping) {
   rb_abi_lend_object(wrapping);
-  return jsvalue_s_new(rb_js_abi_host_rb_object_to_js_rb_value((uint32_t)wrapping));
+  return jsvalue_s_new(
+      rb_js_abi_host_rb_object_to_js_rb_value((uint32_t)wrapping));
 }
 
 /*
@@ -384,7 +388,7 @@ static VALUE _rb_js_false_to_js(VALUE obj) {
  */
 static VALUE _rb_js_proc_to_js(VALUE obj) {
   rb_abi_lend_object(obj);
-  return jsvalue_s_new(rb_js_abi_host_proc_to_js_function((uint32_t) obj));
+  return jsvalue_s_new(rb_js_abi_host_proc_to_js_function((uint32_t)obj));
 }
 
 /*
@@ -409,7 +413,8 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "typeof", _rb_js_obj_typeof, 0);
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
-  rb_define_singleton_method(rb_cJS_Object, "__import_from_js", _rb_js_import_from_js, 0);
+  rb_define_singleton_method(rb_cJS_Object, "__import_from_js",
+                             _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);
   rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_inspect, 0);
   rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
