@@ -78,52 +78,6 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
 
 Note: `*` is a wildcard that represents any other profile name except for itself, applied recursively. For example, `minimal-full-js-debug` is a valid profile.
 
-## Building from source
-
-If you want to build Ruby for WebAssembly from source yourself, follow the below instructions.
-
-(However, in most cases, it's easier to use prebuilt binaries instead of building them yourself)
-
-### Dependencies
-
-- [wasi-sdk](https://github.com/WebAssembly/wasi-sdk): Only for building for WASI target. Set `WASI_SDK_PATH` environment variable to the directory of wasi-sdk.
-- [Binaryen](https://github.com/WebAssembly/binaryen): Only for building for WASI target. Install `wasm-opt` in `PATH`
-- [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs): A virtual filesystem layer for WASI. Install CLI tool in `PATH`. Set `LIB_WASI_VFS_A` environment variable to the path to `libwasi_vfs.a`.
-- [wasi-preset-args](https://github.com/kateinoigakukun/wasi-preset-args): A tool to preset command-line arguments to a WASI module. Install in `PATH`.
-- [Emscripten](https://emscripten.org): Only for building for Emscripten target. Follow the official instructions to install.
-
-Note: It's recommended building on a builder Docker container, which installs all dependencies and provides environment variables:
-
-```console
-# For building ruby for WASI target
-$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/ruby/ruby.wasm-builder:wasm32-unknown-wasi /bin/bash
-# For building ruby for Emscripten target
-$ docker run -v $(pwd):/src -w /src --rm -it ghcr.io/ruby/ruby.wasm-builder:wasm32-unknown-emscripten /bin/bash
-```
-
-Then, you can build by `rake` command. See `rake -T` for more information.
-
-```console
-# Build only a specific combination of ruby version, profile, and target
-# Output is in the `rubies` directory
-$ rake build:head-wasm32-unknown-wasi-full-js
-$ tree -L 3 rubies/head-wasm32-unknown-wasi-full-js
-rubies/head-wasm32-unknown-wasi-full-js/
-├── usr
-│   └── local
-│       ├── bin
-│       ├── include
-│       ├── lib
-│       └── share
-└── var
-    └── lib
-        └── gems
-
-# Or build npm package. Output is a tarball of npm package
-$ rake npm:ruby-head-wasm-wasi
-$ ls packages/npm-packages/ruby-head-wasm-wasi/ruby-head-wasm-wasi-*.tgz
-```
-
 ## Notable Limitations
 
 The current WASI target build does not yet support `Thread` related APIs. Specifically, WASI does not yet have an API for creating and managing threads yet.
@@ -133,4 +87,5 @@ Also there is no support for networking. It is one of the goal of WASI to suppor
 
 ## Contributing
 
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to build and test, and how to contribute to this project.
 Bug reports and pull requests are welcome on GitHub at https://github.com/ruby/ruby.wasm
