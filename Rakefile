@@ -78,4 +78,44 @@ namespace :build do
       end
     end
   end
+
+  desc "Clean build directories"
+  task :clean do
+    rm_rf "./build"
+    rm_rf "./rubies"
+  end
+
+  desc "Download prebuilt Ruby"
+  task :download_prebuilt, :tag do |t, args|
+    require "ruby_wasm/build_system/downloader"
+
+    release =
+      if args[:tag]
+        url = "https://api.github.com/repos/ruby/ruby.wasm/releases/tags/#{args[:tag]}"
+        OpenURI.open_uri(url) do |f|
+          JSON.load(f.read)
+        end
+      else
+        url = "https://api.github.com/repos/ruby/ruby.wasm/releases?per_page=1"
+        OpenURI.open_uri(url) do |f|
+          JSON.load(f.read)[0]
+        end
+      end
+
+    puts "Downloading from release \"#{release["tag_name"]}\""
+
+    rubies_dir = "./rubies"
+    downloader = RubyWasm::Downloader.new
+    rm_rf rubies_dir
+    mkdir_p rubies_dir
+
+    assets = release["assets"].select { |a| a["name"].end_with? ".tar.gz" }
+    assets.each_with_index do |asset, i|
+      url = asset["browser_download_url"]
+      tarball = File.join("rubies", asset["name"])
+      rm_rf tarball, verbose: false
+      downloader.download(url, tarball, "[%2d/%2d] Downloading #{File.basename(url)}" % [i + 1, assets.size])
+      sh "tar xzf #{tarball} -C ./rubies"
+    end
+  end
 end

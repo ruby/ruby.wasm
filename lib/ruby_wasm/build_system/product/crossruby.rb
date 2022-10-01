@@ -78,7 +78,7 @@ module RubyWasm
   end
 
   class CrossRubyProduct < AutoconfProduct
-    attr_reader :source, :toolchain, :build, :configure
+    attr_reader :source, :toolchain, :build, :configure, :install_task
     attr_accessor :user_exts,
                   :wasmoptflags,
                   :cppflags,
@@ -149,15 +149,17 @@ module RubyWasm
           sh "make install DESTDIR=#{install_dir}", chdir: build_dir
         end
 
-      desc "Build #{name}"
-      task name => [@configure, install, dest_dir] do
-        artifact = "rubies/ruby-#{name}.tar.gz"
-        next if File.exist?(artifact)
-        rm_rf dest_dir
-        cp_r install_dir, dest_dir
-        @user_exts.each { |ext| ext.do_install_rb(self) }
-        sh "tar cfz #{artifact} -C rubies #{name}"
-      end
+      @install_task =
+        task artifact => [@configure, install, dest_dir] do
+          rm_rf dest_dir
+          cp_r install_dir, dest_dir
+          @user_exts.each { |ext| ext.do_install_rb(self) }
+          sh "tar cfz #{artifact} -C rubies #{name}"
+        end
+    end
+
+    def build
+      @install_task.invoke
     end
 
     def name
@@ -184,12 +186,19 @@ module RubyWasm
 
     def with_wasi_vfs(wasi_vfs)
       @wasi_vfs = wasi_vfs
-      install_task = wasi_vfs.install_task
-      @dep_tasks << install_task if install_task
+      wasi_vfs.install_task&.tap { |t| @dep_tasks << t }
     end
 
     def dest_dir
       File.join(@rubies_dir, name)
+    end
+
+    def artifact
+      File.join(@rubies_dir, "ruby-#{name}.tar.gz")
+    end
+
+    def built?
+      File.exist?(artifact)
     end
 
     def extinit_obj

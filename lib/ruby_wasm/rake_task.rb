@@ -72,6 +72,11 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @crossruby.with_wasi_vfs @wasi_vfs
 
     @crossruby.define_task
+
+    task name do
+      next if @crossruby.built?
+      @crossruby.build
+    end
   end
 
   def hexdigest
