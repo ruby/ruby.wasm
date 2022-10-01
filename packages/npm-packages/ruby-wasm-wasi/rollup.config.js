@@ -1,7 +1,7 @@
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 
-const typescriptOptions = { tsconfig: "./tsconfig.json", declaration: false }
+const typescriptOptions = { tsconfig: "./tsconfig.json", declaration: false };
 
 function variant(basename) {
   return {
@@ -23,10 +23,7 @@ function variant(basename) {
         exports: "named",
       },
     ],
-    plugins: [
-      typescript(typescriptOptions),
-      nodeResolve(),
-    ],
+    plugins: [typescript(typescriptOptions), nodeResolve()],
   };
 }
 
@@ -49,10 +46,7 @@ export default [
         exports: "named",
       },
     ],
-    plugins: [
-      typescript(typescriptOptions),
-      nodeResolve(),
-    ],
+    plugins: [typescript(typescriptOptions), nodeResolve()],
     external: ["wasi"],
   },
 ];

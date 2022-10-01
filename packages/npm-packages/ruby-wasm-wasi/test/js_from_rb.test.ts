@@ -64,15 +64,16 @@ describe("Manipulation of JS from Ruby", () => {
     expect(vm.eval(result).toString()).toBe(String(props.result));
   });
 
-  test.each([
-    `24`, `"hello"`, `null`, `undefined`,
-  ])("JS::Object#to_s (%s)", async (value) => {
-    const vm = await initRubyVM();
-    const to_s_result = `require "js"; JS.eval('return ${value}').to_s`;
-    const inspect_result = `require "js"; JS.eval('return ${value}').inspect`;
-    expect(vm.eval(to_s_result).toString()).toBe(String(eval(value)));
-    expect(vm.eval(inspect_result).toString()).toBe(String(eval(value)));
-  });
+  test.each([`24`, `"hello"`, `null`, `undefined`])(
+    "JS::Object#to_s (%s)",
+    async (value) => {
+      const vm = await initRubyVM();
+      const to_s_result = `require "js"; JS.eval('return ${value}').to_s`;
+      const inspect_result = `require "js"; JS.eval('return ${value}').inspect`;
+      expect(vm.eval(to_s_result).toString()).toBe(String(eval(value)));
+      expect(vm.eval(inspect_result).toString()).toBe(String(eval(value)));
+    }
+  );
 
   test.each([
     { self: `24`, calee: "toString", args: [], result: "24" },
@@ -97,12 +98,15 @@ describe("Manipulation of JS from Ruby", () => {
       end
     end
     `);
-    proc.call("call", vm.wrap({
-      take_block: (arg1: string, block: (_: any) => void) => {
-        expect(arg1).toBe("x");
-        block("y");
-      }
-    }))
+    proc.call(
+      "call",
+      vm.wrap({
+        take_block: (arg1: string, block: (_: any) => void) => {
+          expect(arg1).toBe("x");
+          block("y");
+        },
+      })
+    );
     const y = vm.eval(`$y`);
     expect(y.toString()).toBe("y");
   });
@@ -174,7 +178,7 @@ describe("Manipulation of JS from Ruby", () => {
         function_to_call.call(:a, Proc.new { |a| b = a })
         b
       `,
-      result: 1
+      result: 1,
     },
     {
       expr: `
@@ -183,7 +187,7 @@ describe("Manipulation of JS from Ruby", () => {
         function_to_call.call(:a) { |a| b = a }
         b
       `,
-      result: 1
+      result: 1,
     },
     {
       expr: `
@@ -193,8 +197,8 @@ describe("Manipulation of JS from Ruby", () => {
         function_to_call.call(:b)
         b
       `,
-      result: 1
-    }
+      result: 1,
+    },
   ])(`JS::Object#call (%s)`, async (props) => {
     const vm = await initRubyVM();
     const result = vm.eval(`
@@ -291,17 +295,20 @@ describe("Manipulation of JS from Ruby", () => {
       end
     `);
     const livingObjects = new Set<RbValue>();
-    run.call("call", vm.wrap({
-      mark_js_object_live: (object: RbValue) => {
-        livingObjects.add(object);
-      }
-    }));
+    run.call(
+      "call",
+      vm.wrap({
+        mark_js_object_live: (object: RbValue) => {
+          livingObjects.add(object);
+        },
+      })
+    );
     vm.eval("GC.start");
     for (const object of livingObjects) {
       // Ensure that all objects are still alive
-      object.call("itself")
+      object.call("itself");
     }
-  })
+  });
 
   test("Guard null", async () => {
     const vm = await initRubyVM();
