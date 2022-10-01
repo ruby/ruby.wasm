@@ -129,3 +129,8 @@ $ ls packages/npm-packages/ruby-head-wasm-wasi/ruby-head-wasm-wasi-*.tgz
 The current WASI target build does not yet support `Thread` related APIs. Specifically, WASI does not yet have an API for creating and managing threads yet.
 
 Also there is no support for networking. It is one of the goal of WASI to support networking in the future, but it is not yet implemented.
+
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/ruby/ruby.wasm
