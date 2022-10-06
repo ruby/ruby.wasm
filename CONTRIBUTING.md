@@ -12,7 +12,7 @@ $ bundle install
 $ rake --tasks
 ```
 
-## Building and Testing [`ruby-wasm-wasi`](./packages/ruby-wasm-wasi)
+## Building and Testing [`ruby-wasm-wasi`](./packages/npm-packages/ruby-wasm-wasi)
 
 ```console
 # Download a prebuilt Ruby release (if you don't need to re-build Ruby)
