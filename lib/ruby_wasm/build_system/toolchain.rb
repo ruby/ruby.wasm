@@ -111,6 +111,10 @@ module RubyWasm
       @task
     end
 
+    def binaryen_install_task
+      @binaryen_install_task
+    end
+
     def download_url(version_major, version_minor)
       version = "#{version_major}.#{version_minor}"
       assets = [
@@ -176,7 +180,11 @@ module RubyWasm
             mkdir_p @binaryen_path
             sh "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
           end
+        @binaryen_install_task ||= task "binaryen:install" => [binaryen]
         required << binaryen
+      else
+        # no-op when already available
+        @binaryen_install_task ||= task "binaryen:install"
       end
       multitask "wasi-sdk:install" => required
     end

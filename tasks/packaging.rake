@@ -11,16 +11,17 @@ WAPM_PACKAGES = [
 namespace :npm do
   wasi_vfs = RubyWasm::WasiVfsProduct.new("build")
   wasi_vfs.define_task
+  wasi_sdk = TOOLCHAINS["wasi-sdk"]
   tools = {
     "WASI_VFS_CLI" => wasi_vfs.cli_bin_path,
-    "WASMOPT" => TOOLCHAINS["wasi-sdk"].wasm_opt,
+    "WASMOPT" => wasi_sdk.wasm_opt,
   }
   NPM_PACKAGES.each do |pkg|
     base_dir = Dir.pwd
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
     desc "Build npm package #{pkg[:name]}"
-    task pkg[:name] => ["build:#{pkg[:build]}", wasi_vfs.cli_install_task] do
+    task pkg[:name] => ["build:#{pkg[:build]}", wasi_vfs.cli_install_task, wasi_sdk.binaryen_install_task] do
       sh "npm ci", chdir: pkg_dir
       sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
       sh "npm pack", chdir: pkg_dir
