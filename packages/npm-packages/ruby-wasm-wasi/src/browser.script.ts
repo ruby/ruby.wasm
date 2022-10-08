@@ -16,17 +16,35 @@ export const main = async (pkg: { name: string; version: string }) => {
 };
 
 const runRubyScriptsInHtml = async (vm) => {
-  const tags = document.getElementsByTagName("script");
-  for (var i = 0, len = tags.length; i < len; i++) {
-    const tag = tags[i];
-    if (tag.type === "text/ruby") {
-      if (tag.hasAttribute("src")) {
-        const response = await fetch(tag.getAttribute("src"));
-        const rubyScript = await response.text();
-        vm.eval(rubyScript);
-      } else if (tag.innerHTML) {
-        vm.eval(tag.innerHTML);
-      }
+  const tags = document.querySelectorAll('script[type="text/ruby"]');
+
+  // Get Ruby scripts in parallel.
+  const promisingRubyScripts = Array.from(tags).map((tag) =>
+    loadScriptAsync(tag)
+  );
+
+  // Run Ruby scripts sequentially.
+  for await (const rubyScript of promisingRubyScripts) {
+    if (rubyScript) {
+      vm.eval(rubyScript);
     }
   }
+};
+
+const loadScriptAsync = async (tag: Element): Promise<string> => {
+  // Inline comments can be written with the src attribute of the script tag.
+  // The presence of the src attribute is checked before the presence of the inline.
+  // see: https://html.spec.whatwg.org/multipage/scripting.html#inline-documentation-for-external-scripts
+  if (tag.hasAttribute("src")) {
+    const url = encodeURI(tag.getAttribute("src"));
+    const response = await fetch(url);
+
+    if (response.ok) {
+      return await response.text();
+    }
+
+    return Promise.resolve("");
+  }
+
+  return Promise.resolve(tag.innerHTML);
 };
