@@ -51,10 +51,10 @@ namespace :build do
   BUILDS.each do |params|
     name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
     source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
-    debug = params[:debug]
     options = params
         .merge(BUILD_PROFILES[params[:profile]])
         .merge(src: source)
+    debug = options[:debug]
     options.delete :profile
     options.delete :user_exts
     options.delete :debug
