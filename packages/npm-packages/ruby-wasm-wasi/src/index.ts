@@ -273,7 +273,6 @@ class JsValueTransport {
  * A RbValue is an object that represents a value in Ruby
  */
 export class RbValue {
-
   /**
    * @hideconstructor
    */
