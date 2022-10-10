@@ -98,15 +98,12 @@ describe("Manipulation of JS from Ruby", () => {
       end
     end
     `);
-    proc.call(
-      "call",
-      vm.wrap({
-        take_block: (arg1: string, block: (_: any) => void) => {
-          expect(arg1).toBe("x");
-          block("y");
-        },
-      })
-    );
+    const takeBlock = jest.fn((arg1: string, block: (_: any) => void) => {
+      expect(arg1).toBe("x");
+      block("y");
+    });
+    proc.call("call", vm.wrap({ take_block: takeBlock }));
+    expect(takeBlock).toBeCalled();
     const y = vm.eval(`$y`);
     expect(y.toString()).toBe("y");
   });
