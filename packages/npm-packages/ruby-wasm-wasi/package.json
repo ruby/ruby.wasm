@@ -23,7 +23,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest",
+    "test": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
     "format": "prettier --write ."
   },
   "devDependencies": {
