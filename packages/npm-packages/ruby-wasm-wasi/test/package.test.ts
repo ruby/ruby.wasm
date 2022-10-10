@@ -43,4 +43,13 @@ describe("Packaging validation", () => {
       vm.eval(`require "English"`);
     }
   });
+
+  test("ruby.debug+stdlib.wasm has debug info", async () => {
+    const binary = await fs.readFile(
+      path.join(__dirname, `./../dist/ruby.debug+stdlib.wasm`)
+    );
+    const mod = await WebAssembly.compile(binary.buffer);
+    const nameSections = WebAssembly.Module.customSections(mod, "name");
+    expect(nameSections.length).toBe(1);
+  })
 });
