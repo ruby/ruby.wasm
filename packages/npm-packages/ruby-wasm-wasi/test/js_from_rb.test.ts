@@ -1,4 +1,4 @@
-import { RbValue } from "../dist/index.umd";
+import { RbValue } from "../src/index";
 import { initRubyVM } from "./init";
 
 describe("Manipulation of JS from Ruby", () => {
