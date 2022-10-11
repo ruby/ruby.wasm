@@ -21,9 +21,13 @@ class JS::TestObject < Test::Unit::TestCase
   def test_eql?
     assert_object_eql? true, JS.eval("return 24;"), JS.eval("return 24;")
     assert_object_eql? true, JS.eval("return null;"), JS.eval("return null;")
-    assert_object_eql? true, JS.eval("return undefined;"), JS.eval("return undefined;")
+    assert_object_eql? true,
+                       JS.eval("return undefined;"),
+                       JS.eval("return undefined;")
     assert_object_eql? true, JS.eval("return 'x';"), JS.eval("return 'x';")
-    assert_object_eql? true, JS.eval("return null;"), JS.eval("return undefined;")
+    assert_object_eql? true,
+                       JS.eval("return null;"),
+                       JS.eval("return undefined;")
 
     assert_object_eql? false, JS.eval("return 24;"), JS.eval("return 42;")
     assert_object_eql? false, JS.eval("return NaN;"), JS.eval("return NaN;")
@@ -35,11 +39,21 @@ class JS::TestObject < Test::Unit::TestCase
   end
 
   def test_strictly_eql?
-    assert_object_strictly_eql? true, JS.eval("return 24;"), JS.eval("return 24;")
-    assert_object_strictly_eql? true, JS.eval("return null;"), JS.eval("return null;")
-    assert_object_strictly_eql? true, JS.eval("return undefined;"), JS.eval("return undefined;")
-    assert_object_strictly_eql? false, JS.eval("return new String('str');"), JS.eval("return 'str';")
-    assert_object_strictly_eql? false, JS.eval("return null;"), JS.eval("return undefined;")
+    assert_object_strictly_eql? true,
+                                JS.eval("return 24;"),
+                                JS.eval("return 24;")
+    assert_object_strictly_eql? true,
+                                JS.eval("return null;"),
+                                JS.eval("return null;")
+    assert_object_strictly_eql? true,
+                                JS.eval("return undefined;"),
+                                JS.eval("return undefined;")
+    assert_object_strictly_eql? false,
+                                JS.eval("return new String('str');"),
+                                JS.eval("return 'str';")
+    assert_object_strictly_eql? false,
+                                JS.eval("return null;"),
+                                JS.eval("return undefined;")
   end
 
   def test_to_s
@@ -76,13 +90,14 @@ class JS::TestObject < Test::Unit::TestCase
     JS
     block_called = false
     # TODO: Support return value in block
-    result = obj.takeBlock do |a, b, c|
-      block_called = true
-      # TODO: Compare them as integers after introducing `JS::Object#to_i`
-      assert_equal 1.to_s, a.to_s
-      assert_equal 2.to_s, b.to_s
-      assert_equal 3.to_s, c.to_s
-    end
+    result =
+      obj.takeBlock do |a, b, c|
+        block_called = true
+        # TODO: Compare them as integers after introducing `JS::Object#to_i`
+        assert_equal 1.to_s, a.to_s
+        assert_equal 2.to_s, b.to_s
+        assert_equal 3.to_s, c.to_s
+      end
     assert_true block_called
   end
 
