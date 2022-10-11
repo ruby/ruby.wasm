@@ -23,6 +23,16 @@ extern "C"
   void rb_js_abi_host_string_dup(rb_js_abi_host_string_t *ret, const char *s);
   void rb_js_abi_host_string_free(rb_js_abi_host_string_t *ret);
   typedef struct {
+    uint8_t tag;
+    union {
+      double f64;
+      rb_js_abi_host_string_t bignum;
+    } val;
+  } rb_js_abi_host_raw_integer_t;
+  #define RB_JS_ABI_HOST_RAW_INTEGER_F64 0
+  #define RB_JS_ABI_HOST_RAW_INTEGER_BIGNUM 1
+  void rb_js_abi_host_raw_integer_free(rb_js_abi_host_raw_integer_t *ptr);
+  typedef struct {
     rb_js_abi_host_js_abi_value_t *ptr;
     size_t len;
   } rb_js_abi_host_list_js_abi_value_t;
@@ -37,6 +47,7 @@ extern "C"
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_proc_to_js_function(uint32_t value);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_rb_object_to_js_rb_value(uint32_t raw_rb_abi_value);
   void rb_js_abi_host_js_value_to_string(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_string_t *ret0);
+  void rb_js_abi_host_js_value_to_integer(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_raw_integer_t *ret0);
   void rb_js_abi_host_export_js_value_to_host(rb_js_abi_host_js_abi_value_t value);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_import_js_value_from_host(void);
   void rb_js_abi_host_js_value_typeof(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_string_t *ret0);

@@ -72,6 +72,75 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "undefined", JS.eval("return undefined;").inspect
   end
 
+  def test_to_i_from_number
+    assert_equal 1, JS.eval("return 1;").to_i
+    assert_equal -1, JS.eval("return -1;").to_i
+    assert_equal 1, JS.eval("return 1.8;").to_i
+    assert_equal (2**53 - 1), JS.eval("return Number.MAX_SAFE_INTEGER;").to_i
+    assert_equal -(2**53 - 1), JS.eval("return Number.MIN_SAFE_INTEGER;").to_i
+    assert_equal Float::MAX.to_i, JS.eval("return Number.MAX_VALUE;").to_i
+    assert_equal 0, JS.eval("return Number.MIN_VALUE;").to_i
+
+    # Special values
+    assert_raise(FloatDomainError) { JS.eval("return NaN;").to_i }
+    assert_raise(FloatDomainError) { JS.eval("return Infinity;").to_i }
+    assert_raise(FloatDomainError) { JS.eval("return -Infinity;").to_i }
+  end
+
+  def test_to_i_from_bigint
+    assert_equal 1, JS.eval("return 1n;").to_i
+    assert_equal 0xffff0000, JS.eval("return 0xffff0000n;").to_i
+    assert_equal (1 << 32), JS.eval("return (1n << 32n);").to_i
+    assert_equal (1 << 64), JS.eval("return (1n << 64n);").to_i
+  end
+
+  def test_to_i_from_non_numeric
+    assert_equal 0, JS.eval("return null;").to_i
+    assert_equal 0, JS.eval("return undefined;").to_i
+
+    # String
+    assert_equal 0, JS.eval("return '';").to_i
+    assert_equal 42, JS.eval("return '42';").to_i
+    assert_equal 0, JS.eval("return 'str';").to_i
+    assert_equal 42, JS.eval("return '42str';").to_i
+  end
+
+  def test_to_f
+    assert_equal 1.0, JS.eval("return 1;").to_f
+    assert_equal -1.0, JS.eval("return -1;").to_f
+    assert_true JS.eval("return NaN;").to_f.nan?
+    assert_equal 1, JS.eval("return Infinity;").to_f.infinite?
+    assert_equal -1, JS.eval("return -Infinity;").to_f.infinite?
+    # Maximum positive value of IEEE 754 double-precision float
+    # (1.0 + ((2 ** 52 - 1) * (2 ** -52.0))) * (2 ** 1023.0)
+    assert_equal 1.7976931348623157e+308,
+                 JS.eval("return Number.MAX_VALUE;").to_f
+    # Minimum positive value of IEEE 754 double-precision float
+    # 1.0 * 2 ** -52 * 2**-1022 (Subnormal number)
+    assert_equal 5.0e-324, JS.eval("return Number.MIN_VALUE;").to_f
+  end
+
+  def test_to_f_from_bigint
+    assert_true JS.eval("return 1n;").to_f.is_a?(Float)
+    assert_equal 1, JS.eval("return 1n;").to_f
+    assert_equal 0xffff0000, JS.eval("return 0xffff0000n;").to_f
+    assert_equal (1 << 32), JS.eval("return (1n << 32n);").to_f
+    assert_equal (1 << 64), JS.eval("return (1n << 64n);").to_f
+  end
+
+  def test_to_f_from_non_numeric
+    assert_equal 0, JS.eval("return null;").to_f
+    assert_equal 0, JS.eval("return undefined;").to_f
+
+    # String
+    assert_equal 42, JS.eval("return '42';").to_f
+    assert_equal 42.5, JS.eval("return '42.5';").to_f
+    assert_equal 0, JS.eval("return '';").to_f
+    assert_equal 0, JS.eval("return 'str';").to_f
+    assert_equal 42, JS.eval("return '42str';").to_f
+    assert_equal 42.4, JS.eval("return '42.4str';").to_f
+  end
+
   def test_call
     assert_nothing_raised { JS.global.call(:Array) }
     assert_equal "1,2,3", JS.global.call(:Array, 1, 2, 3).to_s

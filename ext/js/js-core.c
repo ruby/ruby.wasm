@@ -314,6 +314,66 @@ static VALUE _rb_js_obj_to_s(VALUE obj) {
 }
 
 /*
+ * call-seq:
+ *   to_i -> integer
+ *
+ *  Converts +self+ to an Integer:
+ *   JS.eval("return 1").to_i         # => 1
+ *   JS.eval("return -1").to_i        # => -1
+ *   JS.eval("return 5.8").to_i       # => 5
+ *   JS.eval("return 42n").to_i       # => 42
+ *   JS.eval("return '3'").to_i       # => 3
+ *   JS.eval("return ''").to_f        # => 0
+ *   JS.eval("return 'x'").to_i       # => 0
+ *   JS.eval("return NaN").to_i       # Raises FloatDomainError
+ *   JS.eval("return Infinity").to_i  # Raises FloatDomainError
+ *   JS.eval("return -Infinity").to_i # Raises FloatDomainError
+ */
+static VALUE _rb_js_obj_to_i(VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  rb_js_abi_host_raw_integer_t ret;
+  rb_js_abi_host_js_value_to_integer(p->abi, &ret);
+  VALUE result;
+  if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_F64) {
+    result = rb_dbl2big(ret.val.f64);
+  } else {
+    result = rb_cstr2inum(ret.val.bignum.ptr, 10);
+  }
+  rb_js_abi_host_raw_integer_free(&ret);
+  return result;
+}
+
+/*
+ * call-seq:
+ *   to_f -> float
+ *
+ *  Converts +self+ to a Float:
+ *   JS.eval("return 1").to_f         # => 1.0
+ *   JS.eval("return 1.2").to_f       # => 1.2
+ *   JS.eval("return -1.2").to_f      # => -1.2
+ *   JS.eval("return '3.14'").to_f    # => 3.14
+ *   JS.eval("return ''").to_f        # => 0.0
+ *   JS.eval("return 'x'").to_f       # => 0.0
+ *   JS.eval("return NaN").to_f       # => Float::NAN
+ *   JS.eval("return Infinity").to_f  # => Float::INFINITY
+ *   JS.eval("return -Infinity").to_f # => -Float::INFINITY
+ *
+ */
+static VALUE _rb_js_obj_to_f(VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  rb_js_abi_host_raw_integer_t ret;
+  VALUE result;
+  rb_js_abi_host_js_value_to_integer(p->abi, &ret);
+  if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_F64) {
+    result = rb_float_new(ret.val.f64);
+  } else {
+    result = DBL2NUM(rb_cstr_to_dbl(ret.val.bignum.ptr, FALSE));
+  }
+  rb_js_abi_host_raw_integer_free(&ret);
+  return result;
+}
+
+/*
  * :nodoc: all
  * workaround to transfer js value to js by using wit.
  * wit doesn't allow to communicate a resource to guest and host for now.
@@ -423,6 +483,8 @@ void Init_js() {
                              _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_to_s, 0);
   rb_define_alias(rb_cJS_Object, "inspect", "to_s");
+  rb_define_method(rb_cJS_Object, "to_i", _rb_js_obj_to_i, 0);
+  rb_define_method(rb_cJS_Object, "to_f", _rb_js_obj_to_f, 0);
   rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
 
   rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);

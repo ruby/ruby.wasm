@@ -47,6 +47,14 @@ void rb_js_abi_host_string_free(rb_js_abi_host_string_t *ret) {
   ret->ptr = NULL;
   ret->len = 0;
 }
+void rb_js_abi_host_raw_integer_free(rb_js_abi_host_raw_integer_t *ptr) {
+  switch ((int32_t) ptr->tag) {
+    case 1: {
+      rb_js_abi_host_string_free(&ptr->val.bignum);
+      break;
+    }
+  }
+}
 void rb_js_abi_host_list_js_abi_value_free(rb_js_abi_host_list_js_abi_value_t *ptr) {
   for (size_t i = 0; i < ptr->len; i++) {
     rb_js_abi_host_js_abi_value_free(&ptr->ptr[i]);
@@ -118,6 +126,28 @@ void rb_js_abi_host_js_value_to_string(rb_js_abi_host_js_abi_value_t value, rb_j
   int32_t ptr = (int32_t) &ret_area;
   __wasm_import_rb_js_abi_host_js_value_to_string((value).idx, ptr);
   *ret0 = (rb_js_abi_host_string_t) { (char*)(*((int32_t*) (ptr + 0))), (size_t)(*((int32_t*) (ptr + 4))) };
+}
+__attribute__((import_module("rb-js-abi-host"), import_name("js-value-to-integer: func(value: handle<js-abi-value>) -> variant { f64(float64), bignum(string) }")))
+void __wasm_import_rb_js_abi_host_js_value_to_integer(int32_t, int32_t);
+void rb_js_abi_host_js_value_to_integer(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_raw_integer_t *ret0) {
+  
+  __attribute__((aligned(8)))
+  uint8_t ret_area[16];
+  int32_t ptr = (int32_t) &ret_area;
+  __wasm_import_rb_js_abi_host_js_value_to_integer((value).idx, ptr);
+  rb_js_abi_host_raw_integer_t variant;
+  variant.tag = (int32_t) (*((uint8_t*) (ptr + 0)));
+  switch ((int32_t) variant.tag) {
+    case 0: {
+      variant.val.f64 = *((double*) (ptr + 8));
+      break;
+    }
+    case 1: {
+      variant.val.bignum = (rb_js_abi_host_string_t) { (char*)(*((int32_t*) (ptr + 8))), (size_t)(*((int32_t*) (ptr + 12))) };
+      break;
+    }
+  }
+  *ret0 = variant;
 }
 __attribute__((import_module("rb-js-abi-host"), import_name("export-js-value-to-host: func(value: handle<js-abi-value>) -> ()")))
 void __wasm_import_rb_js_abi_host_export_js_value_to_host(int32_t);
