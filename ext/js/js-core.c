@@ -302,7 +302,7 @@ static VALUE _rb_js_obj_typeof(VALUE obj) {
  *   JS.eval("return true").to_s  # => "true"
  *   JS.eval("return 1").to_s     # => "1"
  *   JS.eval("return null").to_s  # => "null"
- *   JS.global.inspect            # => "[object global]"
+ *   JS.global.to_s               # => "[object global]"
  *
  *  JS::Object#inspect is an alias for JS::Object#to_s.
  */
