@@ -57,6 +57,7 @@ class JS::TestObject < Test::Unit::TestCase
   end
 
   def test_to_s
+    assert_equal "str", JS.eval("return 'str';").to_s
     assert_equal "24", JS.eval("return 24;").to_s
     assert_equal "true", JS.eval("return true;").to_s
     assert_equal "null", JS.eval("return null;").to_s
@@ -64,6 +65,7 @@ class JS::TestObject < Test::Unit::TestCase
   end
 
   def test_inspect
+    assert_equal "str", JS.eval("return 'str';").to_s
     assert_equal "24", JS.eval("return 24;").inspect
     assert_equal "true", JS.eval("return true;").inspect
     assert_equal "null", JS.eval("return null;").inspect

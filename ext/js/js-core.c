@@ -295,12 +295,18 @@ static VALUE _rb_js_obj_typeof(VALUE obj) {
 
 /*
  * call-seq:
- *   inspect -> string
+ *   to_s -> string
  *
  *  Returns a printable version of +self+:
- *   p JS.global # => [object global]
+ *   JS.eval("return 'str'").to_s # => "str"
+ *   JS.eval("return true").to_s  # => "true"
+ *   JS.eval("return 1").to_s     # => "1"
+ *   JS.eval("return null").to_s  # => "null"
+ *   JS.global.inspect            # => "[object global]"
+ *
+ *  JS::Object#inspect is an alias for JS::Object#to_s.
  */
-static VALUE _rb_js_obj_inspect(VALUE obj) {
+static VALUE _rb_js_obj_to_s(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   rb_js_abi_host_string_t ret0;
   rb_js_abi_host_js_value_to_string(p->abi, &ret0);
@@ -415,8 +421,8 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
   rb_define_singleton_method(rb_cJS_Object, "__import_from_js",
                              _rb_js_import_from_js, 0);
-  rb_define_method(rb_cJS_Object, "inspect", _rb_js_obj_inspect, 0);
-  rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_inspect, 0);
+  rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_to_s, 0);
+  rb_define_alias(rb_cJS_Object, "inspect", "to_s");
   rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
 
   rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);
