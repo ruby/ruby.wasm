@@ -51,5 +51,5 @@ describe("Packaging validation", () => {
     const mod = await WebAssembly.compile(binary.buffer);
     const nameSections = WebAssembly.Module.customSections(mod, "name");
     expect(nameSections.length).toBe(1);
-  })
+  });
 });
