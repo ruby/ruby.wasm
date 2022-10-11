@@ -1,7 +1,16 @@
 namespace :format do
   begin
     require "syntax_tree/rake_tasks"
-    SyntaxTree::Rake::WriteTask.new(:ruby)
+    SyntaxTree::Rake::WriteTask.new(
+      :ruby,
+      Rake::FileList[
+        "Rakefile",
+        "lib/**/*.rb",
+        "ext/**/*.rb",
+        "tasks/**/*.rb",
+        "packages/**/*.rb",
+      ],
+    )
   rescue LoadError
   end
 

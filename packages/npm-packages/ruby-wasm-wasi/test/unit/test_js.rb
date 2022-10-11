@@ -5,7 +5,7 @@ class JS::TestJS < Test::Unit::TestCase
   def test_is_a?
     # A ruby object always returns false
     assert_false JS.is_a?(1, Integer)
-    assert_false JS.is_a?('x', String)
+    assert_false JS.is_a?("x", String)
     # A js object is not an instance of itself
     assert_false JS.is_a?(JS.global, JS.global)
     # globalThis is an instance of Object
