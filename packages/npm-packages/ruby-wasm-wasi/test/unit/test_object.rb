@@ -164,10 +164,9 @@ class JS::TestObject < Test::Unit::TestCase
     result =
       obj.takeBlock do |a, b, c|
         block_called = true
-        # TODO: Compare them as integers after introducing `JS::Object#to_i`
-        assert_equal 1.to_s, a.to_s
-        assert_equal 2.to_s, b.to_s
-        assert_equal 3.to_s, c.to_s
+        assert_equal 1, a.to_i
+        assert_equal 2, b.to_i
+        assert_equal 3, c.to_i
       end
     assert_true block_called
   end
