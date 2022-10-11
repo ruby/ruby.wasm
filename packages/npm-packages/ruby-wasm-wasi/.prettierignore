@@ -1,3 +1,5 @@
 dist
 src/bindgen
 coverage
+# To avoid breaking shebang trick
+/tools/run-test-unit.mjs
