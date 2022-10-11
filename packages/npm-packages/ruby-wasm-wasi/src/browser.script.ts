@@ -52,7 +52,7 @@ const loadScriptAsync = async (tag: Element): Promise<string> => {
       return await response.text();
     }
 
-    return Promise.resolve("");
+    return Promise.resolve(null);
   }
 
   return Promise.resolve(tag.innerHTML);
