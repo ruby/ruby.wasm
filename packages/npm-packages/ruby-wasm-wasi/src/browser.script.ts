@@ -12,7 +12,16 @@ export const main = async (pkg: { name: string; version: string }) => {
 
   globalThis.rubyVM = vm;
 
-  runRubyScriptsInHtml(vm);
+  // Wait for the text/ruby script tag to be read.
+  // It may take some time to read ruby+stdlib.wasm
+  // and DOMContentLoaded has already been fired.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () =>
+      runRubyScriptsInHtml(vm)
+    );
+  } else {
+    runRubyScriptsInHtml(vm);
+  }
 };
 
 const runRubyScriptsInHtml = async (vm) => {
