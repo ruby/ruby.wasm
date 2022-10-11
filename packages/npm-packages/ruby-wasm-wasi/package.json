@@ -23,7 +23,9 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
+    "test": "npm run test:unit && npm run test:jest",
+    "test:jest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
+    "test:unit": "./tools/run-test-unit.mjs",
     "format": "prettier --write ."
   },
   "devDependencies": {
