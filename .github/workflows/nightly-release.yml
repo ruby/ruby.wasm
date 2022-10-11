@@ -13,7 +13,7 @@ jobs:
   create-nightly-tag:
     runs-on: ubuntu-20.04
     outputs:
-      tag-name: ${{ steps.generate-tag.outputs.name }}
+      tag-name: ${{ steps.generate-tag.outputs.TAG_NAME }}
     steps:
       - uses: actions/checkout@v2
       - name: git config
@@ -23,9 +23,9 @@ jobs:
       - id: generate-tag
         run: |
           MANUAL_TAG="${{ inputs.tag-name }}"
-          echo "::set-output name=name::${MANUAL_TAG:-$(date +'%Y-%m-%d')-a}"
-      - run: git tag "${{ steps.generate-tag.outputs.name }}"
-      - run: git push origin "${{ steps.generate-tag.outputs.name }}"
+          echo "TAG_NAME=${MANUAL_TAG:-$(date +'%Y-%m-%d')-a}" >> $GITHUB_OUTPUT
+      - run: git tag "${{ steps.generate-tag.outputs.TAG_NAME }}"
+      - run: git push origin "${{ steps.generate-tag.outputs.TAG_NAME }}"
   build-and-publish:
     needs: [create-nightly-tag]
     uses: ./.github/workflows/build.yml
