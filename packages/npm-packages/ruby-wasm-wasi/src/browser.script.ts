@@ -45,7 +45,7 @@ const loadScriptAsync = async (tag: Element): Promise<string> => {
   // The presence of the src attribute is checked before the presence of the inline.
   // see: https://html.spec.whatwg.org/multipage/scripting.html#inline-documentation-for-external-scripts
   if (tag.hasAttribute("src")) {
-    const url = encodeURI(tag.getAttribute("src"));
+    const url = tag.getAttribute("src");
     const response = await fetch(url);
 
     if (response.ok) {
