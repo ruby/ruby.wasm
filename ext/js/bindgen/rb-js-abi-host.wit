@@ -12,6 +12,13 @@ rb-object-to-js-rb-value: func(raw-rb-abi-value: u32) -> js-abi-value
 
 js-value-to-string: func(value: js-abi-value) -> string
 
+variant raw-integer {
+    f64(float64),
+    bignum(string),
+}
+
+js-value-to-integer: func(value: js-abi-value) -> raw-integer
+
 export-js-value-to-host: func(value: js-abi-value)
 import-js-value-from-host: func() -> js-abi-value
 

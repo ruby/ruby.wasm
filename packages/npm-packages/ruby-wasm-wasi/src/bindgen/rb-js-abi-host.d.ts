@@ -1,3 +1,12 @@
+export type RawInteger = RawIntegerF64 | RawIntegerBignum;
+export interface RawIntegerF64 {
+  tag: "f64",
+  val: number,
+}
+export interface RawIntegerBignum {
+  tag: "bignum",
+  val: string,
+}
 export function addRbJsAbiHostToImports(imports: any, obj: RbJsAbiHost, get_export: (name: string) => WebAssembly.ExportValue): void;
 export interface RbJsAbiHost {
   evalJs(code: string): JsAbiValue;
@@ -10,6 +19,7 @@ export interface RbJsAbiHost {
   procToJsFunction(value: number): JsAbiValue;
   rbObjectToJsRbValue(rawRbAbiValue: number): JsAbiValue;
   jsValueToString(value: JsAbiValue): string;
+  jsValueToInteger(value: JsAbiValue): RawInteger;
   exportJsValueToHost(value: JsAbiValue): void;
   importJsValueFromHost(): JsAbiValue;
   jsValueTypeof(value: JsAbiValue): string;
