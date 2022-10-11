@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ github.event_name == 'pull_request' }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - run: sudo apt-get install clang-format
@@ -40,7 +40,7 @@ jobs:
           - { tag: wasm32-unknown-emscripten }
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
@@ -149,7 +149,7 @@ jobs:
     needs: [build-builder-image]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Fetch builder image
         uses: actions/download-artifact@v2
         with:
@@ -178,7 +178,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/download-artifact@v2
         with:
           path: release
