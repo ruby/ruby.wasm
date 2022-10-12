@@ -8,3 +8,5 @@ wapm_packages
 
 .cache
 compile_commands.json
+
+html
