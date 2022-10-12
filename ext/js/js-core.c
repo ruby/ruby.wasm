@@ -458,6 +458,61 @@ static VALUE _rb_js_proc_to_js(VALUE obj) {
 }
 
 /*
+ * Document-module: JS
+ *
+ * The JS module provides a way to interact with JavaScript from Ruby.
+ *
+ * == Example
+ *
+ * A simple eval and object access:
+ *
+ *   require 'js'
+ *   JS.eval("return 1 + 2") # => 3
+ *   JS.global[:document].write("Hello, world!")
+ *   JS.global[:document].addEventListner("click") do |event|
+ *     puts event          # => # [object MouseEvent]
+ *     puts event[:detail] # => 1
+ *   end
+ *
+ */
+
+/*
+ * Document-class: JS::Object
+ *
+ * A JS::Object represents a JavaScript object.
+ * Note that JS::Object can represent a JavaScript object that represents a Ruby
+ * object (RbValue).
+ *
+ * == Example
+ *
+ * A simple object access:
+ *
+ *   require 'js'
+ *   document = JS.global[:document]   # => # [object HTMLDocument]
+ *   document[:title]                  # => "Hello, world!"
+ *   document[:title] = "Hello, Ruby!"
+ *
+ *   document.write("Hello, world!")   # is equivalent to the following:
+ *   document.call(:write, "Hello, world!")
+ *   js_obj = JS.eval(<<-JS)
+ *     return {
+ *       method1: function(str, num) {
+ *         // str is a JavaScript string and num is a JavaScript number.
+ *         str.length + num
+ *      },
+ *       method2: function(rbObject) {
+ *         // Call String#upcase method for the given Ruby object (RbValue).
+ *         return rbObject.call("upcase").toString();
+ *       }
+ *     }
+ *   JS
+ *   # Non JS::Object args are automatically converted to JS::Object by `to_js`.
+ *   js_obj[:method1].call("Hello", 5) # => 10
+ *   js_obj[:method2].call(JS.wrap("Hello, Ruby"))
+ *   # => "HELLO, RUBY" (JS::Object)
+ */
+
+/*
  * JavaScript interoperations module
  */
 void Init_js() {
