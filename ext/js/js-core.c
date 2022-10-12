@@ -469,6 +469,7 @@ void Init_js() {
 
   i_to_js = rb_intern("to_js");
   rb_cJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cObject);
+  VALUE rb_cJS_singleton = rb_singleton_class(rb_cJS_Object);
   rb_define_alloc_func(rb_cJS_Object, jsvalue_s_allocate);
   rb_define_method(rb_cJS_Object, "[]", _rb_js_obj_aref, 1);
   rb_define_method(rb_cJS_Object, "[]=", _rb_js_obj_aset, 2);
@@ -478,9 +479,10 @@ void Init_js() {
   rb_define_method(rb_cJS_Object, "hash", _rb_js_obj_hash, 0);
   rb_define_method(rb_cJS_Object, "call", _rb_js_obj_call, -1);
   rb_define_method(rb_cJS_Object, "typeof", _rb_js_obj_typeof, 0);
-  rb_define_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js, 0);
-  rb_define_singleton_method(rb_cJS_Object, "__import_from_js",
-                             _rb_js_import_from_js, 0);
+  rb_define_private_method(rb_cJS_Object, "__export_to_js", _rb_js_export_to_js,
+                           0);
+  rb_define_private_method(rb_cJS_singleton, "__import_from_js",
+                           _rb_js_import_from_js, 0);
   rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_to_s, 0);
   rb_define_alias(rb_cJS_Object, "inspect", "to_s");
   rb_define_method(rb_cJS_Object, "to_i", _rb_js_obj_to_i, 0);
