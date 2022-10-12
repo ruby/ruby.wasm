@@ -275,10 +275,7 @@ class JsValueTransport {
 
   importJsValue(value: JsAbiValue, vm: RubyVM): RbValue {
     this._takenJsValue = value;
-    return vm.eval(`
-      require "js"
-      JS::Object.__import_from_js
-    `);
+    return vm.eval('require "js"; JS::Object').call("__import_from_js");
   }
 }
 
