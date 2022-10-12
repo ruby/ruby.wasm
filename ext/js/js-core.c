@@ -458,25 +458,6 @@ static VALUE _rb_js_proc_to_js(VALUE obj) {
 }
 
 /*
- * Document-module: JS
- *
- * The JS module provides a way to interact with JavaScript from Ruby.
- *
- * == Example
- *
- * A simple eval and object access:
- *
- *   require 'js'
- *   JS.eval("return 1 + 2") # => 3
- *   JS.global[:document].write("Hello, world!")
- *   JS.global[:document].addEventListner("click") do |event|
- *     puts event          # => # [object MouseEvent]
- *     puts event[:detail] # => 1
- *   end
- *
- */
-
-/*
  * Document-class: JS::Object
  *
  * A JS::Object represents a JavaScript object.
