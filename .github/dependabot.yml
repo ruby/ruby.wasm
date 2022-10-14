@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/npm-packages/ruby-head-wasm-emscripten
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/npm-packages/ruby-head-wasm-wasi
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/npm-packages/ruby-wasm-wasi
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/npm-packages/ruby-wasm-emscripten
+    schedule:
+      interval: daily
