@@ -54,7 +54,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
       - name: Build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: builders/${{ matrix.entry.tag }}
           outputs: type=oci,dest=/tmp/image.tar
@@ -66,7 +66,7 @@ jobs:
           name: ruby.wasm-builder-${{ matrix.entry.tag }}
           path: /tmp/image.tar
       - name: Push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: builders/${{ matrix.entry.tag }}
           push: ${{ github.ref == 'refs/heads/main' }}
