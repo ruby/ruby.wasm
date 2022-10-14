@@ -61,7 +61,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - name: Upload image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ruby.wasm-builder-${{ matrix.entry.tag }}
           path: /tmp/image.tar
@@ -167,7 +167,7 @@ jobs:
       - name: rake ${{ matrix.entry.test }}
         run: rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: ${{ matrix.entry.artifact }}
         with:
           name: ${{ matrix.entry.artifact_name }}
