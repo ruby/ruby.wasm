@@ -5,7 +5,7 @@ module RubyWasm
   class ZlibProduct < AutoconfProduct
     attr_reader :target, :install_task
 
-    ZLIB_VERSION = "1.2.12"
+    ZLIB_VERSION = "1.2.13"
 
     def initialize(build_dir, target, toolchain)
       @build_dir = build_dir
