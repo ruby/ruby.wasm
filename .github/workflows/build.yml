@@ -163,7 +163,7 @@ jobs:
         run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
-        run: docker run -v "$GITHUB_WORKSPACE:/build" -w /build -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
+        run: docker run -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
       - name: rake ${{ matrix.entry.test }}
         run: rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
