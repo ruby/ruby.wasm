@@ -46,3 +46,9 @@ RUN set -eux pipefail; \
   curl -LO "$wasi_preset_args_url"; \
   unzip wasi-preset-args-x86_64-unknown-linux-gnu.zip; \
   mv wasi-preset-args /usr/local/bin/wasi-preset-args
+
+# Build with non-root user because `@npmcli/promise-spawn` sets `uid` and `gid` to cwd owner when the current user is root.
+# This permission demotion results in EACCES error at reading `$HOME/.node_modules` in `resolve` package, which is used by `@rollup/plugin-node-resolve`.
+# * https://github.com/npm/cli/blob/32336f6efe06bd52de1dc67c0f812d4705533ef2/node_modules/%40npmcli/promise-spawn/lib/index.js#L13
+RUN groupadd -r me && useradd -g me me && mkdir -p /home/me && chown me:me /home/me
+USER me
