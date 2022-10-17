@@ -14,7 +14,25 @@ ruby_root="$1"
 package_dir="$(cd "$(dirname "$0")" && pwd)"
 dist_dir="$package_dir/dist"
 
+find_compatible_node() {
+    # Find `node` executable (>= 15) in PATH
+    IFS=':' read -ra dirs <<< "$PATH"
+    for dir in "${dirs[@]}"; do
+        if [ -x "$dir/node" ]; then
+            node_version=$("$dir/node" --version)
+            if [ "${node_version:1:2}" -ge 15 ]; then
+                echo "$dir/node"
+                return
+            fi
+        fi
+    done
+    echo "node >= 15 is required to build the package" >&2
+    exit 1
+}
+
 mkdir -p "$dist_dir"
+
+nodejs="$(find_compatible_node)"
 
 cp "$ruby_root/usr/local/bin/ruby.wasm" "$dist_dir/ruby.wasm"
 cp "$ruby_root/usr/local/bin/ruby" "$dist_dir/ruby.js"
@@ -34,4 +52,4 @@ echo "export function loadRubyStdlib() {" >> "$ruby_stdlib_js"
     --exclude '*.gem' --exclude "libruby-static.a" >> "$ruby_stdlib_js"
 echo "}" >> "$ruby_stdlib_js"
 
-(cd "$package_dir" && npm run build)
+(cd "$package_dir" && PATH="$(dirname "$nodejs"):$PATH" npm run build)
