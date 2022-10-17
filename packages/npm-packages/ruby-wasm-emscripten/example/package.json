@@ -1,7 +1,7 @@
 {
   "name": "ruby-wasm-emscripten-example",
   "scripts": {
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.mjs"
   },
   "dependencies": {
     "ruby-wasm-emscripten": "../"
