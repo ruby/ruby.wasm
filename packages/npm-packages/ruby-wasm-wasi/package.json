@@ -27,7 +27,7 @@
     "test:jest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
     "test:unit": "./tools/run-test-unit.mjs",
     "format": "prettier --write .",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.mjs && tsc --build"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",
