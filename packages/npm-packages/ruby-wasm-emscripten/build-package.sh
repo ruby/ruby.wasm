@@ -34,4 +34,4 @@ echo "export function loadRubyStdlib() {" >> "$ruby_stdlib_js"
     --exclude '*.gem' --exclude "libruby-static.a" >> "$ruby_stdlib_js"
 echo "}" >> "$ruby_stdlib_js"
 
-(cd "$package_dir" && npx rollup -c rollup.config.js)
+(cd "$package_dir" && npm run build)
