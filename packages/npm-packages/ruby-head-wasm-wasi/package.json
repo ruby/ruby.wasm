@@ -11,7 +11,8 @@
     "README.md"
   ],
   "scripts": {
-    "test": "cd ../ruby-wasm-wasi && npm test"
+    "test": "cd ../ruby-wasm-wasi && npm test",
+    "build": "rollup -c rollup.config.mjs"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
   "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi",
