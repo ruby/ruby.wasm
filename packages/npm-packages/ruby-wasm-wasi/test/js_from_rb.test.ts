@@ -4,11 +4,10 @@ import { initRubyVM } from "./init";
 describe("Manipulation of JS from Ruby", () => {
   jest.setTimeout(10 /*sec*/ * 1000);
 
-  const Qtrue = 0x02;
   test(`require "js"`, async () => {
     const vm = await initRubyVM();
     const result = vm.eval(`require "js"`);
-    expect((result as any).inner._wasm_val).toBe(Qtrue);
+    expect(result.toString()).toBe("true");
   });
 
   test("JS::Object#method_missing with block", async () => {
