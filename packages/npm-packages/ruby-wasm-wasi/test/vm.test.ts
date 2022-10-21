@@ -5,7 +5,7 @@ describe("RubyVM", () => {
   test("empty expression", async () => {
     const vm = await initRubyVM();
     const result = vm.eval("");
-    expect((result as any).inner._wasm_val).toBe(/* Qnil */ 4);
+    expect(result.toString()).toBe("");
   });
   test("nil toString", async () => {
     const vm = await initRubyVM();
