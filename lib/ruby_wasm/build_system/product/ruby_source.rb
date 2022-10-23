@@ -23,11 +23,12 @@ module RubyWasm
     def fetch
       case @params[:type]
       when "github"
-        tarball_url =
-          "https://api.github.com/repos/#{@params[:repo]}/tarball/#{@params[:rev]}"
+        repo_url = "https://github.com/#{@params[:repo]}.git"
         mkdir_p src_dir
-        sh "curl -L #{tarball_url} | tar xz --strip-components=1",
-           chdir: src_dir
+        sh "git init", chdir: src_dir
+        sh "git remote add origin #{repo_url}", chdir: src_dir
+        sh "git fetch --depth 1 origin #{@params[:rev]}", chdir: src_dir
+        sh "git checkout #{@params[:rev]}", chdir: src_dir
       else
         raise "unknown source type: #{@params[:type]}"
       end
