@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH << File.join(File.dirname(__FILE__), "../lib")
+
+require "syntax_tree"
+require "syntax_tree/cli"
+require "syntax_tree/minify_ruby"
+
+# Override the default formatter with our own.
+SyntaxTree.register_handler(".rb", SyntaxTree::MinifyRuby)
+
+exit(SyntaxTree::CLI.run(ARGV))
