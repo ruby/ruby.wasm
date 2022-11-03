@@ -40,8 +40,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @target = target
     @build_dir = build_dir || File.join(Dir.pwd, "build")
     @rubies_dir = rubies_dir || File.join(Dir.pwd, "rubies")
-    @toolchain =
-      add_product (toolchain || RubyWasm::Toolchain.get(target, @build_dir))
+    @toolchain = (toolchain || RubyWasm::Toolchain.get(target, @build_dir))
 
     @libyaml = RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
     @zlib = RubyWasm::ZlibProduct.new(@build_dir, @target, @toolchain)
