@@ -43,8 +43,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @toolchain =
       add_product (toolchain || RubyWasm::Toolchain.get(target, @build_dir))
 
-    @libyaml =
-      add_product RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
+    @libyaml = RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
     @zlib =
       add_product RubyWasm::ZlibProduct.new(@build_dir, @target, @toolchain)
     @wasi_vfs = add_product RubyWasm::WasiVfsProduct.new(@build_dir)

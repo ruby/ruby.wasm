@@ -130,7 +130,7 @@ module RubyWasm
     def build(remake: false, reconfigure: false)
       FileUtils.mkdir_p dest_dir
       FileUtils.mkdir_p build_dir
-      [@source, @baseruby].each(&:build)
+      [@source, @baseruby, @libyaml].each(&:build)
       dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
       build_exts
@@ -160,7 +160,6 @@ module RubyWasm
 
     def with_libyaml(libyaml)
       @libyaml = libyaml
-      @dep_tasks << libyaml.install_task
     end
 
     def with_zlib(zlib)
