@@ -182,11 +182,13 @@ static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
  */
 static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   struct jsvalue *p = check_jsvalue(obj);
-  struct jsvalue *v = check_jsvalue(_rb_js_try_convert(rb_mJS, val));
+  VALUE rv = _rb_js_try_convert(rb_mJS, val);
+  struct jsvalue *v = check_jsvalue(rv);
   rb_js_abi_host_string_t key_abi_str;
   key = rb_obj_as_string(key);
   rstring_to_abi_string(key, &key_abi_str);
   rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi);
+  RB_GC_GUARD(rv);
   return val;
 }
 

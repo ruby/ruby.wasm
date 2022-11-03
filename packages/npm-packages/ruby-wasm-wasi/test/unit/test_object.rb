@@ -203,4 +203,10 @@ class JS::TestObject < Test::Unit::TestCase
     object["foo"] = 42
     assert_equal 42.to_s, object["foo"].to_s
   end
+
+  def test_member_set_with_stress_gc
+    GC.stress = true
+    JS.global[:tmp] = "1"
+    GC.stress = false
+  end
 end
