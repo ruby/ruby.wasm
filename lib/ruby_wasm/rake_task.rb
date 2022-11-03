@@ -55,28 +55,34 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
       RubyWasm::BuildParams.new(options.merge(name: name, target: @target))
 
     @crossruby =
-      add_product RubyWasm::CrossRubyProduct.new(
-                    build_params,
-                    @build_dir,
-                    @rubies_dir,
-                    @baseruby,
-                    @source,
-                    @toolchain
-                  )
+      RubyWasm::CrossRubyProduct.new(
+        build_params,
+        @build_dir,
+        @rubies_dir,
+        @baseruby,
+        @source,
+        @toolchain
+      )
     yield self if block_given?
 
-    @products_to_define.each(&:define_task)
+    @products_to_define&.each(&:define_task)
 
     @crossruby.with_libyaml @libyaml
     @crossruby.with_zlib @zlib
     @crossruby.with_wasi_vfs @wasi_vfs
 
-    @crossruby.define_task
-
     desc "Cross-build Ruby for #{@target}"
     task name do
       next if @crossruby.built?
       @crossruby.build
+    end
+    namespace name do
+      task :remake do
+        @crossruby.build(remake: true)
+      end
+      task :reconfigure do
+        @crossruby.build(reconfigure: true)
+      end
     end
   end
 
