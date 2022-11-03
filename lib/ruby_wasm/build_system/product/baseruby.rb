@@ -23,20 +23,14 @@ module RubyWasm
       "baseruby-#{@channel}"
     end
 
-    def define_task
-      directory product_build_dir
-
-      @install_task =
-        task name => [
-               source.src_dir,
-               source.configure_file,
-               product_build_dir
-             ] do
-          next if Dir.exist?(install_dir)
-          sh "#{source.configure_file} --prefix=#{install_dir} --disable-install-doc",
-             chdir: product_build_dir
-          sh "make install", chdir: product_build_dir
-        end
+    def build
+      FileUtils.mkdir_p product_build_dir
+      Rake::Task[source.configure_file].invoke
+      return if Dir.exist?(install_dir)
+      Dir.chdir(product_build_dir) do
+        system "#{source.configure_file} --prefix=#{install_dir} --disable-install-doc"
+        system "make install"
+      end
     end
   end
 end
