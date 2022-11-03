@@ -1,4 +1,3 @@
-require "rake"
 require_relative "product/product"
 require_relative "product/ruby_source"
 require_relative "product/baseruby"

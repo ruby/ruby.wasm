@@ -123,7 +123,7 @@ module RubyWasm
 
     def build_exts
       @user_exts.each { |prod| prod.build(self) }
-      mkdir_p File.dirname(extinit_obj)
+      FileUtils.mkdir_p File.dirname(extinit_obj)
       system %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
     end
 

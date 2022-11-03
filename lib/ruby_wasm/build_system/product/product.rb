@@ -1,9 +1,5 @@
-require "rake"
-
 module RubyWasm
   class BuildProduct
-    include Rake::DSL
-
     def name
       raise NotImplementedError, "identifiable product name must be implemented"
     end
