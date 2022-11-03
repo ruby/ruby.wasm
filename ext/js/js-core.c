@@ -257,7 +257,7 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   abi_args.ptr =
       ALLOCA_N(rb_js_abi_host_js_abi_value_t, function_arguments_count);
   abi_args.len = function_arguments_count;
-  VALUE rv_args = rb_ary_new2(function_arguments_count);
+  VALUE rv_args = rb_ary_tmp_new(function_arguments_count);
 
   for (int i = 1; i < argc; i++) {
     VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);
