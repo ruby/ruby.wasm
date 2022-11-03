@@ -112,7 +112,6 @@ module RubyWasm
       @baseruby = baseruby
       @source = source
       @toolchain = toolchain
-      @dep_tasks = []
       @user_exts = user_exts
       @wasmoptflags = []
       @cppflags = []
@@ -144,7 +143,6 @@ module RubyWasm
       FileUtils.mkdir_p build_dir
       @toolchain.install
       [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each(&:build)
-      dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
       build_exts
 
@@ -226,10 +224,6 @@ module RubyWasm
 
     def baseruby_path
       File.join(@baseruby.install_dir, "bin/ruby")
-    end
-
-    def dep_tasks
-      @dep_tasks
     end
 
     def configure_args(build_triple, toolchain)
