@@ -1,7 +1,7 @@
 require_relative "./toolchain/wit_bindgen"
 
 module RubyWasm
-  class Toolchain < ::Rake::TaskLib
+  class Toolchain
     attr_reader :name
 
     def initialize
@@ -45,8 +45,9 @@ module RubyWasm
 
     %i[cc ranlib ld ar].each do |name|
       define_method(name) do
-        @tools[name] ||= find_tool(name)
-        @tools[name]
+        @tools_cache ||= {}
+        @tools_cache[name] ||= find_tool(name)
+        @tools_cache[name]
       end
     end
   end
@@ -92,8 +93,7 @@ module RubyWasm
     end
 
     def find_tool(name)
-      unless File.exist? @tools[name]
-        check_envvar("WASI_SDK_PATH")
+      if !File.exist?(@tools[name]) && !ENV["WASI_SDK_PATH"].nil?
         raise "missing tool '#{name}' at #{@tools[name]}"
       end
       @tools[name]
@@ -101,18 +101,6 @@ module RubyWasm
 
     def wasm_opt
       @wasm_opt_path
-    end
-
-    def define_task
-      @task ||= fetch_task
-    end
-
-    def install_task
-      @task
-    end
-
-    def binaryen_install_task
-      @binaryen_install_task
     end
 
     def download_url(version_major, version_minor)
@@ -150,43 +138,37 @@ module RubyWasm
       "https://github.com/WebAssembly/binaryen/releases/download/version_#{@binaryen_version}/#{asset}"
     end
 
-    def fetch_task
-      required = []
-      if @need_fetch_wasi_sdk
-        wasi_sdk_tarball =
-          File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
-        file wasi_sdk_tarball do
-          mkdir_p File.dirname(wasi_sdk_tarball)
-          sh "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
-        end
-        wasi_sdk =
-          file_create @wasi_sdk_path => wasi_sdk_tarball do
-            mkdir_p @wasi_sdk_path
-            sh "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
-          end
-        required << wasi_sdk
+    def install_wasi_sdk
+      return unless @need_fetch_wasi_sdk
+      wasi_sdk_tarball =
+        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
+      unless File.exist? wasi_sdk_tarball
+        FileUtils.mkdir_p File.dirname(wasi_sdk_tarball)
+        system "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
+      end
+      unless File.exist? @wasi_sdk_path
+        FileUtils.mkdir_p @wasi_sdk_path
+        system "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
+      end
+    end
+
+    def install_binaryen
+      return unless @need_fetch_binaryen
+      binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
+      unless File.exist? binaryen_tarball
+        FileUtils.mkdir_p File.dirname(binaryen_tarball)
+        system "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
       end
 
-      if @need_fetch_binaryen
-        binaryen_tarball =
-          File.expand_path("../binaryen.tar.gz", @binaryen_path)
-        file binaryen_tarball do
-          mkdir_p File.dirname(binaryen_tarball)
-          sh "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
-        end
-
-        binaryen =
-          file_create @binaryen_path => binaryen_tarball do
-            mkdir_p @binaryen_path
-            sh "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
-          end
-        @binaryen_install_task ||= task "binaryen:install" => [binaryen]
-        required << binaryen
-      else
-        # no-op when already available
-        @binaryen_install_task ||= task "binaryen:install"
+      unless File.exist? @binaryen_path
+        FileUtils.mkdir_p @binaryen_path
+        system "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
       end
-      multitask "wasi-sdk:install" => required
+    end
+
+    def install
+      install_wasi_sdk
+      install_binaryen
     end
   end
 
@@ -196,12 +178,7 @@ module RubyWasm
       @name = "emscripten"
     end
 
-    def define_task
-      @task ||= task "emscripten:install"
-    end
-
-    def install_task
-      @task
+    def install
     end
 
     def find_tool(name)

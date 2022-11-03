@@ -20,8 +20,9 @@ namespace :npm do
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
     desc "Build npm package #{pkg[:name]}"
-    task pkg[:name] => ["build:#{pkg[:build]}", wasi_sdk.binaryen_install_task] do
+    task pkg[:name] => ["build:#{pkg[:build]}"] do
       wasi_vfs.install_cli
+      wasi_sdk.install_binaryen
       sh "npm ci", chdir: pkg_dir
       sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
       sh "npm pack", chdir: pkg_dir

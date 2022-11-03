@@ -130,6 +130,7 @@ module RubyWasm
     def build(remake: false, reconfigure: false)
       FileUtils.mkdir_p dest_dir
       FileUtils.mkdir_p build_dir
+      @toolchain.install
       [@source, @baseruby, @libyaml, @zlib, @wasi_vfs].each(&:build)
       dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
@@ -196,7 +197,7 @@ module RubyWasm
     end
 
     def dep_tasks
-      [@toolchain.install_task] + @dep_tasks
+      @dep_tasks
     end
 
     def configure_args(build_triple, toolchain)
