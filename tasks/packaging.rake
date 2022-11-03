@@ -10,7 +10,6 @@ WAPM_PACKAGES = [
 
 namespace :npm do
   wasi_vfs = RubyWasm::WasiVfsProduct.new("build")
-  wasi_vfs.define_task
   wasi_sdk = TOOLCHAINS["wasi-sdk"]
   tools = {
     "WASI_VFS_CLI" => wasi_vfs.cli_bin_path,
@@ -21,7 +20,8 @@ namespace :npm do
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
     desc "Build npm package #{pkg[:name]}"
-    task pkg[:name] => ["build:#{pkg[:build]}", wasi_vfs.cli_install_task, wasi_sdk.binaryen_install_task] do
+    task pkg[:name] => ["build:#{pkg[:build]}", wasi_sdk.binaryen_install_task] do
+      wasi_vfs.install_cli
       sh "npm ci", chdir: pkg_dir
       sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
       sh "npm pack", chdir: pkg_dir

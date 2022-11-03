@@ -130,7 +130,7 @@ module RubyWasm
     def build(remake: false, reconfigure: false)
       FileUtils.mkdir_p dest_dir
       FileUtils.mkdir_p build_dir
-      [@source, @baseruby, @libyaml, @zlib].each(&:build)
+      [@source, @baseruby, @libyaml, @zlib, @wasi_vfs].each(&:build)
       dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
       build_exts
@@ -168,7 +168,6 @@ module RubyWasm
 
     def with_wasi_vfs(wasi_vfs)
       @wasi_vfs = wasi_vfs
-      wasi_vfs.install_task&.tap { |t| @dep_tasks << t }
     end
 
     def dest_dir

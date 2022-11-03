@@ -1,7 +1,7 @@
 namespace :check do
   wit_bindgen = RubyWasm::WitBindgen.new(build_dir: "build")
-  wit_bindgen.define_task
-  task :bindgen_c => wit_bindgen.install_task do
+  task :bindgen_c do
+    wit_bindgen.install
     wits = [
       ["ext/witapi/bindgen/rb-abi-guest.wit", "--export"],
       ["ext/js/bindgen/rb-js-abi-host.wit", "--import"],
@@ -12,7 +12,8 @@ namespace :check do
     end
   end
 
-  task :bindgen_js => wit_bindgen.install_task do
+  task :bindgen_js do
+    wit_bindgen.install
     sh *[
       wit_bindgen.bin_path, "host", "js",
       "--import", "ext/witapi/bindgen/rb-abi-guest.wit",
