@@ -2,8 +2,6 @@ require_relative "./product"
 
 module RubyWasm
   class BaseRubyProduct < BuildProduct
-    attr_reader :source, :install_task
-
     def initialize(build_dir, source)
       @build_dir = build_dir
       @source = source
@@ -27,7 +25,7 @@ module RubyWasm
       @source.build
       return if Dir.exist?(install_dir)
       Dir.chdir(product_build_dir) do
-        system "#{source.configure_file} --prefix=#{install_dir} --disable-install-doc"
+        system "#{@source.configure_file} --prefix=#{install_dir} --disable-install-doc"
         system "make install"
       end
     end

@@ -2,7 +2,7 @@ require_relative "./product"
 
 module RubyWasm
   class CrossRubyExtProduct < BuildProduct
-    attr_reader :name, :srcdir
+    attr_reader :name
     def initialize(srcdir, toolchain, name: nil)
       @srcdir, @toolchain = srcdir, toolchain
       @name = name || File.basename(srcdir)
