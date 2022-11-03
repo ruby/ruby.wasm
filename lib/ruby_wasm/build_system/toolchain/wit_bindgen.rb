@@ -12,26 +12,20 @@ module RubyWasm
       @revision = revision
     end
 
-    def define_task
-      file @bin_path do
-        RubyWasm::Toolchain.check_executable("cargo")
-        sh *[
-             "cargo",
-             "install",
-             "--git",
-             "https://github.com/bytecodealliance/wit-bindgen",
-             "--rev",
-             @revision,
-             "--root",
-             @tool_dir,
-             "wit-bindgen-cli"
-           ]
-      end
-      @task ||= task "wit-bindgen:install" => @bin_path
-    end
-
-    def install_task
-      @task
+    def install
+      return if File.exist?(@bin_path)
+      RubyWasm::Toolchain.check_executable("cargo")
+      system *[
+               "cargo",
+               "install",
+               "--git",
+               "https://github.com/bytecodealliance/wit-bindgen",
+               "--rev",
+               @revision,
+               "--root",
+               @tool_dir,
+               "wit-bindgen-cli"
+             ]
     end
   end
 end

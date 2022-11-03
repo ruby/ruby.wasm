@@ -1,10 +1,7 @@
-require "rake"
 require_relative "./product"
 
 module RubyWasm
   class WasiVfsProduct < BuildProduct
-    attr_reader :install_task, :cli_install_task
-
     WASI_VFS_VERSION = "0.1.1"
 
     def initialize(build_dir)
@@ -43,29 +40,25 @@ module RubyWasm
       lib_product_build_dir
     end
 
-    def define_task
-      file(lib_wasi_vfs_a) do
-        require "tmpdir"
-        lib_wasi_vfs_url =
-          "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
-        Dir.mktmpdir do |tmpdir|
-          sh "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
-          sh "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
-          mkdir_p File.dirname(lib_wasi_vfs_a)
-          mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
-        end
+    def build
+      return if !@need_fetch_lib && File.exist?(lib_wasi_vfs_a)
+      require "tmpdir"
+      lib_wasi_vfs_url =
+        "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
+      Dir.mktmpdir do |tmpdir|
+        system "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
+        system "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
+        FileUtils.mkdir_p File.dirname(lib_wasi_vfs_a)
+        FileUtils.mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
       end
-      lib_install_deps = @need_fetch_lib ? [lib_wasi_vfs_a] : []
-      @install_task = task "wasi-vfs:install" => lib_install_deps
+    end
 
-      file(cli_bin_path) do
-        mkdir_p cli_product_build_dir
-        zipfiel = File.join(cli_product_build_dir, "wasi-vfs-cli.zip")
-        sh "curl -L -o #{zipfiel} #{self.cli_download_url}"
-        sh "unzip #{zipfiel} -d #{cli_product_build_dir}"
-      end
-      cli_install_deps = @need_fetch_cli ? [cli_bin_path] : []
-      @cli_install_task = task "wasi-vfs-cli:install" => cli_install_deps
+    def install_cli
+      return if !@need_fetch_cli && File.exist?(cli_bin_path)
+      FileUtils.mkdir_p cli_product_build_dir
+      zipfile = File.join(cli_product_build_dir, "wasi-vfs-cli.zip")
+      system "curl -L -o #{zipfile} #{self.cli_download_url}"
+      system "unzip #{zipfile} -d #{cli_product_build_dir}"
     end
 
     def cli_download_url
