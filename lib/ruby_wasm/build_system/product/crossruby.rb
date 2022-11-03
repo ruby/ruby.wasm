@@ -64,8 +64,8 @@ module RubyWasm
       ]
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       system ({ "RUBYOPT" => "" }),
-                   "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
-                   chdir: objdir
+             "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
+             chdir: objdir
     end
 
     def do_install_rb(crossruby)
@@ -115,8 +115,7 @@ module RubyWasm
     def configure(reconfigure: false)
       if !File.exist?("#{build_dir}/Makefile") || reconfigure
         args = configure_args(RbConfig::CONFIG["host"], toolchain)
-        system "#{source.configure_file} #{args.join(" ")}",
-                     chdir: build_dir
+        system "#{source.configure_file} #{args.join(" ")}", chdir: build_dir
       end
       # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
       system "make rbconfig.rb", chdir: build_dir
@@ -131,8 +130,7 @@ module RubyWasm
     def build(remake: false, reconfigure: false)
       FileUtils.mkdir_p dest_dir
       FileUtils.mkdir_p build_dir
-      Rake::Task[source.configure_file].invoke
-      @baseruby.build
+      [@source, @baseruby].each(&:build)
       dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
       build_exts

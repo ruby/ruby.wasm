@@ -1,4 +1,3 @@
-require "rake"
 require_relative "./product"
 
 module RubyWasm
@@ -25,7 +24,7 @@ module RubyWasm
 
     def build
       FileUtils.mkdir_p product_build_dir
-      Rake::Task[source.configure_file].invoke
+      @source.build
       return if Dir.exist?(install_dir)
       Dir.chdir(product_build_dir) do
         system "#{source.configure_file} --prefix=#{install_dir} --disable-install-doc"
