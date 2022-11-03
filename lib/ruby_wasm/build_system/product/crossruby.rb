@@ -32,7 +32,7 @@ module RubyWasm
       objdir = product_build_dir crossruby
       FileUtils.mkdir_p objdir
       do_extconf crossruby
-      FileUtils.sh %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} #{lib}.a)
+      system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} #{lib}.a)
       # A ext can provide link args by link.filelist. It contains only built archive file by default.
       unless File.exist?(linklist(crossruby))
         File.write(linklist(crossruby), Dir.glob("#{objdir}/*.a").join("\n"))
@@ -63,14 +63,14 @@ module RubyWasm
         "-I#{crossruby.build_dir}"
       ]
       # Clear RUBYOPT to avoid loading unrelated bundle setup
-      FileUtils.sh ({ "RUBYOPT" => "" }),
+      system ({ "RUBYOPT" => "" }),
                    "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
                    chdir: objdir
     end
 
     def do_install_rb(crossruby)
       objdir = product_build_dir crossruby
-      FileUtils.sh %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} install-rb)
+      system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} install-rb)
     end
   end
 
@@ -115,36 +115,37 @@ module RubyWasm
     def configure(reconfigure: false)
       if !File.exist?("#{build_dir}/Makefile") || reconfigure
         args = configure_args(RbConfig::CONFIG["host"], toolchain)
-        FileUtils.sh "#{source.configure_file} #{args.join(" ")}",
+        system "#{source.configure_file} #{args.join(" ")}",
                      chdir: build_dir
       end
       # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
-      FileUtils.sh "make rbconfig.rb", chdir: build_dir
+      system "make rbconfig.rb", chdir: build_dir
     end
 
     def build_exts
       @user_exts.each { |prod| prod.build(self) }
       mkdir_p File.dirname(extinit_obj)
-      FileUtils.sh %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+      system %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
     end
 
     def build(remake: false, reconfigure: false)
       FileUtils.mkdir_p dest_dir
       FileUtils.mkdir_p build_dir
       Rake::Task[source.configure_file].invoke
+      @baseruby.build
       dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
       build_exts
 
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
-        FileUtils.sh "make install DESTDIR=#{install_dir}", chdir: build_dir
+        system "make install DESTDIR=#{install_dir}", chdir: build_dir
       end
 
       FileUtils.rm_rf dest_dir
       FileUtils.cp_r install_dir, dest_dir
       @user_exts.each { |ext| ext.do_install_rb(self) }
-      FileUtils.sh "tar cfz #{artifact} -C rubies #{name}"
+      system "tar cfz #{artifact} -C rubies #{name}"
     end
 
     def name
@@ -200,7 +201,7 @@ module RubyWasm
     end
 
     def dep_tasks
-      [@baseruby.install_task, @toolchain.install_task] + @dep_tasks
+      [@toolchain.install_task] + @dep_tasks
     end
 
     def configure_args(build_triple, toolchain)
