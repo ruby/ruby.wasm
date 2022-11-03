@@ -62,8 +62,6 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
       )
     yield self if block_given?
 
-    @products_to_define&.each(&:define_task)
-
     @crossruby.with_libyaml @libyaml
     @crossruby.with_zlib @zlib
     @crossruby.with_wasi_vfs @wasi_vfs
@@ -95,16 +93,5 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     digest << @zlib.name
     digest << @wasi_vfs.name
     digest.hexdigest
-  end
-
-  private
-
-  def add_product(product)
-    @@products ||= {}
-    return @@products[product.name] if @@products[product.name]
-    @@products[product.name] = product
-    @products_to_define ||= []
-    @products_to_define << product
-    product
   end
 end
