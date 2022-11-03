@@ -41,7 +41,7 @@ module RubyWasm
     end
 
     def build
-      return if !@need_fetch_lib && File.exist?(lib_wasi_vfs_a)
+      return if !@need_fetch_lib || File.exist?(lib_wasi_vfs_a)
       require "tmpdir"
       lib_wasi_vfs_url =
         "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
@@ -54,7 +54,7 @@ module RubyWasm
     end
 
     def install_cli
-      return if !@need_fetch_cli && File.exist?(cli_bin_path)
+      return if !@need_fetch_cli || File.exist?(cli_bin_path)
       FileUtils.mkdir_p cli_product_build_dir
       zipfile = File.join(cli_product_build_dir, "wasi-vfs-cli.zip")
       system "curl -L -o #{zipfile} #{self.cli_download_url}"
