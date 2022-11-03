@@ -257,6 +257,8 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   abi_args.ptr =
       ALLOCA_N(rb_js_abi_host_js_abi_value_t, function_arguments_count);
   abi_args.len = function_arguments_count;
+  VALUE rv_args = rb_ary_new2(function_arguments_count);
+
   for (int i = 1; i < argc; i++) {
     VALUE arg = _rb_js_try_convert(rb_mJS, argv[i]);
     if (arg == Qnil) {
@@ -264,16 +266,21 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
                1 + i);
     }
     abi_args.ptr[i - 1] = check_jsvalue(arg)->abi;
+    rb_ary_push(rv_args, arg);
   }
 
   if (rb_block_given_p()) {
     VALUE proc = rb_block_proc();
-    abi_args.ptr[function_arguments_count - 1] =
-        check_jsvalue(_rb_js_try_convert(rb_mJS, proc))->abi;
+    VALUE rb_proc = _rb_js_try_convert(rb_mJS, proc);
+    abi_args.ptr[function_arguments_count - 1] = check_jsvalue(rb_proc)->abi;
+    rb_ary_push(rv_args, rb_proc);
   }
 
-  return jsvalue_s_new(
+  VALUE result = jsvalue_s_new(
       rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args));
+  RB_GC_GUARD(rv_args);
+  RB_GC_GUARD(method);
+  return result;
 }
 
 /*

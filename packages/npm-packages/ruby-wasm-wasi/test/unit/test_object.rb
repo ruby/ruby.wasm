@@ -146,6 +146,16 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "1,2,3", JS.global.call(:Array, 1, 2, 3).to_s
   end
 
+  def test_call_with_stress_gc
+    obj = JS.eval(<<~JS)
+      return { takeArg() {} }
+    JS
+    GC.stress = true
+    obj.call(:takeArg, "1")
+    obj.call(:takeArg) {}
+    GC.stress = false
+  end
+
   def test_method_missing
     assert_equal "42", JS.eval("return 42;").toString.to_s
     assert_equal "o", JS.eval("return 'hello';").charAt(4).to_s
