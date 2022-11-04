@@ -19,7 +19,7 @@ $ rake --tasks
 $ rake build:download_prebuilt
 
 # Build Ruby (if you need to build Ruby by yourself)
-$ rake build:head-wasm32-unknown-wasi-full-js
+$ rake build:head-wasm32-unknown-wasi-full-js-debug
 
 # Build npm package
 $ rake npm:ruby-head-wasm-wasi
