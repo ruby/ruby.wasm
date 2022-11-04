@@ -16,6 +16,7 @@ export const DefaultRubyVM = async (
 
   if (options.consolePrint) {
     const originalWriteSync = wasmFs.fs.writeSync.bind(wasmFs.fs);
+    const stdOutErrBuffers = { 1: "", 2: "" };
     wasmFs.fs.writeSync = function () {
       let fd: number = arguments[0];
       let text: string;
@@ -29,7 +30,15 @@ export const DefaultRubyVM = async (
         1: (line: string) => console.log(line),
         2: (line: string) => console.warn(line),
       };
-      if (handlers[fd]) handlers[fd](text);
+      if (handlers[fd]) {
+        text = stdOutErrBuffers[fd] + text;
+        let i = text.lastIndexOf("\n");
+        if (i >= 0) {
+          handlers[fd](text.substring(0, i + 1));
+          text = text.substring(i + 1);
+        }
+        stdOutErrBuffers[fd] = text;
+      }
       return originalWriteSync(...arguments);
     };
   }
