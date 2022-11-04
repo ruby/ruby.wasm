@@ -147,6 +147,13 @@ module RubyWasm
       system "tar cfz #{artifact} -C rubies #{name}"
     end
 
+    def clean
+      FileUtils.rm_rf dest_dir
+      FileUtils.rm_rf build_dir
+      FileUtils.rm_rf ext_build_dir
+      FileUtils.rm_f artifact
+    end
+
     def name
       @params.name
     end

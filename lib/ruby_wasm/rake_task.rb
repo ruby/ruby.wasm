@@ -78,6 +78,9 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
       task :reconfigure do
         @crossruby.build(reconfigure: true)
       end
+      task :clean do
+        @crossruby.clean
+      end
     end
   end
 
