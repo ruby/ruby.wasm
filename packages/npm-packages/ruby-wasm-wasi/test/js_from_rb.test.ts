@@ -228,4 +228,16 @@ describe("Manipulation of JS from Ruby", () => {
       object.call("itself");
     }
   });
+
+  test.each([
+    { expr: `JS::Undefined`, expected: "undefined" },
+    { expr: `JS::Null`, expected: "null" },
+  ])("constant %s", async ({ expr, expected }) => {
+    const vm = await initRubyVM();
+    const result = vm.eval(`
+      require "js"
+      ${expr}.inspect
+    `);
+    expect(result.toJS()).toEqual(expected);
+  });
 });
