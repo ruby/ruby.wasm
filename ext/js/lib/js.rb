@@ -13,6 +13,8 @@ require "js.so"
 #   end
 #
 module JS
+  Undefined = JS.eval("return undefined")
+  Null = JS.eval("return null")
 end
 
 class JS::Object
