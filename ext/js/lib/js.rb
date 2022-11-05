@@ -87,7 +87,9 @@ class JS::Object
     unless sched
       raise "Please start Ruby evaluation with RubyVM.eval_async to use JS::Object#await"
     end
-    sched.await(self)
+    # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
+    promise = JS.global[:Promise].resolve(self)
+    sched.await(promise)
   end
 end
 
