@@ -67,6 +67,7 @@ extern "C"
   rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_errinfo(void);
   void rb_abi_guest_rb_clear_errinfo(void);
   void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_abi_value_t value, rb_abi_guest_string_t *ret0);
+  void rb_abi_guest_rb_vm_bugreport(void);
   #ifdef __cplusplus
 }
 #endif

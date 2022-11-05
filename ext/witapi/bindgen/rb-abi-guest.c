@@ -201,3 +201,7 @@ void __wasm_export_rb_abi_guest_rstring_ptr_post_return(int32_t arg0) {
     free((void*) (*((int32_t*) (arg0 + 0))));
   }
 }
+__attribute__((export_name("rb-vm-bugreport: func() -> ()")))
+void __wasm_export_rb_abi_guest_rb_vm_bugreport(void) {
+  rb_abi_guest_rb_vm_bugreport();
+}

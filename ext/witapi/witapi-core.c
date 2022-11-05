@@ -247,4 +247,8 @@ uint32_t rb_abi_guest_rb_abi_value_data_ptr(rb_abi_guest_rb_abi_value_t self) {
   return (uint32_t)DATA_PTR(obj);
 }
 
+void rb_vm_bugreport(const void *);
+
+void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
+
 void Init_witapi(void) {}

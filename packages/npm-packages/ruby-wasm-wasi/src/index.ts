@@ -471,6 +471,21 @@ const checkStatusTag = (
   }
 };
 
+function wrapRbOperation<R>(vm: RubyVM, body: () => R): R {
+  try {
+    return body();
+  } catch (e) {
+    if (e instanceof WebAssembly.RuntimeError && e.message === "unreachable") {
+      vm.guest.rbVmBugreport();
+      const error = new RbError(`Something went wrong in Ruby VM: ${e}`);
+      error.stack = e.stack;
+      throw error;
+    } else {
+      throw e;
+    }
+  }
+}
+
 const callRbMethod = (
   vm: RubyVM,
   privateObject: RubyVMPrivate,
@@ -479,14 +494,18 @@ const callRbMethod = (
   args: RbAbi.RbAbiValue[]
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
-  const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, args);
-  checkStatusTag(status, vm, privateObject);
-  return value;
+  return wrapRbOperation(vm, () => {
+    const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, args);
+    checkStatusTag(status, vm, privateObject);
+    return value;
+  });
 };
 const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
-  const [value, status] = vm.guest.rbEvalStringProtect(code + "\0");
-  checkStatusTag(status, vm, privateObject);
-  return new RbValue(value, vm, privateObject);
+  return wrapRbOperation(vm, () => {
+    const [value, status] = vm.guest.rbEvalStringProtect(code + "\0");
+    checkStatusTag(status, vm, privateObject);
+    return new RbValue(value, vm, privateObject);
+  });
 };
 
 /**
