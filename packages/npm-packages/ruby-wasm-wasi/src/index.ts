@@ -406,6 +406,12 @@ class RbExceptionFormatter {
     })();
 
     const backtrace = error.call("backtrace");
+    if (backtrace.call("nil?").toString() === "true") {
+      return this.formatString(
+        error.call("class").toString(),
+        error.toString()
+      );
+    }
     const firstLine = backtrace.call("at", zeroLiteral);
     const restLines = backtrace
       .call("drop", oneLiteral)
@@ -419,9 +425,13 @@ class RbExceptionFormatter {
   formatString(
     klass: string,
     message: string,
-    backtrace: [string, string]
+    backtrace?: [string, string]
   ): string {
-    return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
+    if (backtrace) {
+      return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
+    } else {
+      return `${klass}: ${message}`;
+    }
   }
 }
 
