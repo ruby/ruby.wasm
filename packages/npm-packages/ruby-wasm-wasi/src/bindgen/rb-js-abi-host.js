@@ -1,13 +1,29 @@
 import { data_view, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, Slab, throw_invalid_bool } from './intrinsics.js';
 export function addRbJsAbiHostToImports(imports, obj, get_export) {
   if (!("rb-js-abi-host" in imports)) imports["rb-js-abi-host"] = {};
-  imports["rb-js-abi-host"]["eval-js: func(code: string) -> handle<js-abi-value>"] = function(arg0, arg1) {
+  imports["rb-js-abi-host"]["eval-js: func(code: string) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }"] = function(arg0, arg1, arg2) {
     const memory = get_export("memory");
     const ptr0 = arg0;
     const len0 = arg1;
     const result0 = UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr0, len0));
     const ret0 = obj.evalJs(result0);
-    return resources0.insert(ret0);
+    const variant1 = ret0;
+    switch (variant1.tag) {
+      case "success": {
+        const e = variant1.val;
+        data_view(memory).setInt8(arg2 + 0, 0, true);
+        data_view(memory).setInt32(arg2 + 4, resources0.insert(e), true);
+        break;
+      }
+      case "failure": {
+        const e = variant1.val;
+        data_view(memory).setInt8(arg2 + 0, 1, true);
+        data_view(memory).setInt32(arg2 + 4, resources0.insert(e), true);
+        break;
+      }
+      default:
+      throw new RangeError("invalid variant specified for JsAbiResult");
+    }
   };
   imports["rb-js-abi-host"]["is-js: func(value: handle<js-abi-value>) -> bool"] = function(arg0) {
     const ret0 = obj.isJs(resources0.get(arg0));
@@ -104,7 +120,7 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
     const ret0 = obj.jsValueStrictlyEqual(resources0.get(arg0), resources0.get(arg1));
     return ret0 ? 1 : 0;
   };
-  imports["rb-js-abi-host"]["reflect-apply: func(target: handle<js-abi-value>, this-argument: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> handle<js-abi-value>"] = function(arg0, arg1, arg2, arg3) {
+  imports["rb-js-abi-host"]["reflect-apply: func(target: handle<js-abi-value>, this-argument: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }"] = function(arg0, arg1, arg2, arg3, arg4) {
     const memory = get_export("memory");
     const len0 = arg3;
     const base0 = arg2;
@@ -114,7 +130,23 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
       result0.push(resources0.get(data_view(memory).getInt32(base + 0, true)));
     }
     const ret0 = obj.reflectApply(resources0.get(arg0), resources0.get(arg1), result0);
-    return resources0.insert(ret0);
+    const variant1 = ret0;
+    switch (variant1.tag) {
+      case "success": {
+        const e = variant1.val;
+        data_view(memory).setInt8(arg4 + 0, 0, true);
+        data_view(memory).setInt32(arg4 + 4, resources0.insert(e), true);
+        break;
+      }
+      case "failure": {
+        const e = variant1.val;
+        data_view(memory).setInt8(arg4 + 0, 1, true);
+        data_view(memory).setInt32(arg4 + 4, resources0.insert(e), true);
+        break;
+      }
+      default:
+      throw new RangeError("invalid variant specified for JsAbiResult");
+    }
   };
   imports["rb-js-abi-host"]["reflect-construct: func(target: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> handle<js-abi-value>"] = function(arg0, arg1, arg2) {
     const memory = get_export("memory");

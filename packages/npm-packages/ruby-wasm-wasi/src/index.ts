@@ -1,5 +1,5 @@
 import * as RbAbi from "./bindgen/rb-abi-guest";
-import { addRbJsAbiHostToImports, JsAbiValue } from "./bindgen/rb-js-abi-host";
+import { addRbJsAbiHostToImports, JsAbiResult, JsAbiValue } from "./bindgen/rb-js-abi-host";
 
 /**
  * A Ruby VM instance
@@ -65,12 +65,21 @@ export class RubyVM {
    */
   addToImports(imports: WebAssembly.Imports) {
     this.guest.addToImports(imports);
+    function wrapTry(f: (...args: any[]) => JsAbiValue): () => JsAbiResult {
+      return (...args) => {
+        try {
+          return { tag: "success", val: f(...args) };
+        } catch (e) {
+          return { tag: "failure", val: e }
+        }
+      }
+    };
     addRbJsAbiHostToImports(
       imports,
       {
-        evalJs: (code) => {
+        evalJs: wrapTry((code) => {
           return Function(code)();
-        },
+        }),
         isJs: (value) => {
           // Just for compatibility with the old JS API
           return true;
@@ -144,9 +153,9 @@ export class RubyVM {
         jsValueStrictlyEqual(lhs, rhs) {
           return lhs === rhs;
         },
-        reflectApply: function (target, thisArgument, args) {
+        reflectApply: wrapTry((target, thisArgument, args) => {
           return Reflect.apply(target as any, thisArgument, args);
-        },
+        }),
         reflectConstruct: function (target, args) {
           throw new Error("Function not implemented.");
         },

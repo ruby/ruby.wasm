@@ -1,6 +1,11 @@
 resource js-abi-value
 
-eval-js: func(code: string) -> js-abi-value
+variant js-abi-result {
+    success(js-abi-value),
+    failure(js-abi-value),
+}
+
+eval-js: func(code: string) -> js-abi-result
 is-js: func(value: js-abi-value) -> bool
 instance-of: func(value: js-abi-value, klass: js-abi-value) -> bool
 global-this: func() -> js-abi-value
@@ -27,7 +32,7 @@ js-value-typeof: func(value: js-abi-value) -> string
 js-value-equal: func(lhs: js-abi-value, rhs: js-abi-value) -> bool
 js-value-strictly-equal: func(lhs: js-abi-value, rhs: js-abi-value) -> bool
 
-reflect-apply: func(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
+reflect-apply: func(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-result
 reflect-construct: func(target: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-delete-property: func(target: js-abi-value, property-key: string) -> bool
 reflect-get: func(target: js-abi-value, property-key: string) -> js-abi-value

@@ -1,3 +1,12 @@
+export type JsAbiResult = JsAbiResultSuccess | JsAbiResultFailure;
+export interface JsAbiResultSuccess {
+  tag: "success",
+  val: JsAbiValue,
+}
+export interface JsAbiResultFailure {
+  tag: "failure",
+  val: JsAbiValue,
+}
 export type RawInteger = RawIntegerF64 | RawIntegerBignum;
 export interface RawIntegerF64 {
   tag: "f64",
@@ -9,7 +18,7 @@ export interface RawIntegerBignum {
 }
 export function addRbJsAbiHostToImports(imports: any, obj: RbJsAbiHost, get_export: (name: string) => WebAssembly.ExportValue): void;
 export interface RbJsAbiHost {
-  evalJs(code: string): JsAbiValue;
+  evalJs(code: string): JsAbiResult;
   isJs(value: JsAbiValue): boolean;
   instanceOf(value: JsAbiValue, klass: JsAbiValue): boolean;
   globalThis(): JsAbiValue;
@@ -25,7 +34,7 @@ export interface RbJsAbiHost {
   jsValueTypeof(value: JsAbiValue): string;
   jsValueEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
   jsValueStrictlyEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
-  reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: JsAbiValue[]): JsAbiValue;
+  reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: JsAbiValue[]): JsAbiResult;
   reflectConstruct(target: JsAbiValue, arguments: JsAbiValue[]): JsAbiValue;
   reflectDeleteProperty(target: JsAbiValue, propertyKey: string): boolean;
   reflectGet(target: JsAbiValue, propertyKey: string): JsAbiValue;

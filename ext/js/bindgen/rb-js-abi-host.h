@@ -25,6 +25,16 @@ extern "C"
   typedef struct {
     uint8_t tag;
     union {
+      rb_js_abi_host_js_abi_value_t success;
+      rb_js_abi_host_js_abi_value_t failure;
+    } val;
+  } rb_js_abi_host_js_abi_result_t;
+  #define RB_JS_ABI_HOST_JS_ABI_RESULT_SUCCESS 0
+  #define RB_JS_ABI_HOST_JS_ABI_RESULT_FAILURE 1
+  void rb_js_abi_host_js_abi_result_free(rb_js_abi_host_js_abi_result_t *ptr);
+  typedef struct {
+    uint8_t tag;
+    union {
       double f64;
       rb_js_abi_host_string_t bignum;
     } val;
@@ -37,7 +47,7 @@ extern "C"
     size_t len;
   } rb_js_abi_host_list_js_abi_value_t;
   void rb_js_abi_host_list_js_abi_value_free(rb_js_abi_host_list_js_abi_value_t *ptr);
-  rb_js_abi_host_js_abi_value_t rb_js_abi_host_eval_js(rb_js_abi_host_string_t *code);
+  void rb_js_abi_host_eval_js(rb_js_abi_host_string_t *code, rb_js_abi_host_js_abi_result_t *ret0);
   bool rb_js_abi_host_is_js(rb_js_abi_host_js_abi_value_t value);
   bool rb_js_abi_host_instance_of(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_js_abi_value_t klass);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_global_this(void);
@@ -53,7 +63,7 @@ extern "C"
   void rb_js_abi_host_js_value_typeof(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_string_t *ret0);
   bool rb_js_abi_host_js_value_equal(rb_js_abi_host_js_abi_value_t lhs, rb_js_abi_host_js_abi_value_t rhs);
   bool rb_js_abi_host_js_value_strictly_equal(rb_js_abi_host_js_abi_value_t lhs, rb_js_abi_host_js_abi_value_t rhs);
-  rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t this_argument, rb_js_abi_host_list_js_abi_value_t *arguments);
+  void rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t this_argument, rb_js_abi_host_list_js_abi_value_t *arguments, rb_js_abi_host_js_abi_result_t *ret0);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_construct(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_list_js_abi_value_t *arguments);
   bool rb_js_abi_host_reflect_delete_property(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_get(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
