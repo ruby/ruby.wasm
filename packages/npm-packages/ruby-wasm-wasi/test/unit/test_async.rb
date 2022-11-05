@@ -18,7 +18,7 @@ class JS::TestAsync < Test::Unit::TestCase
     assert_equal 43, promise.await.to_i
   end
 
-  # def test_await_non_promise
-  #   assert_equal 42, JS.eval("return 42").await.to_i
-  # end
+  def test_await_non_promise
+    assert_equal 42, JS.eval("return 42").await.to_i
+  end
 end
