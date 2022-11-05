@@ -180,7 +180,10 @@ static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
   rb_js_abi_host_string_t key_abi_str;
   key = rb_obj_as_string(key);
   rstring_to_abi_string(key, &key_abi_str);
-  return jsvalue_s_new(rb_js_abi_host_reflect_get(p->abi, &key_abi_str));
+  rb_js_abi_host_js_abi_result_t ret;
+  rb_js_abi_host_reflect_get(p->abi, &key_abi_str, &ret);
+  raise_js_error_if_failure(&ret);
+  return jsvalue_s_new(ret.val.success);
 }
 
 /*
@@ -199,7 +202,10 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   rb_js_abi_host_string_t key_abi_str;
   key = rb_obj_as_string(key);
   rstring_to_abi_string(key, &key_abi_str);
-  rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi);
+  rb_js_abi_host_js_abi_result_t ret;
+  rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi, &ret);
+  raise_js_error_if_failure(&ret);
+  rb_js_abi_host_js_abi_value_free(&ret.val.success);
   RB_GC_GUARD(rv);
   return val;
 }
