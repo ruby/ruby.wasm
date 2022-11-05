@@ -223,7 +223,9 @@ eval:11:in \`<main>'`);
 
   test("await outside of evalAsync", async () => {
     const vm = await initRubyVM();
-    const result = vm.eval(`require "js"; JS.global[:Promise].resolve(42).await`);
+    const result = vm.eval(
+      `require "js"; JS.global[:Promise].resolve(42).await`
+    );
     expect(result.call("nil?").toString()).toBe("true");
   });
 });
