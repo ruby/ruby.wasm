@@ -229,7 +229,7 @@ export class RubyVM {
     const JS = this.eval("require 'js'; JS");
     return new Promise((resolve, reject) => {
       JS.call(
-        "eval_async",
+        "__eval_async_rb",
         this.wrap(code),
         this.wrap({
           resolve,
