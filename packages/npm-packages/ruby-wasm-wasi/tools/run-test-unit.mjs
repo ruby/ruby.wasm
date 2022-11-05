@@ -23,7 +23,11 @@ const instantiate = async (rootTestFile) => {
   const wasi = new WASI({
     stdio: "inherit",
     args: ["ruby.wasm"].concat(process.argv.slice(2)),
-    env: process.env,
+    env: {
+      ...process.env,
+      // Extend fiber stack size to be able to run test-unit
+      "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
+    },
     preopens: preopens,
   });
 
@@ -47,6 +51,9 @@ const main = async () => {
   const rootTestFile = "/__root__/test/test_unit.rb";
   const { vm } = await instantiate(rootTestFile);
 
+  Error.stackTraceLimit = Infinity;
+
+  // FIXME: require 'test/unit' fails with evalAsync due to Kernel#eval (?)
   vm.eval(`
     # HACK: Until we've fixed the issue in the test-unit or power_assert
     # See https://github.com/test-unit/test-unit/pull/221
@@ -62,6 +69,8 @@ const main = async () => {
     end
 
     require 'test/unit'
+  `);
+  await vm.evalAsync(`
     require_relative '${rootTestFile}'
     Test::Unit::AutoRunner.run
   `);
