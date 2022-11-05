@@ -77,7 +77,8 @@ static inline void rstring_to_abi_string(VALUE rstr,
   memcpy(abi_str->ptr, RSTRING_PTR(rstr), abi_str->len);
 }
 
-static inline void raise_js_error_if_failure(const rb_js_abi_host_js_abi_result_t *result) {
+static inline void
+raise_js_error_if_failure(const rb_js_abi_host_js_abi_result_t *result) {
   if (result->tag == RB_JS_ABI_HOST_JS_ABI_RESULT_FAILURE) {
     VALUE js_err = jsvalue_s_new(result->val.failure);
     VALUE rb_err = rb_class_new_instance(1, &js_err, rb_cJS_Error);

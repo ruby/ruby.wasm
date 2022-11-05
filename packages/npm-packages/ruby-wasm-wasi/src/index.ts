@@ -1,5 +1,9 @@
 import * as RbAbi from "./bindgen/rb-abi-guest";
-import { addRbJsAbiHostToImports, JsAbiResult, JsAbiValue } from "./bindgen/rb-js-abi-host";
+import {
+  addRbJsAbiHostToImports,
+  JsAbiResult,
+  JsAbiValue,
+} from "./bindgen/rb-js-abi-host";
 
 /**
  * A Ruby VM instance
@@ -70,10 +74,10 @@ export class RubyVM {
         try {
           return { tag: "success", val: f(...args) };
         } catch (e) {
-          return { tag: "failure", val: e }
+          return { tag: "failure", val: e };
         }
-      }
-    };
+      };
+    }
     addRbJsAbiHostToImports(
       imports,
       {

@@ -5,7 +5,12 @@ import { RubyVM } from "./index";
 export const DefaultRubyVM = async (
   rubyModule: WebAssembly.Module,
   options: { consolePrint: boolean } = { consolePrint: true }
-): Promise<{ vm: RubyVM, wasi: any, fs: any, instance: WebAssembly.Instance }> => {
+): Promise<{
+  vm: RubyVM;
+  wasi: any;
+  fs: any;
+  instance: WebAssembly.Instance;
+}> => {
   const wasmFs = new WasmFs();
   const wasi = new WASI({
     bindings: {
