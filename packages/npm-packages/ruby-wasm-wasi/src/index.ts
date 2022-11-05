@@ -225,6 +225,20 @@ export class RubyVM {
     return evalRbCode(this, this.privateObject(), code);
   }
 
+  /**
+   * Runs a string of Ruby code with top-level `JS::Object#await`
+   * Returns a promise that resolves when execution completes.
+   * @param code The Ruby code to run
+   * @returns a promise that resolves to the result of the last expression
+   *
+   * @example
+   * const text = await vm.evalAsync(`
+   *   require 'js'
+   *   response = JS.global.fetch('https://example.com').await
+   *   response.text.await
+   * `);
+   * console.log(text.toString()); // <html>...</html>
+   */
   evalAsync(code: string): Promise<RbValue> {
     const JS = this.eval("require 'js'; JS");
     return new Promise((resolve, reject) => {
