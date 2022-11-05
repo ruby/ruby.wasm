@@ -22,15 +22,16 @@ module JS
     def initialize(main_fiber)
       @tasks = []
       @is_spinning = false
-      @loop_fiber = Fiber.new do
-        loop do
-          while task = @tasks.shift
-            task.fiber.transfer(task.value, task.status)
+      @loop_fiber =
+        Fiber.new do
+          loop do
+            while task = @tasks.shift
+              task.fiber.transfer(task.value, task.status)
+            end
+            @is_spinning = false
+            main_fiber.transfer
           end
-          @is_spinning = false
-          main_fiber.transfer
         end
-      end
     end
 
     def await(promise)
@@ -61,12 +62,17 @@ module JS
   end
 
   private
+
   def self.__eval_async_rb(rb_code, future)
-    Fiber.new do
-      future.resolve JS::Object.wrap(Kernel.eval(rb_code.to_s, nil, "eval_async"))
-    rescue => e
-      future.reject JS::Object.wrap(e)
-    end.transfer
+    Fiber
+      .new do
+        future.resolve JS::Object.wrap(
+                         Kernel.eval(rb_code.to_s, nil, "eval_async")
+                       )
+      rescue => e
+        future.reject JS::Object.wrap(e)
+      end
+      .transfer
   end
 end
 
