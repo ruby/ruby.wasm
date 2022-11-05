@@ -28,6 +28,8 @@ module RubyWasm
         system "git remote add origin #{repo_url}", chdir: src_dir
         system "git fetch --depth 1 origin #{@params[:rev]}", chdir: src_dir
         system "git checkout #{@params[:rev]}", chdir: src_dir
+      when "local"
+        FileUtils.cp_r @params[:src], src_dir
       else
         raise "unknown source type: #{@params[:type]}"
       end
