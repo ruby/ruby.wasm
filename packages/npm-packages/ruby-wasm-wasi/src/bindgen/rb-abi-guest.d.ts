@@ -79,6 +79,7 @@ export class RbAbiGuest {
   rbErrinfo(): RbAbiValue;
   rbClearErrinfo(): void;
   rstringPtr(value: RbAbiValue): string;
+  rbVmBugreport(): void;
 }
 
 export class RbIseq {

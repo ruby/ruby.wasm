@@ -158,6 +158,9 @@ export class RbAbiGuest {
     this._exports["cabi_post_rstring-ptr"](ret);
     return result1;
   }
+  rbVmBugreport() {
+    this._exports['rb-vm-bugreport: func() -> ()']();
+  }
 }
 
 export class RbIseq {

@@ -16,3 +16,5 @@ rb-errinfo: func() -> rb-abi-value
 rb-clear-errinfo: func()
 
 rstring-ptr: func(value: rb-abi-value) -> string
+
+rb-vm-bugreport: func()
