@@ -186,10 +186,6 @@ module RubyWasm
       File.join(@rubies_dir, "ruby-#{name}.tar.gz")
     end
 
-    def built?
-      File.exist?(artifact)
-    end
-
     def extinit_obj
       "#{ext_build_dir}/extinit.o"
     end
