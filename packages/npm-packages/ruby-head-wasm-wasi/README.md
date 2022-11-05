@@ -131,15 +131,18 @@ jnode.setRNode(rnode);
   - [eval](#eval)
     - [Parameters](#parameters-3)
     - [Examples](#examples-1)
-  - [wrap](#wrap)
+  - [evalAsync](#evalasync)
     - [Parameters](#parameters-4)
     - [Examples](#examples-2)
-- [RbValue](#rbvalue)
-  - [call](#call)
+  - [wrap](#wrap)
     - [Parameters](#parameters-5)
     - [Examples](#examples-3)
-  - [toPrimitive](#toprimitive)
+- [RbValue](#rbvalue)
+  - [call](#call)
     - [Parameters](#parameters-6)
+    - [Examples](#examples-4)
+  - [toPrimitive](#toprimitive)
+    - [Parameters](#parameters-7)
   - [toString](#tostring)
   - [toJS](#tojs)
 - [RbError](#rberror)
@@ -216,6 +219,28 @@ console.log(result.toString()); // 3
 ```
 
 Returns **any** the result of the last expression
+
+#### evalAsync
+
+Runs a string of Ruby code with top-level `JS::Object#await`
+Returns a promise that resolves when execution completes.
+
+##### Parameters
+
+- `code` The Ruby code to run
+
+##### Examples
+
+```javascript
+const text = await vm.evalAsync(`
+  require 'js'
+  response = JS.global.fetch('https://example.com').await
+  response.text.await
+`);
+console.log(text.toString()); // <html>...</html>
+```
+
+Returns **any** a promise that resolves to the result of the last expression
 
 #### wrap
 
