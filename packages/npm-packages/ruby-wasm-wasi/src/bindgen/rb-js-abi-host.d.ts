@@ -37,14 +37,14 @@ export interface RbJsAbiHost {
   reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: JsAbiValue[]): JsAbiResult;
   reflectConstruct(target: JsAbiValue, arguments: JsAbiValue[]): JsAbiValue;
   reflectDeleteProperty(target: JsAbiValue, propertyKey: string): boolean;
-  reflectGet(target: JsAbiValue, propertyKey: string): JsAbiValue;
+  reflectGet(target: JsAbiValue, propertyKey: string): JsAbiResult;
   reflectGetOwnPropertyDescriptor(target: JsAbiValue, propertyKey: string): JsAbiValue;
   reflectGetPrototypeOf(target: JsAbiValue): JsAbiValue;
   reflectHas(target: JsAbiValue, propertyKey: string): boolean;
   reflectIsExtensible(target: JsAbiValue): boolean;
   reflectOwnKeys(target: JsAbiValue): JsAbiValue[];
   reflectPreventExtensions(target: JsAbiValue): boolean;
-  reflectSet(target: JsAbiValue, propertyKey: string, value: JsAbiValue): boolean;
+  reflectSet(target: JsAbiValue, propertyKey: string, value: JsAbiValue): JsAbiResult;
   reflectSetPrototypeOf(target: JsAbiValue, prototype: JsAbiValue): boolean;
   dropJsAbiValue?: (val: JsAbiValue) => void;
 }

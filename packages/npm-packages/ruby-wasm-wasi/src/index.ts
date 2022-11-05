@@ -162,9 +162,9 @@ export class RubyVM {
         reflectDeleteProperty: function (target, propertyKey): boolean {
           throw new Error("Function not implemented.");
         },
-        reflectGet: function (target, propertyKey) {
+        reflectGet: wrapTry((target, propertyKey) => {
           return target[propertyKey];
-        },
+        }),
         reflectGetOwnPropertyDescriptor: function (
           target,
           propertyKey: string
@@ -186,9 +186,9 @@ export class RubyVM {
         reflectPreventExtensions: function (target): boolean {
           throw new Error("Function not implemented.");
         },
-        reflectSet: function (target, propertyKey, value): boolean {
+        reflectSet: wrapTry((target, propertyKey, value) => {
           return Reflect.set(target, propertyKey, value);
-        },
+        }),
         reflectSetPrototypeOf: function (target, prototype): boolean {
           throw new Error("Function not implemented.");
         },

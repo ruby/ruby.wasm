@@ -35,12 +35,12 @@ js-value-strictly-equal: func(lhs: js-abi-value, rhs: js-abi-value) -> bool
 reflect-apply: func(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-result
 reflect-construct: func(target: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-delete-property: func(target: js-abi-value, property-key: string) -> bool
-reflect-get: func(target: js-abi-value, property-key: string) -> js-abi-value
+reflect-get: func(target: js-abi-value, property-key: string) -> js-abi-result
 reflect-get-own-property-descriptor: func(target: js-abi-value, property-key: string) -> js-abi-value
 reflect-get-prototype-of: func(target: js-abi-value) -> js-abi-value
 reflect-has: func(target: js-abi-value, property-key: string) -> bool
 reflect-is-extensible: func(target: js-abi-value) -> bool
 reflect-own-keys: func(target: js-abi-value) -> list<js-abi-value>
 reflect-prevent-extensions: func(target: js-abi-value) -> bool
-reflect-set: func(target: js-abi-value, property-key: string, value: js-abi-value) -> bool
+reflect-set: func(target: js-abi-value, property-key: string, value: js-abi-value) -> js-abi-result
 reflect-set-prototype-of: func(target: js-abi-value, prototype: js-abi-value) -> bool

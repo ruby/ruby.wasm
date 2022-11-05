@@ -66,14 +66,14 @@ extern "C"
   void rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t this_argument, rb_js_abi_host_list_js_abi_value_t *arguments, rb_js_abi_host_js_abi_result_t *ret0);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_construct(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_list_js_abi_value_t *arguments);
   bool rb_js_abi_host_reflect_delete_property(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
-  rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_get(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
+  void rb_js_abi_host_reflect_get(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key, rb_js_abi_host_js_abi_result_t *ret0);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_get_own_property_descriptor(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_get_prototype_of(rb_js_abi_host_js_abi_value_t target);
   bool rb_js_abi_host_reflect_has(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
   bool rb_js_abi_host_reflect_is_extensible(rb_js_abi_host_js_abi_value_t target);
   void rb_js_abi_host_reflect_own_keys(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_list_js_abi_value_t *ret0);
   bool rb_js_abi_host_reflect_prevent_extensions(rb_js_abi_host_js_abi_value_t target);
-  bool rb_js_abi_host_reflect_set(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key, rb_js_abi_host_js_abi_value_t value);
+  void rb_js_abi_host_reflect_set(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key, rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_js_abi_result_t *ret0);
   bool rb_js_abi_host_reflect_set_prototype_of(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t prototype);
   #ifdef __cplusplus
 }
