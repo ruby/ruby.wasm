@@ -67,7 +67,11 @@ module JS
     Fiber
       .new do
         future.resolve JS::Object.wrap(
-                         Kernel.eval(rb_code.to_s, nil, "eval_async")
+                         Kernel.eval(
+                           rb_code.to_s,
+                           TOPLEVEL_BINDING,
+                           "eval_async"
+                         )
                        )
       rescue => e
         future.reject JS::Object.wrap(e)

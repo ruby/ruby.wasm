@@ -53,8 +53,7 @@ const main = async () => {
 
   Error.stackTraceLimit = Infinity;
 
-  // FIXME: require 'test/unit' fails with evalAsync due to Kernel#eval (?)
-  vm.eval(`
+  await vm.evalAsync(`
     # HACK: Until we've fixed the issue in the test-unit or power_assert
     # See https://github.com/test-unit/test-unit/pull/221
     module Kernel
@@ -69,8 +68,6 @@ const main = async () => {
     end
 
     require 'test/unit'
-  `);
-  await vm.evalAsync(`
     require_relative '${rootTestFile}'
     Test::Unit::AutoRunner.run
   `);
