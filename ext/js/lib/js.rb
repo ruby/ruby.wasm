@@ -16,19 +16,6 @@ module JS
   Undefined = JS.eval("return undefined")
   Null = JS.eval("return null")
 
-  def self.promise_scheduler
-    @promise_scheduler
-  end
-
-  def self.eval_async(code, future)
-    @promise_scheduler ||= PromiseScheduler.new Fiber.current
-    Fiber.new do
-      future.resolve JS::Object.wrap(Kernel.eval(code.to_s, nil, "eval_async"))
-    rescue => e
-      future.reject JS::Object.wrap(e)
-    end.transfer
-  end
-
   class PromiseScheduler
     Task = Struct.new(:fiber, :status, :value)
 
@@ -66,6 +53,21 @@ module JS
       end
     end
   end
+
+  @promise_scheduler = PromiseScheduler.new Fiber.current
+
+  def self.promise_scheduler
+    @promise_scheduler
+  end
+
+  private
+  def self.__eval_async_rb(rb_code, future)
+    Fiber.new do
+      future.resolve JS::Object.wrap(Kernel.eval(rb_code.to_s, nil, "eval_async"))
+    rescue => e
+      future.reject JS::Object.wrap(e)
+    end.transfer
+  end
 end
 
 class JS::Object
@@ -83,13 +85,9 @@ class JS::Object
   end
 
   def await
-    sched = JS.promise_scheduler
-    unless sched
-      raise "JS::Object#await can be used only in RubyVM.evalAsync"
-    end
     # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
     promise = JS.global[:Promise].resolve(self)
-    sched.await(promise)
+    JS.promise_scheduler.await(promise)
   end
 end
 
