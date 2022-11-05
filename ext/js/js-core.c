@@ -22,6 +22,7 @@ void rb_abi_lend_object(VALUE obj);
 
 static VALUE rb_mJS;
 static VALUE rb_cJS_Object;
+static VALUE rb_cJS_Error;
 
 static ID i_to_js;
 
@@ -76,6 +77,14 @@ static inline void rstring_to_abi_string(VALUE rstr,
   memcpy(abi_str->ptr, RSTRING_PTR(rstr), abi_str->len);
 }
 
+static inline void raise_js_error_if_failure(const rb_js_abi_host_js_abi_result_t *result) {
+  if (result->tag == RB_JS_ABI_HOST_JS_ABI_RESULT_FAILURE) {
+    VALUE js_err = jsvalue_s_new(result->val.failure);
+    VALUE rb_err = rb_class_new_instance(1, &js_err, rb_cJS_Error);
+    rb_exc_raise(rb_err);
+  }
+}
+
 /*
  * call-seq:
  *   JS.eval(code) -> JS::Object
@@ -88,7 +97,10 @@ static inline void rstring_to_abi_string(VALUE rstr,
 static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
   rb_js_abi_host_string_t abi_str;
   rstring_to_abi_string(code_str, &abi_str);
-  return jsvalue_s_new(rb_js_abi_host_eval_js(&abi_str));
+  rb_js_abi_host_js_abi_result_t ret;
+  rb_js_abi_host_eval_js(&abi_str, &ret);
+  raise_js_error_if_failure(&ret);
+  return jsvalue_s_new(ret.val.success);
 }
 
 static VALUE _rb_js_is_js(VALUE _, VALUE obj) {
@@ -276,8 +288,10 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
     rb_ary_push(rv_args, rb_proc);
   }
 
-  VALUE result = jsvalue_s_new(
-      rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args));
+  rb_js_abi_host_js_abi_result_t ret;
+  rb_js_abi_host_reflect_apply(abi_method->abi, p->abi, &abi_args, &ret);
+  raise_js_error_if_failure(&ret);
+  VALUE result = jsvalue_s_new(ret.val.success);
   RB_GC_GUARD(rv_args);
   RB_GC_GUARD(method);
   return result;
@@ -539,4 +553,6 @@ void Init_js() {
   rb_define_method(rb_cTrueClass, "to_js", _rb_js_true_to_js, 0);
   rb_define_method(rb_cFalseClass, "to_js", _rb_js_false_to_js, 0);
   rb_define_method(rb_cProc, "to_js", _rb_js_proc_to_js, 0);
+
+  rb_cJS_Error = rb_define_class_under(rb_mJS, "Error", rb_eStandardError);
 }

@@ -31,3 +31,21 @@ class JS::Object
     self[sym].typeof == "function"
   end
 end
+
+# A wrapper class for JavaScript Error to allow the Error to be thrown in Ruby.
+class JS::Error
+  def initialize(exception)
+    @exception = exception
+    super
+  end
+
+  def message
+    stack = @exception[:stack]
+    if stack.typeof == "string"
+      # Error.stack contains the error message also
+      stack.to_s
+    else
+      @exception.to_s
+    end
+  end
+end

@@ -47,6 +47,18 @@ void rb_js_abi_host_string_free(rb_js_abi_host_string_t *ret) {
   ret->ptr = NULL;
   ret->len = 0;
 }
+void rb_js_abi_host_js_abi_result_free(rb_js_abi_host_js_abi_result_t *ptr) {
+  switch ((int32_t) ptr->tag) {
+    case 0: {
+      rb_js_abi_host_js_abi_value_free(&ptr->val.success);
+      break;
+    }
+    case 1: {
+      rb_js_abi_host_js_abi_value_free(&ptr->val.failure);
+      break;
+    }
+  }
+}
 void rb_js_abi_host_raw_integer_free(rb_js_abi_host_raw_integer_t *ptr) {
   switch ((int32_t) ptr->tag) {
     case 1: {
@@ -63,11 +75,27 @@ void rb_js_abi_host_list_js_abi_value_free(rb_js_abi_host_list_js_abi_value_t *p
     free(ptr->ptr);
   }
 }
-__attribute__((import_module("rb-js-abi-host"), import_name("eval-js: func(code: string) -> handle<js-abi-value>")))
-int32_t __wasm_import_rb_js_abi_host_eval_js(int32_t, int32_t);
-rb_js_abi_host_js_abi_value_t rb_js_abi_host_eval_js(rb_js_abi_host_string_t *code) {
-  int32_t ret = __wasm_import_rb_js_abi_host_eval_js((int32_t) (*code).ptr, (int32_t) (*code).len);
-  return (rb_js_abi_host_js_abi_value_t){ ret };
+__attribute__((import_module("rb-js-abi-host"), import_name("eval-js: func(code: string) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }")))
+void __wasm_import_rb_js_abi_host_eval_js(int32_t, int32_t, int32_t);
+void rb_js_abi_host_eval_js(rb_js_abi_host_string_t *code, rb_js_abi_host_js_abi_result_t *ret0) {
+  
+  __attribute__((aligned(4)))
+  uint8_t ret_area[8];
+  int32_t ptr = (int32_t) &ret_area;
+  __wasm_import_rb_js_abi_host_eval_js((int32_t) (*code).ptr, (int32_t) (*code).len, ptr);
+  rb_js_abi_host_js_abi_result_t variant;
+  variant.tag = (int32_t) (*((uint8_t*) (ptr + 0)));
+  switch ((int32_t) variant.tag) {
+    case 0: {
+      variant.val.success = (rb_js_abi_host_js_abi_value_t){ *((int32_t*) (ptr + 4)) };
+      break;
+    }
+    case 1: {
+      variant.val.failure = (rb_js_abi_host_js_abi_value_t){ *((int32_t*) (ptr + 4)) };
+      break;
+    }
+  }
+  *ret0 = variant;
 }
 __attribute__((import_module("rb-js-abi-host"), import_name("is-js: func(value: handle<js-abi-value>) -> bool")))
 int32_t __wasm_import_rb_js_abi_host_is_js(int32_t);
@@ -182,11 +210,27 @@ bool rb_js_abi_host_js_value_strictly_equal(rb_js_abi_host_js_abi_value_t lhs, r
   int32_t ret = __wasm_import_rb_js_abi_host_js_value_strictly_equal((lhs).idx, (rhs).idx);
   return ret;
 }
-__attribute__((import_module("rb-js-abi-host"), import_name("reflect-apply: func(target: handle<js-abi-value>, this-argument: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> handle<js-abi-value>")))
-int32_t __wasm_import_rb_js_abi_host_reflect_apply(int32_t, int32_t, int32_t, int32_t);
-rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t this_argument, rb_js_abi_host_list_js_abi_value_t *arguments) {
-  int32_t ret = __wasm_import_rb_js_abi_host_reflect_apply((target).idx, (this_argument).idx, (int32_t) (*arguments).ptr, (int32_t) (*arguments).len);
-  return (rb_js_abi_host_js_abi_value_t){ ret };
+__attribute__((import_module("rb-js-abi-host"), import_name("reflect-apply: func(target: handle<js-abi-value>, this-argument: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }")))
+void __wasm_import_rb_js_abi_host_reflect_apply(int32_t, int32_t, int32_t, int32_t, int32_t);
+void rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t this_argument, rb_js_abi_host_list_js_abi_value_t *arguments, rb_js_abi_host_js_abi_result_t *ret0) {
+  
+  __attribute__((aligned(4)))
+  uint8_t ret_area[8];
+  int32_t ptr = (int32_t) &ret_area;
+  __wasm_import_rb_js_abi_host_reflect_apply((target).idx, (this_argument).idx, (int32_t) (*arguments).ptr, (int32_t) (*arguments).len, ptr);
+  rb_js_abi_host_js_abi_result_t variant;
+  variant.tag = (int32_t) (*((uint8_t*) (ptr + 0)));
+  switch ((int32_t) variant.tag) {
+    case 0: {
+      variant.val.success = (rb_js_abi_host_js_abi_value_t){ *((int32_t*) (ptr + 4)) };
+      break;
+    }
+    case 1: {
+      variant.val.failure = (rb_js_abi_host_js_abi_value_t){ *((int32_t*) (ptr + 4)) };
+      break;
+    }
+  }
+  *ret0 = variant;
 }
 __attribute__((import_module("rb-js-abi-host"), import_name("reflect-construct: func(target: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> handle<js-abi-value>")))
 int32_t __wasm_import_rb_js_abi_host_reflect_construct(int32_t, int32_t, int32_t);
