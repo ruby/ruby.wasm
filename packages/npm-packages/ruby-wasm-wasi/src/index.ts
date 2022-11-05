@@ -225,6 +225,30 @@ export class RubyVM {
     return evalRbCode(this, this.privateObject(), code);
   }
 
+  evalAsync(code: string): Promise<RbValue> {
+    const JS = this.eval("require 'js'; JS");
+    return new Promise((resolve, reject) => {
+      JS.call(
+        "eval_async",
+        this.wrap(code),
+        this.wrap({
+          resolve,
+          reject: (error: RbValue) => {
+            reject(
+              new RbError(
+                this.exceptionFormatter.format(
+                  error,
+                  this,
+                  this.privateObject()
+                )
+              )
+            );
+          },
+        })
+      );
+    });
+  }
+
   /**
    * Wrap a JavaScript value into a Ruby JS::Object
    * @param value The value to convert to RbValue

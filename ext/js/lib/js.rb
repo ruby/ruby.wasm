@@ -15,6 +15,57 @@ require "js.so"
 module JS
   Undefined = JS.eval("return undefined")
   Null = JS.eval("return null")
+
+  def self.promise_scheduler
+    @promise_scheduler
+  end
+
+  def self.eval_async(code, future)
+    @promise_scheduler ||= PromiseScheduler.new Fiber.current
+    Fiber.new do
+      future.resolve JS::Object.wrap(Kernel.eval(code.to_s, nil, "eval_async"))
+    rescue => e
+      future.reject JS::Object.wrap(e)
+    end.transfer
+  end
+
+  class PromiseScheduler
+    Task = Struct.new(:fiber, :status, :value)
+
+    def initialize(main_fiber)
+      @tasks = []
+      @is_spinning = false
+      @loop_fiber = Fiber.new do
+        loop do
+          while task = @tasks.shift
+            task.fiber.transfer(task.value, task.status)
+          end
+          @is_spinning = false
+          main_fiber.transfer
+        end
+      end
+    end
+
+    def await(promise)
+      current = Fiber.current
+      promise.call(
+        :then,
+        ->(value) { enqueue Task.new(current, :success, value) },
+        ->(value) { enqueue Task.new(current, :failure, value) }
+      )
+      value, status = @loop_fiber.transfer
+      raise JS::Error.new(value) if status == :failure
+      value
+    end
+
+    def enqueue(task)
+      @tasks << task
+      unless @is_spinning
+        @is_spinning = true
+        JS.global.queueMicrotask -> { @loop_fiber.transfer }
+      end
+    end
+  end
 end
 
 class JS::Object
@@ -29,6 +80,14 @@ class JS::Object
   def respond_to_missing?(sym, include_private)
     return true if super
     self[sym].typeof == "function"
+  end
+
+  def await
+    sched = JS.promise_scheduler
+    unless sched
+      raise "Please start Ruby evaluation with RubyVM.eval_async to use JS::Object#await"
+    end
+    sched.await(self)
   end
 end
 
