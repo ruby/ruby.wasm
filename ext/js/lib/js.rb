@@ -84,6 +84,13 @@ class JS::Object
     self[sym].typeof == "function"
   end
 
+  # Await a JavaScript Promise like `await` in JavaScript.
+  # This method looks like a synchronous method, but it actually runs asynchronously using fibers.
+  #
+  #   JS.eval("return new Promise((ok) => setTimeout(ok(42), 1000))").await # => 42 (after 1 second)
+  #   JS.global.fetch("https://example.com").await                          # => [object Response]
+  #   JS.eval("return 42").await                                            # => 42
+  #   JS.eval("return new Promise((ok, err) => err(new Error())").await     # => raises JS::Error
   def await
     # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
     promise = JS.global[:Promise].resolve(self)
