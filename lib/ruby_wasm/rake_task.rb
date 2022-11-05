@@ -68,7 +68,6 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
 
     desc "Cross-build Ruby for #{@target}"
     task name do
-      next if @crossruby.built?
       @crossruby.build
     end
     namespace name do
