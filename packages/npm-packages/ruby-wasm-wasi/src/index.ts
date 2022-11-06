@@ -513,8 +513,13 @@ function wrapRbOperation<R>(vm: RubyVM, body: () => R): R {
   try {
     return body();
   } catch (e) {
+    if (e instanceof RbError) {
+      throw e;
+    }
+    // All JS exceptions triggered by Ruby code are translated to Ruby exceptions,
+    // so non-RbError exceptions are unexpected.
+    vm.guest.rbVmBugreport();
     if (e instanceof WebAssembly.RuntimeError && e.message === "unreachable") {
-      vm.guest.rbVmBugreport();
       const error = new RbError(`Something went wrong in Ruby VM: ${e}`);
       error.stack = e.stack;
       throw error;
