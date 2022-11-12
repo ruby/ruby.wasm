@@ -155,7 +155,7 @@ desc "Publish artifacts as a GitHub Release"
 task :publish, [:tag] do |t, args|
   RubyWasm::Toolchain.check_executable("gh")
 
-  nightly = /-\d{4}-\d{2}-\d{2}-a$/.match?(args[:tag])
+  nightly = /^\d{4}-\d{2}-\d{2}-.$/.match?(args[:tag])
   files = RELASE_ARTIFACTS.flat_map do |artifact|
     Dir.glob("release/#{artifact}/*")
   end
@@ -170,7 +170,7 @@ task :publish, [:tag] do |t, args|
     npm_tag = nightly ? "next" : "latest"
     sh_or_warn %Q(npm publish --tag #{npm_tag} #{tarball})
   end
-  sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
+  sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md #{nightly ? "--prerelease" : ""} #{files.join(" ")})
 end
 
 def sh_or_warn(*cmd)
