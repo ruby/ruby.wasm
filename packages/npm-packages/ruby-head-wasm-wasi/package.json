@@ -1,6 +1,6 @@
 {
   "name": "ruby-head-wasm-wasi",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Ruby head built on WASI",
   "main": "./dist/index.cjs.js",
   "umd:main": "./dist/index.umd.js",
