@@ -155,6 +155,7 @@ desc "Publish artifacts as a GitHub Release"
 task :publish, [:tag] do |t, args|
   RubyWasm::Toolchain.check_executable("gh")
 
+  nightly = /-\d{4}-\d{2}-\d{2}-a$/.match?(args[:tag])
   files = RELASE_ARTIFACTS.flat_map do |artifact|
     Dir.glob("release/#{artifact}/*")
   end
@@ -166,7 +167,8 @@ task :publish, [:tag] do |t, args|
     next if tarball.empty?
     tarball = tarball[0]
     # tolerate failure as a case that has already been released
-    sh_or_warn %Q(npm publish --tag next #{tarball})
+    npm_tag = nightly ? "next" : "latest"
+    sh_or_warn %Q(npm publish --tag #{npm_tag} #{tarball})
   end
   sh %Q(gh release create #{args[:tag]} --title #{args[:tag]} --notes-file release/note.md --prerelease #{files.join(" ")})
 end
