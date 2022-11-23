@@ -96,6 +96,24 @@ class JS::Object
 
   # Await a JavaScript Promise like `await` in JavaScript.
   # This method looks like a synchronous method, but it actually runs asynchronously using fibers.
+  # In other words, the next line to the `await` call at Ruby source will be executed after the
+  # promise will be resolved. However, it does not block JavaScript event loop, so the next line
+  # to the `RubyVM.eval` or `RubyVM.evalAsync` (in the case when no `await` operator before the
+  # call expression) at JavaScript source will be executed without waiting for the promise.
+  #
+  # The below example shows how the execution order goes. It goes in the order of "step N"
+  #
+  #   # In JavaScript
+  #   const response = vm.evalAsync(`
+  #     puts "step 1"
+  #     JS.global.fetch("https://example.com").await
+  #     puts "step 3"
+  #   `) // => Promise
+  #   console.log("step 2")
+  #   await response
+  #   console.log("step 4")
+  #
+  # The below examples show typical usage in Ruby
   #
   #   JS.eval("return new Promise((ok) => setTimeout(ok(42), 1000))").await # => 42 (after 1 second)
   #   JS.global.fetch("https://example.com").await                          # => [object Response]
