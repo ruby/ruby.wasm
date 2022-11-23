@@ -29,6 +29,7 @@ module RubyWasm
         system "git fetch --depth 1 origin #{@params[:rev]}", chdir: src_dir
         system "git checkout #{@params[:rev]}", chdir: src_dir
       when "local"
+        FileUtils.mkdir_p File.dirname(src_dir)
         FileUtils.cp_r @params[:src], src_dir
       else
         raise "unknown source type: #{@params[:type]}"
