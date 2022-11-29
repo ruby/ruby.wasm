@@ -519,7 +519,7 @@ static VALUE _rb_js_proc_to_js(VALUE obj) {
  *   JS
  *   # Non JS::Object args are automatically converted to JS::Object by `to_js`.
  *   js_obj[:method1].call("Hello", 5) # => 10
- *   js_obj[:method2].call(JS.wrap("Hello, Ruby"))
+ *   js_obj[:method2].call(JS::Object.wrap("Hello, Ruby"))
  *   # => "HELLO, RUBY" (JS::Object)
  */
 
