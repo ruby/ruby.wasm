@@ -107,7 +107,7 @@ module RubyWasm
       version = "#{version_major}.#{version_minor}"
       assets = [
         [/x86_64-linux/, "wasi-sdk-#{version}-linux.tar.gz"],
-        [/(arm64|x86_64)-darwin/, "wasi-sdk-#{version}-macos.tar.gz"]
+        [/(arm64e?|x86_64)-darwin/, "wasi-sdk-#{version}-macos.tar.gz"]
       ]
       asset = assets.find { |os, _| os =~ RUBY_PLATFORM }&.at(1)
       if asset.nil?
