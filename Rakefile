@@ -13,8 +13,8 @@ BUILD_SOURCES = {
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
-    patches: []
-  }
+    patches: [],
+  },
 }
 
 FULL_EXTS =
@@ -24,43 +24,53 @@ BUILD_PROFILES = {
   "minimal" => {
     debug: false,
     default_exts: "",
-    user_exts: []
+    user_exts: [],
   },
   "minimal-debug" => {
     debug: true,
     default_exts: "",
-    user_exts: []
+    user_exts: [],
   },
   "minimal-js" => {
     debug: false,
     default_exts: "",
-    user_exts: %w[js witapi]
+    user_exts: %w[js witapi],
   },
   "minimal-js-debug" => {
     debug: true,
     default_exts: "",
-    user_exts: %w[js witapi]
+    user_exts: %w[js witapi],
+  },
+  "minimal-wit" => {
+    debug: false,
+    default_exts: "",
+    user_exts: %w[witapi],
   },
   "full" => {
     debug: false,
     default_exts: FULL_EXTS,
-    user_exts: []
+    user_exts: [],
   },
   "full-debug" => {
     debug: true,
     default_exts: FULL_EXTS,
-    user_exts: []
+    user_exts: [],
   },
   "full-js" => {
     debug: false,
     default_exts: FULL_EXTS,
-    user_exts: %w[js witapi]
+    user_exts: %w[js witapi],
   },
   "full-js-debug" => {
     debug: true,
     default_exts: FULL_EXTS,
-    user_exts: %w[js witapi]
-  }
+    user_exts: %w[js witapi],
+  },
+  "full-wit" => {
+    debug: false,
+    default_exts: FULL_EXTS,
+    user_exts: %w[witapi],
+  },
 }
 
 BUILDS = [
@@ -68,12 +78,14 @@ BUILDS = [
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js-debug" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-wit" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-debug" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
+  { src: "head", target: "wasm32-unknown-wasi", profile: "full-wit" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
-  { src: "head", target: "wasm32-unknown-emscripten", profile: "full" }
+  { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
 ]
 
 LIB_ROOT = File.dirname(__FILE__)
@@ -128,8 +140,7 @@ namespace :build do
   task :download_prebuilt, :tag do |t, args|
     require "ruby_wasm/build_system/downloader"
 
-    release =
-      if args[:tag]
+    release = if args[:tag]
         url =
           "https://api.github.com/repos/ruby/ruby.wasm/releases/tags/#{args[:tag]}"
         OpenURI.open_uri(url) { |f| JSON.load(f.read) }
