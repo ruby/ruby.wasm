@@ -7,7 +7,7 @@ require "js.so"
 #   require 'js'
 #   JS.eval("return 1 + 2") # => 3
 #   JS.global[:document].write("Hello, world!")
-#   JS.global[:document].addEventListner("click") do |event|
+#   JS.global[:document].call :addEventListener, "click" ->(event) do |event|
 #     puts event          # => # [object MouseEvent]
 #     puts event[:detail] # => 1
 #   end
