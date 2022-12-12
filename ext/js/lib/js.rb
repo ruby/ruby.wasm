@@ -7,9 +7,31 @@ require "js.so"
 #   require 'js'
 #   JS.eval("return 1 + 2") # => 3
 #   JS.global[:document].write("Hello, world!")
-#   JS.global[:document].addEventListner("click") do |event|
+#   div = JS.global[:document].createElement("div")
+#   div[:innerText] = "click me"
+#   JS.global[:document][:body].appendChild(div)
+#   div.addEventListener("click") do |event|
 #     puts event          # => # [object MouseEvent]
 #     puts event[:detail] # => 1
+#     div[:innerText] = "clicked!"
+#   end
+#
+# If you are using `ruby.wasm` without `stdlib` you will not have `addEventListener`
+# and other specialized functions defined. You can still acomplish many
+# of the same things using `call` instead.
+#
+# == Example
+#
+#   require 'js'
+#   JS.eval("return 1 + 2") # => 3
+#   JS.global[:document].call(:write, "Hello, world!")
+#   div = JS.global[:document].call(:createElement, "div")
+#   div[:innerText] = "click me"
+#   JS.global[:document][:body].call(:appendChild, div)
+#   div.call(:addEventListener, "click") do |event|
+#     puts event          # => # [object MouseEvent]
+#     puts event[:detail] # => 1
+#     div[:innerText] = "clicked!"
 #   end
 #
 module JS
