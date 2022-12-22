@@ -231,6 +231,7 @@ eval:11:in \`<main>'`);
 
   test("eval encoding", async () => {
     const vm = await initRubyVM();
+    expect(vm.eval(`Encoding.default_external.name`).toString()).toBe("UTF-8");
     expect(vm.eval(`"hello".encoding.name`).toString()).toBe("UTF-8");
     expect(vm.eval(`__ENCODING__.name`).toString()).toBe("UTF-8");
   });
