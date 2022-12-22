@@ -228,4 +228,10 @@ eval:11:in \`<main>'`);
     );
     expect(result.call("nil?").toString()).toBe("true");
   });
+
+  test("eval encoding", async () => {
+    const vm = await initRubyVM();
+    expect(vm.eval(`"hello".encoding.name`).toString()).toBe("UTF-8");
+    expect(vm.eval(`__ENCODING__.name`).toString()).toBe("UTF-8");
+  });
 });
