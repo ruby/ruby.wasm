@@ -1,4 +1,6 @@
 import json from "@rollup/plugin-json";
+import fs from "fs";
+import path from "path";
 
 /** @type {import('rollup').RollupOptions[]} */
 export default [
@@ -7,7 +9,8 @@ export default [
     output: [
       {
         file: "dist/browser.script.iife.js",
-        format: "iife"
+        format: "iife",
+        banner: "/* " + fs.readFileSync(path.resolve("../../../NOTICE"), "utf8") + "*/",
       }
     ],
     plugins: [
