@@ -11,3 +11,6 @@ rm -rf "$dist_dir"
 
 mkdir "$dist_dir/bindgen"
 cp $(find "$package_dir/src/bindgen" -name "*.js" -or -name "*.d.ts") "$dist_dir/bindgen"
+
+cp "$repo_dir/LICENSE" "$dist_dir/LICENSE"
+cp "$repo_dir/NOTICE" "$dist_dir/NOTICE"
