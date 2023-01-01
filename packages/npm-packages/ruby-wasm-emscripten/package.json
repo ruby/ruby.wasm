@@ -26,7 +26,7 @@
     "build": "rollup -c rollup.config.mjs"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^23.0.0",
+    "@rollup/plugin-commonjs": "^24.0.0",
     "rollup": "^3.2.2"
   }
 }
