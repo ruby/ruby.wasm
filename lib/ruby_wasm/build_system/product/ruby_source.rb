@@ -34,6 +34,9 @@ module RubyWasm
       else
         raise "unknown source type: #{@params[:type]}"
       end
+      (@params[:patches] || []).each do |patch_path|
+        system "patch -p1 < #{patch_path}", chdir: src_dir
+      end
     end
 
     def build
