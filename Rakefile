@@ -13,7 +13,7 @@ BUILD_SOURCES = {
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
-    patches: []
+    patches: Dir["./patches/*.patch"].map{|p| File.expand_path(p) }
   }
 }
 
