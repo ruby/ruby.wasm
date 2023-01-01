@@ -47,6 +47,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @wasi_vfs = RubyWasm::WasiVfsProduct.new(@build_dir)
     @source = RubyWasm::BuildSource.new(src, @build_dir)
     @baseruby = RubyWasm::BaseRubyProduct.new(@build_dir, @source)
+    @openssl = RubyWasm::OpenSSLProduct.new(@build_dir, @target, @toolchain)
 
     build_params =
       RubyWasm::BuildParams.new(options.merge(name: name, target: @target))
@@ -65,6 +66,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @crossruby.with_libyaml @libyaml
     @crossruby.with_zlib @zlib
     @crossruby.with_wasi_vfs @wasi_vfs
+    @crossruby.with_openssl @openssl
 
     desc "Cross-build Ruby for #{@target}"
     task name do

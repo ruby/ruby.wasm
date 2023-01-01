@@ -131,7 +131,7 @@ module RubyWasm
       FileUtils.mkdir_p dest_dir
       FileUtils.mkdir_p build_dir
       @toolchain.install
-      [@source, @baseruby, @libyaml, @zlib, @wasi_vfs].each(&:build)
+      [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each(&:build)
       dep_tasks.each(&:invoke)
       configure(reconfigure: reconfigure)
       build_exts
@@ -178,6 +178,10 @@ module RubyWasm
       @wasi_vfs = wasi_vfs
     end
 
+    def with_openssl(openssl)
+      @openssl = openssl
+    end
+
     def dest_dir
       File.join(@rubies_dir, name)
     end
@@ -215,6 +219,7 @@ module RubyWasm
       args << %Q(--with-ext="#{default_exts}")
       args << %Q(--with-libyaml-dir="#{@libyaml.install_root}")
       args << %Q(--with-zlib-dir="#{@zlib.install_root}")
+      args << %Q(--with-openssl-dir="#{@openssl.install_root}") if @openssl
       args << %Q(--with-baseruby="#{baseruby_path}")
 
       case target
