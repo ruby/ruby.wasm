@@ -14,7 +14,12 @@ BUILD_SOURCES = {
     repo: "ruby/ruby",
     rev: "master",
     patches: Dir["./patches/*.patch"].map{|p| File.expand_path(p) }
-  }
+  },
+  "3_2" => {
+    type: "github",
+    repo: "ruby/ruby",
+    rev: "v3_2_0",
+  },
 }
 
 FULL_EXTS =
@@ -73,7 +78,17 @@ BUILDS = [
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
   { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
   { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
-  { src: "head", target: "wasm32-unknown-emscripten", profile: "full" }
+  { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal-debug" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal-js" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal-js-debug" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-debug" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-js" },
+  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
+  { src: "3_2", target: "wasm32-unknown-emscripten", profile: "minimal" },
+  { src: "3_2", target: "wasm32-unknown-emscripten", profile: "full" },
 ]
 
 LIB_ROOT = File.dirname(__FILE__)
