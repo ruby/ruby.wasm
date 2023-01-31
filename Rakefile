@@ -13,13 +13,13 @@ BUILD_SOURCES = {
     type: "github",
     repo: "ruby/ruby",
     rev: "master",
-    patches: Dir["./patches/*.patch"].map{|p| File.expand_path(p) }
+    patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
   },
   "3_2" => {
     type: "github",
     repo: "ruby/ruby",
-    rev: "v3_2_0",
-  },
+    rev: "v3_2_0"
+  }
 }
 
 FULL_EXTS =
@@ -88,7 +88,7 @@ BUILDS = [
   { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-js" },
   { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
   { src: "3_2", target: "wasm32-unknown-emscripten", profile: "minimal" },
-  { src: "3_2", target: "wasm32-unknown-emscripten", profile: "full" },
+  { src: "3_2", target: "wasm32-unknown-emscripten", profile: "full" }
 ]
 
 LIB_ROOT = File.dirname(__FILE__)
