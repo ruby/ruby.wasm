@@ -1,6 +1,7 @@
 NPM_PACKAGES = [
   { name: "ruby-head-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
   { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js-debug" },
+  { name: "ruby-3_2-wasm-wasi", build: "3_2-wasm32-unknown-wasi-full-js-debug" },
 ]
 
 WAPM_PACKAGES = [
@@ -97,6 +98,7 @@ end
 NPM_RELEASE_ARTIFACTS = [
   "npm-ruby-head-wasm-emscripten",
   "npm-ruby-head-wasm-wasi",
+  "npm-ruby-3_2-wasm-wasi",
 ]
 RELASE_ARTIFACTS = [
   # ruby builds
@@ -110,6 +112,16 @@ RELASE_ARTIFACTS = [
   "ruby-head-wasm32-unknown-wasi-minimal-debug",
   "ruby-head-wasm32-unknown-wasi-minimal-js",
   "ruby-head-wasm32-unknown-wasi-minimal-js-debug",
+  "ruby-3_2-wasm32-unknown-emscripten-full",
+  "ruby-3_2-wasm32-unknown-emscripten-minimal",
+  "ruby-3_2-wasm32-unknown-wasi-full",
+  "ruby-3_2-wasm32-unknown-wasi-full-debug",
+  "ruby-3_2-wasm32-unknown-wasi-full-js",
+  "ruby-3_2-wasm32-unknown-wasi-full-js-debug",
+  "ruby-3_2-wasm32-unknown-wasi-minimal",
+  "ruby-3_2-wasm32-unknown-wasi-minimal-debug",
+  "ruby-3_2-wasm32-unknown-wasi-minimal-js",
+  "ruby-3_2-wasm32-unknown-wasi-minimal-js-debug",
 ] + NPM_RELEASE_ARTIFACTS
 
 def release_note
