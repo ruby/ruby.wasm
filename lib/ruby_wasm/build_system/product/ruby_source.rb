@@ -23,11 +23,8 @@ module RubyWasm
       case @params[:type]
       when "github"
         repo_url = "https://github.com/#{@params[:repo]}.git"
-        FileUtils.mkdir_p src_dir
-        system "git init", chdir: src_dir
-        system "git remote add origin #{repo_url}", chdir: src_dir
-        system "git fetch --depth 1 origin #{@params[:rev]}", chdir: src_dir
-        system "git checkout #{@params[:rev]}", chdir: src_dir
+        system "git clone --depth 1 -b #{@params[:rev]} #{repo_url} #{src_dir}" or
+          raise "failed to clone #{repo_url}"
       when "local"
         FileUtils.mkdir_p File.dirname(src_dir)
         FileUtils.cp_r @params[:src], src_dir
@@ -43,8 +40,9 @@ module RubyWasm
       fetch unless File.exist?(src_dir)
       unless File.exist?(configure_file)
         Dir.chdir(src_dir) do
-          system "ruby tool/downloader.rb -d tool -e gnu config.guess config.sub"
-          system "./autogen.sh"
+          system "ruby tool/downloader.rb -d tool -e gnu config.guess config.sub" or
+            raise "failed to download config.guess and config.sub"
+          system "./autogen.sh" or raise "failed to run autogen.sh"
         end
       end
     end
