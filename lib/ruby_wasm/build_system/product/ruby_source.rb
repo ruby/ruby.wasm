@@ -11,12 +11,13 @@ module RubyWasm
       @params[:name]
     end
 
-    def cache_key
+    def cache_key(digest)
+      digest << @params[:type]
       case @params[:type]
       when "github"
-        @params[:rev]
+        digest << @params[:rev]
       when "local"
-        File.mtime(@params[:src]).to_i.to_s
+        digest << File.mtime(@params[:src]).to_i.to_s
       else
         raise "unknown source type: #{@params[:type]}"
       end
