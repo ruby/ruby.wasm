@@ -11,6 +11,17 @@ module RubyWasm
       @params[:name]
     end
 
+    def cache_key
+      case @params[:type]
+      when "github"
+        @params[:rev]
+      when "local"
+        File.mtime(@params[:src]).to_i.to_s
+      else
+        raise "unknown source type: #{@params[:type]}"
+      end
+    end
+
     def src_dir
       File.join(@build_dir, "checkouts", @params[:name])
     end
