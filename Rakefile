@@ -85,7 +85,7 @@ BUILDS =
     %w[wasm32-unknown-wasi wasm32-unknown-emscripten].flat_map do |target|
       BUILD_PROFILES
         .keys
-        .filter do |profile_name|
+        .select do |profile_name|
           if target == "wasm32-unknown-emscripten"
             profile = BUILD_PROFILES[profile_name]
             user_exts = profile[:user_exts]
