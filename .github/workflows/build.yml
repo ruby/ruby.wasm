@@ -92,7 +92,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: build-manifest
-          path: build-manifest.json
+          path: build_manifest.json
       - name: Set matrix
         id: set-matrix
         run: |
