@@ -78,14 +78,26 @@ BUILDS =
   end
 
 NPM_PACKAGES = [
-  { name: "ruby-head-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full", target: "wasm32-unknown-emscripten" },
-  { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js-debug", target: "wasm32-unknown-wasi" },
-  { name: "ruby-3_2-wasm-wasi", build: "3_2-wasm32-unknown-wasi-full-js-debug", target: "wasm32-unknown-wasi" },
+  {
+    name: "ruby-head-wasm-emscripten",
+    build: "head-wasm32-unknown-emscripten-full",
+    target: "wasm32-unknown-emscripten"
+  },
+  {
+    name: "ruby-head-wasm-wasi",
+    build: "head-wasm32-unknown-wasi-full-js-debug",
+    target: "wasm32-unknown-wasi"
+  },
+  {
+    name: "ruby-3_2-wasm-wasi",
+    build: "3_2-wasm32-unknown-wasi-full-js-debug",
+    target: "wasm32-unknown-wasi"
+  }
 ]
 
 WAPM_PACKAGES = [
   { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
-  { name: "irb", build: "head-wasm32-unknown-wasi-full" },
+  { name: "irb", build: "head-wasm32-unknown-wasi-full" }
 ]
 
 LIB_ROOT = File.dirname(__FILE__)
