@@ -97,3 +97,22 @@ To re-generate them, you need to install the Rust compiler `rustc` and Cargo, th
 The rake task installs [`wit-bindgen`](https://github.com/bytecodealliance/wit-bindgen) on demand, then just execute it for each generated code
 
 If you see `missing executable: cargo`, please make sure `cargo` is installed correctly in your `PATH`.
+
+## Release Process
+
+To bump up npm package version, please follow the below steps:
+
+```
+$ rake 'npm:bump_version[ruby-head-wasm-wasi, 0.6.0]'
+$ git commit -m"Bump ruby-head-wasm-wasi version to 0.6.0"
+$ git tag ruby-head-wasm-wasi/0.6.0
+$ git push origin ruby-head-wasm-wasi/0.6.0
+```
+
+## Versioning Scheme
+
+This repository contains multiple packages to be released independently. Each package has its own semantic version number.
+
+The git tag name is composed of the package name and the version number, separated by `/`. For example, `ruby-head-wasm-wasi/0.6.0` is the git tag name for the `ruby-head-wasm-wasi` package version `0.6.0`.
+
+Also this repository releases all packages every day as nightly builds. The version format of nightly builds is not guaranteed to be stable, but it is usually composed of the date and monotonically increasing alphabetical characters. For example, `2023-01-28-a` is a git tag name for a nightly build of `2023/01/28`. Each package has its own nightly versioning scheme.
