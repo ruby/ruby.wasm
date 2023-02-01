@@ -100,29 +100,9 @@ NPM_RELEASE_ARTIFACTS = [
   "npm-ruby-head-wasm-wasi",
   "npm-ruby-3_2-wasm-wasi",
 ]
-RELASE_ARTIFACTS = [
-  # ruby builds
-  "ruby-head-wasm32-unknown-emscripten-full",
-  "ruby-head-wasm32-unknown-emscripten-minimal",
-  "ruby-head-wasm32-unknown-wasi-full",
-  "ruby-head-wasm32-unknown-wasi-full-debug",
-  "ruby-head-wasm32-unknown-wasi-full-js",
-  "ruby-head-wasm32-unknown-wasi-full-js-debug",
-  "ruby-head-wasm32-unknown-wasi-minimal",
-  "ruby-head-wasm32-unknown-wasi-minimal-debug",
-  "ruby-head-wasm32-unknown-wasi-minimal-js",
-  "ruby-head-wasm32-unknown-wasi-minimal-js-debug",
-  "ruby-3_2-wasm32-unknown-emscripten-full",
-  "ruby-3_2-wasm32-unknown-emscripten-minimal",
-  "ruby-3_2-wasm32-unknown-wasi-full",
-  "ruby-3_2-wasm32-unknown-wasi-full-debug",
-  "ruby-3_2-wasm32-unknown-wasi-full-js",
-  "ruby-3_2-wasm32-unknown-wasi-full-js-debug",
-  "ruby-3_2-wasm32-unknown-wasi-minimal",
-  "ruby-3_2-wasm32-unknown-wasi-minimal-debug",
-  "ruby-3_2-wasm32-unknown-wasi-minimal-js",
-  "ruby-3_2-wasm32-unknown-wasi-minimal-js-debug",
-] + NPM_RELEASE_ARTIFACTS
+RELASE_ARTIFACTS = BUILDS.map do |build|
+  "ruby-#{build[:src]}-#{build[:target]}-#{build[:profile]}"
+end + NPM_RELEASE_ARTIFACTS
 
 def release_note
   output = <<EOS

@@ -68,28 +68,14 @@ BUILD_PROFILES = {
   }
 }
 
-BUILDS = [
-  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-debug" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "minimal-js-debug" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "full" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "full-debug" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "full-js" },
-  { src: "head", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
-  { src: "head", target: "wasm32-unknown-emscripten", profile: "minimal" },
-  { src: "head", target: "wasm32-unknown-emscripten", profile: "full" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal-debug" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal-js" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "minimal-js-debug" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-debug" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-js" },
-  { src: "3_2", target: "wasm32-unknown-wasi", profile: "full-js-debug" },
-  { src: "3_2", target: "wasm32-unknown-emscripten", profile: "minimal" },
-  { src: "3_2", target: "wasm32-unknown-emscripten", profile: "full" }
-]
+BUILDS =
+  BUILD_SOURCES.keys.flat_map do |src|
+    %w[wasm32-unknown-wasi wasm32-unknown-emscripten].flat_map do |target|
+      BUILD_PROFILES.keys.map do |profile|
+        { src: src, target: target, profile: profile }
+      end
+    end
+  end
 
 LIB_ROOT = File.dirname(__FILE__)
 
@@ -99,11 +85,13 @@ namespace :build do
   BUILDS.each do |params|
     name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
     source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
-    options = params.merge(BUILD_PROFILES[params[:profile]]).merge(src: source)
-    debug = options[:debug]
-    options.delete :profile
-    options.delete :user_exts
-    options.delete :debug
+    profile = BUILD_PROFILES[params[:profile]]
+    options = {
+      src: source,
+      target: params[:target],
+      default_exts: profile[:default_exts]
+    }
+    debug = profile[:debug]
     RubyWasm::BuildTask.new(name, **options) do |t|
       if debug
         t.crossruby.debugflags = %w[-g]
@@ -123,7 +111,7 @@ namespace :build do
 
       toolchain = t.toolchain
       t.crossruby.user_exts =
-        BUILD_PROFILES[params[:profile]][:user_exts].map do |ext|
+        profile[:user_exts].map do |ext|
           srcdir = File.join(LIB_ROOT, "ext", ext)
           RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
         end
