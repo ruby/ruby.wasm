@@ -52,7 +52,8 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @baseruby = RubyWasm::BaseRubyProduct.new(@build_dir, @source)
     @openssl = RubyWasm::OpenSSLProduct.new(@build_dir, @target, @toolchain)
 
-    build_params = RubyWasm::BuildParams.new(options.merge(name: name, target: target))
+    build_params =
+      RubyWasm::BuildParams.new(options.merge(name: name, target: target))
 
     @crossruby =
       RubyWasm::CrossRubyProduct.new(
