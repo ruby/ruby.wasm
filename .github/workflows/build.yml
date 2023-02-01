@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3.2.2
+      - uses: actions/cache@v3.2.4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: build-manifest
-      - uses: actions/cache@v3
+      - uses: actions/cache@v3.2.4
         with:
           path: ./rubies
           key: ${{ matrix.entry.rubies_cache_key }}
