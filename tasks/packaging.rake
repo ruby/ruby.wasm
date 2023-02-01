@@ -1,14 +1,3 @@
-NPM_PACKAGES = [
-  { name: "ruby-head-wasm-emscripten", build: "head-wasm32-unknown-emscripten-full" },
-  { name: "ruby-head-wasm-wasi", build: "head-wasm32-unknown-wasi-full-js-debug" },
-  { name: "ruby-3_2-wasm-wasi", build: "3_2-wasm32-unknown-wasi-full-js-debug" },
-]
-
-WAPM_PACKAGES = [
-  { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
-  { name: "irb", build: "head-wasm32-unknown-wasi-full" },
-]
-
 namespace :npm do
   wasi_vfs = RubyWasm::WasiVfsProduct.new("build")
   wasi_sdk = TOOLCHAINS["wasi-sdk"]

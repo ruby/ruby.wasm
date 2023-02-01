@@ -82,121 +82,24 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
+  build-rake-task-matrix:
+    runs-on: ubuntu-20.04
+    outputs:
+      entries: ${{ steps.set-matrix.outputs.entries }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          echo "entries=$(rake ci:rake_task_matrix)" >> $GITHUB_OUTPUT
+
   rake-tasks:
     strategy:
       fail-fast: false
       matrix:
-        entry:
-          - task: "build:head-wasm32-unknown-emscripten-full"
-            artifact: "rubies/ruby-head-wasm32-unknown-emscripten-full.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-emscripten-full"
-            builder: "wasm32-unknown-emscripten"
-          - task: "build:head-wasm32-unknown-emscripten-minimal"
-            artifact: "rubies/ruby-head-wasm32-unknown-emscripten-minimal.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-emscripten-minimal"
-            builder: "wasm32-unknown-emscripten"
-          - task: "build:head-wasm32-unknown-wasi-full"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-full.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-full"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-full-debug"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-full-debug.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-full-debug"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-full-js"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-full-js.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-full-js"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-full-js-debug"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-full-js-debug.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-full-js-debug"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-minimal"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-minimal.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-minimal"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-minimal-debug"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-minimal-debug.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-minimal-debug"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-minimal-js"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-minimal-js.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-minimal-js"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:head-wasm32-unknown-wasi-minimal-js-debug"
-            artifact: "rubies/ruby-head-wasm32-unknown-wasi-minimal-js-debug.tar.gz"
-            artifact_name: "ruby-head-wasm32-unknown-wasi-minimal-js-debug"
-            builder: "wasm32-unknown-wasi"
+        entry: ${{ fromJson(needs.build-rake-task-matrix.outputs.entries) }}
 
-          - task: "build:3_2-wasm32-unknown-emscripten-full"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-emscripten-full.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-emscripten-full"
-            builder: "wasm32-unknown-emscripten"
-          - task: "build:3_2-wasm32-unknown-emscripten-minimal"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-emscripten-minimal.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-emscripten-minimal"
-            builder: "wasm32-unknown-emscripten"
-          - task: "build:3_2-wasm32-unknown-wasi-full"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-full.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-full"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-full-debug"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-full-debug.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-full-debug"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-full-js"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-full-js.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-full-js"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-full-js-debug"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-full-js-debug.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-full-js-debug"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-minimal"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-minimal.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-minimal"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-minimal-debug"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-minimal-debug.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-minimal-debug"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-minimal-js"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-minimal-js.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-minimal-js"
-            builder: "wasm32-unknown-wasi"
-          - task: "build:3_2-wasm32-unknown-wasi-minimal-js-debug"
-            artifact: "rubies/ruby-3_2-wasm32-unknown-wasi-minimal-js-debug.tar.gz"
-            artifact_name: "ruby-3_2-wasm32-unknown-wasi-minimal-js-debug"
-            builder: "wasm32-unknown-wasi"
-
-          - task: "npm:ruby-head-wasm-emscripten"
-            prerelease: "npm:configure_prerelease"
-            artifact: "packages/npm-packages/ruby-head-wasm-emscripten/ruby-head-wasm-emscripten-*.tgz"
-            artifact_name: "npm-ruby-head-wasm-emscripten"
-            builder: "wasm32-unknown-emscripten"
-          - task: "npm:ruby-head-wasm-wasi"
-            test: "npm:ruby-head-wasm-wasi-check"
-            prerelease: "npm:configure_prerelease"
-            artifact: "packages/npm-packages/ruby-head-wasm-wasi/ruby-head-wasm-wasi-*.tgz"
-            artifact_name: "npm-ruby-head-wasm-wasi"
-            builder: "wasm32-unknown-wasi"
-          - task: "npm:ruby-3_2-wasm-wasi"
-            test: "npm:ruby-3_2-wasm-wasi-check"
-            prerelease: "npm:configure_prerelease"
-            artifact: "packages/npm-packages/ruby-3_2-wasm-wasi/ruby-3_2-wasm-wasi-*.tgz"
-            artifact_name: "npm-ruby-3_2-wasm-wasi"
-            builder: "wasm32-unknown-wasi"
-
-          - task: "wapm:ruby-build"
-            artifact: "packages/wapm-packages/ruby/dist"
-            artifact_name: "wapm-ruby"
-            builder: "wasm32-unknown-wasi"
-          - task: "wapm:irb-build"
-            artifact: "packages/wapm-packages/irb/dist"
-            artifact_name: "wapm-irb"
-            builder: "wasm32-unknown-wasi"
-
-    needs: [build-builder-image]
+    needs: [build-builder-image, build-rake-task-matrix]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3

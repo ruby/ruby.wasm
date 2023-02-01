@@ -8,6 +8,9 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
   # Source to build from.
   attr_reader :source
 
+  # Target to build for.
+  attr_reader :target
+
   # Toolchain for the build.
   # Defaults to the Toolchain.get for the target.
   attr_reader :toolchain
