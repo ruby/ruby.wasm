@@ -88,6 +88,11 @@ jobs:
       entries: ${{ steps.set-matrix.outputs.entries }}
     steps:
       - uses: actions/checkout@v3
+      - run: rake ci:pin_build_manifest
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-manifest
+          path: build-manifest.json
       - name: Set matrix
         id: set-matrix
         run: |
@@ -103,6 +108,13 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-manifest
+      - uses: actions/cache@v3
+        with:
+          path: ./rubies
+          key: ${{ matrix.entry.rubies_cache_key }}
       - name: Fetch builder image
         uses: actions/download-artifact@v3
         with:
