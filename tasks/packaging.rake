@@ -100,9 +100,7 @@ NPM_RELEASE_ARTIFACTS = [
   "npm-ruby-head-wasm-wasi",
   "npm-ruby-3_2-wasm-wasi",
 ]
-RELASE_ARTIFACTS = BUILDS.map do |build|
-  "ruby-#{build[:src]}-#{build[:target]}-#{build[:profile]}"
-end + NPM_RELEASE_ARTIFACTS
+RELASE_ARTIFACTS = BUILD_TASKS.map{ |build| build.name } + NPM_RELEASE_ARTIFACTS
 
 def release_note
   output = <<EOS
