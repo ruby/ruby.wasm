@@ -1,3 +1,15 @@
+def latest_build_sources
+  BUILD_SOURCES.map do |name, src|
+    case src[:type]
+    when "github"
+      url = "https://api.github.com/repos/#{src[:repo]}/commits/#{src[:rev]}"
+      revision = OpenURI.open_uri(url) { |f| JSON.load(f.read) }
+      [name, revision["sha"]]
+    else
+      raise "#{src[:type]} is not supported to pin source revision"
+    end
+  end.to_h
+end
 namespace :ci do
   task :rake_task_matrix do
     require "pathname"
@@ -28,5 +40,10 @@ namespace :ci do
       }
     end
     print JSON.generate(entries)
+  end
+
+  task :build_manifest do
+    content = JSON.generate({ ruby_revisions: latest_build_sources })
+    File.write("build_manifest.json", content)
   end
 end

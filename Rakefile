@@ -22,6 +22,18 @@ BUILD_SOURCES = {
   }
 }
 
+# Respect revisions specified in build_manifest.json, which is usually generated on GitHub Actions.
+if File.exist?("build_manifest.json")
+  begin
+    manifest = JSON.parse(File.read("build_manifest.json"))
+    manifest["ruby_revisions"].each do |name, rev|
+      BUILD_SOURCES[name]["rev"] = rev
+    end
+  rescue StandardError
+    $stderr.puts "Failed to load build_manifest.json"
+  end
+end
+
 FULL_EXTS =
   "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
 
