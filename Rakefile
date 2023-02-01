@@ -83,9 +83,20 @@ BUILD_PROFILES = {
 BUILDS =
   BUILD_SOURCES.keys.flat_map do |src|
     %w[wasm32-unknown-wasi wasm32-unknown-emscripten].flat_map do |target|
-      BUILD_PROFILES.keys.map do |profile|
-        { src: src, target: target, profile: profile }
-      end
+      BUILD_PROFILES
+        .keys
+        .filter do |profile_name|
+          if target == "wasm32-unknown-emscripten"
+            profile = BUILD_PROFILES[profile_name]
+            user_exts = profile[:user_exts]
+            # Skip builds with JS extensions or debug mode for Emscripten
+            # because JS extensions have incompatible import/export entries
+            # and debug mode is rarely used for Emscripten.
+            next !(user_exts.include?("witapi") || user_exts.include?("js") || profile[:debug])
+          end
+          next true
+        end
+        .map { |profile| { src: src, target: target, profile: profile } }
     end
   end
 
