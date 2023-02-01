@@ -28,7 +28,7 @@ jobs:
           bundler-cache: true
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v2
+        uses: actions/configure-pages@v3
       - name: Build HTML by RDoc
         run: rake rdoc
       - name: Upload artifact
