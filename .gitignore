@@ -10,3 +10,5 @@ wapm_packages
 compile_commands.json
 
 html
+
+build_manifest.json
