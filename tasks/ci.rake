@@ -27,15 +27,20 @@ namespace :ci do
       }
     end
     entries += NPM_PACKAGES.map do |pkg|
-      {
+      entry = {
         task: "npm:#{pkg[:name]}",
-        test: "npm:#{pkg[:name]}-check",
         prerelease: "npm:configure_prerelease",
         artifact: "packages/npm-packages/#{pkg[:name]}/#{pkg[:name]}-*.tgz",
         artifact_name: "npm-#{pkg[:name]}",
         builder: pkg[:target],
         rubies_cache_key: ruby_cache_keys[pkg[:build]],
       }
+      # Run tests only if the package has 'test' script
+      package_json = JSON.parse(File.read("packages/npm-packages/#{pkg[:name]}/package.json"))
+      if package_json["scripts"] && package_json["scripts"]["test"]
+        entry[:test] = "npm:#{pkg[:name]}-check"
+      end
+      entry
     end
     entries += WAPM_PACKAGES.map do |pkg|
       {
