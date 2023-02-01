@@ -1,4 +1,4 @@
-wasi_vfs = RubyWasm::WasiVfsProduct.new("build")
+wasi_vfs = RubyWasm::WasiVfsProduct.new(File.join(Dir.pwd, "build"))
 wasi_sdk = TOOLCHAINS["wasi-sdk"]
 tools = {
   "WASI_VFS_CLI" => wasi_vfs.cli_bin_path,
