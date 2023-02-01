@@ -92,7 +92,8 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
   def hexdigest
     require "digest"
     digest = Digest::SHA256.new
-    digest << @source.cache_key
+    @source.cache_key(digest)
+    @crossruby.cache_key(digest)
     digest << @build_dir
     digest << @rubies_dir
     digest << @target
