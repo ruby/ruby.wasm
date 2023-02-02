@@ -27,7 +27,7 @@ if File.exist?("build_manifest.json")
   begin
     manifest = JSON.parse(File.read("build_manifest.json"))
     manifest["ruby_revisions"].each do |name, rev|
-      BUILD_SOURCES[name]["rev"] = rev
+      BUILD_SOURCES[name][:rev] = rev
     end
   rescue StandardError
     $stderr.puts "Failed to load build_manifest.json"
