@@ -2,7 +2,7 @@
 
 WebAssembly port of CRuby with WASI.
 
-This package distributes the latest `master` branch of CRuby.
+This package distributes the CRuby 3.2.
 
 ## Installation
 
