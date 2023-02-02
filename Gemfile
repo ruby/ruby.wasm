@@ -3,5 +3,6 @@
 source "https://rubygems.org"
 
 group :development do
+  gem "rake"
   gem "syntax_tree", "~> 3.5"
 end
