@@ -38,8 +38,10 @@ module RubyWasm
         FileUtils.mkdir_p src_dir
         system "git init", chdir: src_dir
         system "git remote add origin #{repo_url}", chdir: src_dir
-        system("git fetch --depth 1 origin #{@params[:rev]}:#{@params[:rev]}", chdir: src_dir) or
-          raise "failed to clone #{repo_url}"
+        system(
+          "git fetch --depth 1 origin #{@params[:rev]}:#{@params[:rev]}",
+          chdir: src_dir
+        ) or raise "failed to clone #{repo_url}"
         system("git checkout #{@params[:rev]}", chdir: src_dir) or
           raise "failed to checkout #{@params[:rev]}"
       when "local"
