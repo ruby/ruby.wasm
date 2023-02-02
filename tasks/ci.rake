@@ -22,11 +22,8 @@ EOS
   BUILD_SOURCES.each do |name, source|
     case source[:type]
     when "github"
-      url =
-        "https://api.github.com/repos/#{source[:repo]}/commits/#{source[:rev]}"
-      commit = OpenURI.open_uri(url) { |f| JSON.load(f.read) }
       output +=
-        "| #{name} | [`#{source[:repo]}@#{commit["sha"]}`](https://github.com/ruby/ruby/tree/#{commit["sha"]}) |\n"
+        "| #{name} | [`#{source[:repo]}@#{source[:rev]}`](https://github.com/ruby/ruby/tree/#{source[:rev]}) |\n"
     else
       raise "unknown source type: #{source[:type]}"
     end
