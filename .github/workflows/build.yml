@@ -146,6 +146,9 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
         with:
+          name: build-manifest
+      - uses: actions/download-artifact@v3
+        with:
           path: release
       - uses: actions/setup-node@v3
         with:
