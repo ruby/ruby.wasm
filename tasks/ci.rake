@@ -130,7 +130,10 @@ namespace :ci do
 
     nightly = /^\d{4}-\d{2}-\d{2}-.$/.match?(args[:tag])
     matrix = rake_task_matrix
-    files = matrix.map { |entry| "release/#{entry[:artifact_name]}/*" }
+    files =
+      matrix
+        .flat_map { |_, entries| entries }
+        .map { |entry| "release/#{entry[:artifact_name]}/*" }
     File.open("release/note.md", "w") { |f| f.print release_note }
     matrix[:npm].each do |task|
       artifact = task[:artifact_name]
