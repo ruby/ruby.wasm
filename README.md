@@ -15,7 +15,7 @@ Create and save `index.html` page with the following contents:
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@0.6.0/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ruby-3_2-wasm-wasi@1.0.1/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     puts "Hello, world!"
   </script>
@@ -28,18 +28,18 @@ Dependencies: [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs), [wasmtime
 
 ```console
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-head-wasm32-unknown-wasi-full.tar.gz
-$ tar xfz ruby-head-wasm32-unknown-wasi-full.tar.gz
+$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3_2-wasm32-unknown-wasi-full.tar.gz
+$ tar xfz ruby-3_2-wasm32-unknown-wasi-full.tar.gz
 
 # Extract ruby binary not to pack itself
-$ mv head-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
+$ mv 3_2-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
 
 # Put your app code
 $ mkdir src
 $ echo "puts 'Hello'" > src/my_app.rb
 
 # Pack the whole directory under /usr and your app dir
-$ wasi-vfs pack ruby.wasm --mapdir /src::./src --mapdir /usr::./head-wasm32-unknown-wasi-full/usr -o my-ruby-app.wasm
+$ wasi-vfs pack ruby.wasm --mapdir /src::./src --mapdir /usr::./3_2-wasm32-unknown-wasi-full/usr -o my-ruby-app.wasm
 
 # Run the packed scripts
 $ wasmtime my-ruby-app.wasm -- /src/my_app.rb
