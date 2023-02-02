@@ -35,8 +35,13 @@ module RubyWasm
       case @params[:type]
       when "github"
         repo_url = "https://github.com/#{@params[:repo]}.git"
-        system "git clone --depth 1 -b #{@params[:rev]} #{repo_url} #{src_dir}" or
+        FileUtils.mkdir_p src_dir
+        system "git init", chdir: src_dir
+        system "git remote add origin #{repo_url}", chdir: src_dir
+        system("git fetch --depth 1 origin #{@params[:rev]}:#{@params[:rev]}", chdir: src_dir) or
           raise "failed to clone #{repo_url}"
+        system("git checkout #{@params[:rev]}", chdir: src_dir) or
+          raise "failed to checkout #{@params[:rev]}"
       when "local"
         FileUtils.mkdir_p File.dirname(src_dir)
         FileUtils.cp_r @params[:src], src_dir
