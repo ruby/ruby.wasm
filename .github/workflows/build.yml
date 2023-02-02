@@ -152,7 +152,7 @@ jobs:
           node-version: 16
           registry-url: https://registry.npmjs.org/
       - run: echo "PREREL_NAME=${{ inputs.prerel_name }}" >> $GITHUB_ENV
-      - run: rake "publish[${PREREL_NAME:-$GITHUB_REF_NAME}]"
+      - run: rake "ci:publish[${PREREL_NAME:-$GITHUB_REF_NAME}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
