@@ -92,7 +92,12 @@ BUILDS =
             # Skip builds with JS extensions or debug mode for Emscripten
             # because JS extensions have incompatible import/export entries
             # and debug mode is rarely used for Emscripten.
-            next !(user_exts.include?("witapi") || user_exts.include?("js") || profile[:debug])
+            next(
+              !(
+                user_exts.include?("witapi") || user_exts.include?("js") ||
+                  profile[:debug]
+              )
+            )
           end
           next true
         end

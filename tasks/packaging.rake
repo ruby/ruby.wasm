@@ -2,7 +2,7 @@ wasi_vfs = RubyWasm::WasiVfsProduct.new(File.join(Dir.pwd, "build"))
 wasi_sdk = TOOLCHAINS["wasi-sdk"]
 tools = {
   "WASI_VFS_CLI" => wasi_vfs.cli_bin_path,
-  "WASMOPT" => wasi_sdk.wasm_opt,
+  "WASMOPT" => wasi_sdk.wasm_opt
 }
 
 namespace :npm do
@@ -39,7 +39,7 @@ namespace :npm do
   end
 
   desc "Bump version"
-  task :bump_version, [:package, :version] do |t, args|
+  task :bump_version, %i[package version] do |t, args|
     require "json"
     package = args[:package] or raise "package name is required"
     version = args[:version] or raise "version is required"
@@ -54,17 +54,20 @@ namespace :npm do
     # Update package-lock.json
     Dir.chdir(pkg_dir) { sh "npm install" }
     # Update README.md and other docs
-    %x(git grep -l #{pkg_name}@#{old_version}).split.each do |file|
+    `git grep -l #{pkg_name}@#{old_version}`.split.each do |file|
       content = File.read(file)
       next_nightly = Date.today.strftime("%Y-%m-%d")
-      content.gsub!(/#{pkg_name}@#{old_version}-\d{4}-\d{2}-\d{2}-a/, "#{pkg_name}@#{version}-#{next_nightly}-a")
+      content.gsub!(
+        /#{pkg_name}@#{old_version}-\d{4}-\d{2}-\d{2}-a/,
+        "#{pkg_name}@#{version}-#{next_nightly}-a"
+      )
       content.gsub!(/#{pkg_name}@#{old_version}/, "#{pkg_name}@#{version}")
       File.write(file, content)
     end
   end
 
   desc "Build all npm packages"
-  multitask :all => NPM_PACKAGES.map { |pkg| pkg[:name] }
+  multitask all: NPM_PACKAGES.map { |pkg| pkg[:name] }
 end
 
 namespace :wapm do
@@ -76,7 +79,9 @@ namespace :wapm do
       wasi_vfs.install_cli
       wasi_sdk.install_binaryen
       base_dir = Dir.pwd
-      sh tools, "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}", chdir: pkg_dir
+      sh tools,
+         "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}",
+         chdir: pkg_dir
     end
 
     desc "Publish wapm package #{pkg[:name]}"
@@ -87,10 +92,10 @@ namespace :wapm do
   end
 end
 
-NPM_RELEASE_ARTIFACTS = [
-  "npm-ruby-head-wasm-emscripten",
-  "npm-ruby-head-wasm-wasi",
-  "npm-ruby-3_2-wasm-wasi",
+NPM_RELEASE_ARTIFACTS = %w[
+  npm-ruby-head-wasm-emscripten
+  npm-ruby-head-wasm-wasi
+  npm-ruby-3_2-wasm-wasi
 ]
 RELASE_ARTIFACTS =
   BUILD_TASKS.map do |build|
@@ -106,11 +111,11 @@ EOS
   BUILD_SOURCES.each do |name, source|
     case source[:type]
     when "github"
-      url = "https://api.github.com/repos/#{source[:repo]}/commits/#{source[:rev]}"
-      commit = OpenURI.open_uri(url) do |f|
-        JSON.load(f.read)
-      end
-      output += "| #{name} | [`#{source[:repo]}@#{commit["sha"]}`](https://github.com/ruby/ruby/tree/#{commit["sha"]}) |\n"
+      url =
+        "https://api.github.com/repos/#{source[:repo]}/commits/#{source[:rev]}"
+      commit = OpenURI.open_uri(url) { |f| JSON.load(f.read) }
+      output +=
+        "| #{name} | [`#{source[:repo]}@#{commit["sha"]}`](https://github.com/ruby/ruby/tree/#{commit["sha"]}) |\n"
     else
       raise "unknown source type: #{source[:type]}"
     end
@@ -122,8 +127,12 @@ desc "Fetch artifacts of a run of GitHub Actions"
 task :fetch_artifacts, [:run_id] do |t, args|
   RubyWasm::Toolchain.check_executable("gh")
 
-  artifacts = JSON.load(%x(gh api repos/{owner}/{repo}/actions/runs/#{args[:run_id]}/artifacts))
-  artifacts = artifacts["artifacts"].filter { RELASE_ARTIFACTS.include?(_1["name"]) }
+  artifacts =
+    JSON.load(
+      `gh api repos/{owner}/{repo}/actions/runs/#{args[:run_id]}/artifacts`
+    )
+  artifacts =
+    artifacts["artifacts"].filter { RELASE_ARTIFACTS.include?(_1["name"]) }
   mkdir_p "release"
   Dir.chdir("release") do
     artifacts.each do |artifact|
@@ -141,12 +150,9 @@ task :publish, [:tag] do |t, args|
   RubyWasm::Toolchain.check_executable("gh")
 
   nightly = /^\d{4}-\d{2}-\d{2}-.$/.match?(args[:tag])
-  files = RELASE_ARTIFACTS.flat_map do |artifact|
-    Dir.glob("release/#{artifact}/*")
-  end
-  File.open("release/note.md", "w") do |f|
-    f.print release_note
-  end
+  files =
+    RELASE_ARTIFACTS.flat_map { |artifact| Dir.glob("release/#{artifact}/*") }
+  File.open("release/note.md", "w") { |f| f.print release_note }
   NPM_RELEASE_ARTIFACTS.each do |artifact|
     tarball = Dir.glob("release/#{artifact}/*")
     next if tarball.empty?

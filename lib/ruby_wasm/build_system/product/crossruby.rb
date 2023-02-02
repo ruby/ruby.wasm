@@ -76,11 +76,13 @@ module RubyWasm
     def cache_key(digest)
       digest << @name
       # Compute hash value of files under srcdir
-      Dir.glob("#{@srcdir}/**/*", File::FNM_DOTMATCH).each do |f|
-        next if File.directory?(f)
-        digest << f
-        digest << File.read(f)
-      end
+      Dir
+        .glob("#{@srcdir}/**/*", File::FNM_DOTMATCH)
+        .each do |f|
+          next if File.directory?(f)
+          digest << f
+          digest << File.read(f)
+        end
     end
   end
 
@@ -171,14 +173,14 @@ module RubyWasm
     def cache_key(digest)
       digest << @params.target
       digest << @params.default_exts
-      @wasmoptflags.each{|f| digest << f }
-      @cppflags.each{|f| digest << f }
-      @cflags.each{|f| digest << f }
-      @ldflags.each{|f| digest << f }
-      @debugflags.each{|f| digest << f }
-      @xcflags.each{|f| digest << f }
-      @xldflags.each{|f| digest << f }
-      @user_exts.each{|ext| ext.cache_key(digest) }
+      @wasmoptflags.each { |f| digest << f }
+      @cppflags.each { |f| digest << f }
+      @cflags.each { |f| digest << f }
+      @ldflags.each { |f| digest << f }
+      @debugflags.each { |f| digest << f }
+      @xcflags.each { |f| digest << f }
+      @xldflags.each { |f| digest << f }
+      @user_exts.each { |ext| ext.cache_key(digest) }
     end
 
     def build_dir

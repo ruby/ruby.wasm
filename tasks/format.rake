@@ -7,9 +7,9 @@ namespace :format do
         "Rakefile",
         "lib/**/*.rb",
         "ext/**/*.rb",
-        "tasks/**/*.rb",
-        "packages/**/*.rb",
-      ],
+        "tasks/**/*.rake",
+        "packages/**/*.rb"
+      ]
     )
   rescue LoadError
   end
