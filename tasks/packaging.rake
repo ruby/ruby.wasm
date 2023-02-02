@@ -92,7 +92,10 @@ NPM_RELEASE_ARTIFACTS = [
   "npm-ruby-head-wasm-wasi",
   "npm-ruby-3_2-wasm-wasi",
 ]
-RELASE_ARTIFACTS = BUILD_TASKS.map{ |build| build.name } + NPM_RELEASE_ARTIFACTS
+RELASE_ARTIFACTS =
+  BUILD_TASKS.map do |build|
+    File.basename(build.crossruby.artifact, ".tar.gz")
+  end + NPM_RELEASE_ARTIFACTS
 
 def release_note
   output = <<EOS
