@@ -1,3 +1,4 @@
+import inject from "@rollup/plugin-inject";
 import json from "@rollup/plugin-json";
 import fs from "fs";
 import path from "path";
@@ -17,6 +18,9 @@ export default [
     plugins: [
       json(),
       nodePolyfills(),
+      inject({
+        Buffer: ["buffer", "Buffer"],
+      }),
     ],
   },
 ];
