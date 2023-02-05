@@ -1,6 +1,7 @@
 import json from "@rollup/plugin-json";
 import fs from "fs";
 import path from "path";
+import nodePolyfills from "rollup-plugin-polyfill-node";
 
 /** @type {import('rollup').RollupOptions[]} */
 export default [
@@ -15,6 +16,7 @@ export default [
     ],
     plugins: [
       json(),
+      nodePolyfills(),
     ],
   },
 ];
