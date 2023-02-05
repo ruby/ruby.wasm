@@ -89,6 +89,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: rake ci:pin_build_manifest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v3
         with:
           name: build-manifest

@@ -3,8 +3,8 @@ def latest_build_sources
     .map do |name, src|
       case src[:type]
       when "github"
-        url = "https://api.github.com/repos/#{src[:repo]}/commits/#{src[:rev]}"
-        revision = OpenURI.open_uri(url) { |f| JSON.load(f.read) }
+        url = "repos/#{src[:repo]}/commits/#{src[:rev]}"
+        revision = JSON.parse(`gh api #{url}`)
         [name, revision["sha"]]
       else
         raise "#{src[:type]} is not supported to pin source revision"
