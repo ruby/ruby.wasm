@@ -1,12 +1,13 @@
 #!/bin/sh
 ":" //# ; exec /usr/bin/env node --experimental-wasi-unstable-preview1 "$0" "$@"
 
+import * as wasmerWasi from "@wasmer/wasi";
 import fs from "fs/promises";
 import path from "path";
-import { WASI } from "wasi";
+import * as nodeWasi from "wasi";
 import { RubyVM } from "../dist/index.cjs.js";
 
-const instantiate = async (rootTestFile) => {
+const instantiateNodeWasi = async (rootTestFile) => {
   const dirname = path.dirname(new URL(import.meta.url).pathname);
   let binaryPath;
   let preopens = {
@@ -20,7 +21,7 @@ const instantiate = async (rootTestFile) => {
   }
   const binary = await fs.readFile(binaryPath);
   const rubyModule = await WebAssembly.compile(binary);
-  const wasi = new WASI({
+  const wasi = new nodeWasi.WASI({
     stdio: "inherit",
     args: ["ruby.wasm"].concat(process.argv.slice(2)),
     env: {
@@ -28,7 +29,7 @@ const instantiate = async (rootTestFile) => {
       // Extend fiber stack size to be able to run test-unit
       "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
     },
-    preopens: preopens,
+    preopens,
   });
 
   const vm = new RubyVM();
@@ -44,12 +45,82 @@ const instantiate = async (rootTestFile) => {
   wasi.initialize(instance);
 
   vm.initialize(["ruby.wasm", rootTestFile]);
-  return { instance, vm };
+  return { instance, vm, wasi };
 };
 
-const main = async () => {
+const instantiateWasmerWasi = async (rootTestFile) => {
+  await wasmerWasi.init();
+
+  const memFs = new wasmerWasi.MemFS();
+  const walk = async (dir) => {
+    const names = await fs.readdir(dir);
+    const files = await Promise.all(names.map(async name => {
+      if ((await fs.stat(path.join(dir, name))).isDirectory()) {
+        return walk(path.join(dir, name));
+      } else {
+        return [path.join(dir, name)];
+      }
+    }));
+    return files.flat();
+  };
+  const mkdirpMemFs = (guestPath) => {
+    const parts = guestPath.split('/');
+    for (let i = 2; i <= parts.length; i++) {
+      memFs.createDir(parts.slice(0, i).join('/'));
+    }
+  };
+  const loadToMemFs = async (guestPath, hostPath) => {
+    const hostFiles = await walk(hostPath);
+    await Promise.all(hostFiles.map(async hostFile => {
+      const guestFile = path.join(guestPath, path.relative(hostPath, hostFile));
+      mkdirpMemFs(path.dirname(guestFile));
+      const contents = await fs.readFile(hostFile);
+      memFs.open(guestFile, { write: true, create: true }).write(contents);
+    }));
+  };
+
+  const dirname = path.dirname(new URL(import.meta.url).pathname);
+  await loadToMemFs('/__root__/test', path.join(dirname, '../test'));
+  const preopens = {
+    __root__: '/__root__',
+  };
+
+  const binaryPath = path.join(dirname, "../dist/ruby+stdlib.wasm");
+  if (process.env.RUBY_ROOT) {
+    console.error('For now, testing with RUBY_ROOT is not supported.');
+  }
+
+  const binary = await fs.readFile(binaryPath);
+  const rubyModule = await WebAssembly.compile(binary);
+
+  const wasi = new wasmerWasi.WASI({
+    args: ["ruby.wasm"].concat(process.argv.slice(2)),
+    env: {
+      ...process.env,
+      // Extend fiber stack size to be able to run test-unit
+      "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
+    },
+    preopens,
+    fs: memFs,
+  });
+
+  const vm = new RubyVM();
+  const imports = wasi.getImports(rubyModule);
+  vm.addToImports(imports);
+
+  const instance = await WebAssembly.instantiate(rubyModule, imports);
+  wasi.instantiate(instance);
+  await vm.setInstance(instance);
+
+  instance.exports._initialize();
+  vm.initialize(["ruby.wasm", rootTestFile]);
+
+  return { instance, vm, wasi };
+};
+
+const test = async (instantiate) => {
   const rootTestFile = "/__root__/test/test_unit.rb";
-  const { vm } = await instantiate(rootTestFile);
+  const { vm, wasi } = await instantiate(rootTestFile);
 
   Error.stackTraceLimit = Infinity;
 
@@ -71,6 +142,20 @@ const main = async () => {
     require_relative '${rootTestFile}'
     Test::Unit::AutoRunner.run
   `);
+
+  // TODO(makenowjust): override `wasi_snapshot_preview1.fd_write` for output to stdout/stderr.
+  // See `src/browser.ts`.
+  if (wasi.getStderrString) {
+    console.error(wasi.getStderrString());
+  }
+  if (wasi.getStdoutString) {
+    console.log(wasi.getStdoutString());
+  }
+};
+
+const main = async () => {
+  await test(instantiateNodeWasi);
+  await test(instantiateWasmerWasi);
 };
 
 main();
