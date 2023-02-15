@@ -121,6 +121,12 @@ rb_js_abi_host_js_abi_value_t rb_js_abi_host_int_to_js_number(int32_t value) {
   int32_t ret = __wasm_import_rb_js_abi_host_int_to_js_number(value);
   return (rb_js_abi_host_js_abi_value_t){ ret };
 }
+__attribute__((import_module("rb-js-abi-host"), import_name("float-to-js-number: func(value: float64) -> handle<js-abi-value>")))
+int32_t __wasm_import_rb_js_abi_host_float_to_js_number(double);
+rb_js_abi_host_js_abi_value_t rb_js_abi_host_float_to_js_number(double value) {
+  int32_t ret = __wasm_import_rb_js_abi_host_float_to_js_number(value);
+  return (rb_js_abi_host_js_abi_value_t){ ret };
+}
 __attribute__((import_module("rb-js-abi-host"), import_name("string-to-js-string: func(value: string) -> handle<js-abi-value>")))
 int32_t __wasm_import_rb_js_abi_host_string_to_js_string(int32_t, int32_t);
 rb_js_abi_host_js_abi_value_t rb_js_abi_host_string_to_js_string(rb_js_abi_host_string_t *value) {

@@ -103,6 +103,9 @@ export class RubyVM {
         intToJsNumber: (value) => {
           return value;
         },
+        floatToJsNumber: (value) => {
+          return value;
+        },
         stringToJsString: (value) => {
           return value;
         },
