@@ -23,6 +23,7 @@ export interface RbJsAbiHost {
   instanceOf(value: JsAbiValue, klass: JsAbiValue): boolean;
   globalThis(): JsAbiValue;
   intToJsNumber(value: number): JsAbiValue;
+  floatToJsNumber(value: number): JsAbiValue;
   stringToJsString(value: string): JsAbiValue;
   boolToJsBool(value: boolean): JsAbiValue;
   procToJsFunction(value: number): JsAbiValue;

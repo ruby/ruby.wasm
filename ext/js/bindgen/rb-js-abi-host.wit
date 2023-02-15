@@ -10,6 +10,7 @@ is-js: func(value: js-abi-value) -> bool
 instance-of: func(value: js-abi-value, klass: js-abi-value) -> bool
 global-this: func() -> js-abi-value
 int-to-js-number: func(value: s32) -> js-abi-value
+float-to-js-number: func(value: float64) -> js-abi-value
 string-to-js-string: func(value: string) -> js-abi-value
 bool-to-js-bool: func(value: bool) -> js-abi-value
 proc-to-js-function: func(value: u32) -> js-abi-value

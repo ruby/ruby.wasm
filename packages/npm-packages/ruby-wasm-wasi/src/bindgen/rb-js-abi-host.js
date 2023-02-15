@@ -41,6 +41,10 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
     const ret0 = obj.intToJsNumber(arg0);
     return resources0.insert(ret0);
   };
+  imports["rb-js-abi-host"]["float-to-js-number: func(value: float64) -> handle<js-abi-value>"] = function(arg0) {
+    const ret0 = obj.floatToJsNumber(arg0);
+    return resources0.insert(ret0);
+  };
   imports["rb-js-abi-host"]["string-to-js-string: func(value: string) -> handle<js-abi-value>"] = function(arg0, arg1) {
     const memory = get_export("memory");
     const ptr0 = arg0;

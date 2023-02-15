@@ -12,6 +12,7 @@
 
 extern VALUE rb_mKernel;
 extern VALUE rb_cInteger;
+extern VALUE rb_cFloat;
 extern VALUE rb_cString;
 extern VALUE rb_cTrueClass;
 extern VALUE rb_cFalseClass;
@@ -450,6 +451,16 @@ static VALUE _rb_js_integer_to_js(VALUE obj) {
  *
  *  Returns +self+ as a JS::Object.
  */
+static VALUE _rb_js_float_to_js(VALUE obj) {
+  return jsvalue_s_new(rb_js_abi_host_float_to_js_number(RFLOAT_VALUE(obj)));
+}
+
+/*
+ * call-seq:
+ *   to_js -> JS::Object
+ *
+ *  Returns +self+ as a JS::Object.
+ */
 static VALUE _rb_js_string_to_js(VALUE obj) {
   rb_js_abi_host_string_t abi_str;
   rstring_to_abi_string(obj, &abi_str);
@@ -556,6 +567,7 @@ void Init_js() {
   rb_define_singleton_method(rb_cJS_Object, "wrap", _rb_js_obj_wrap, 1);
 
   rb_define_method(rb_cInteger, "to_js", _rb_js_integer_to_js, 0);
+  rb_define_method(rb_cFloat, "to_js", _rb_js_float_to_js, 0);
   rb_define_method(rb_cString, "to_js", _rb_js_string_to_js, 0);
   rb_define_method(rb_cTrueClass, "to_js", _rb_js_true_to_js, 0);
   rb_define_method(rb_cFalseClass, "to_js", _rb_js_false_to_js, 0);
