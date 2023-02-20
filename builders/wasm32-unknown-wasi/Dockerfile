@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:bullseye
 
 ARG WASI_SDK_VERSION_MAJOR=14
 ARG WASI_SDK_VERSION_MINOR=0

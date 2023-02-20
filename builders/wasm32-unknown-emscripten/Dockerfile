@@ -1,4 +1,4 @@
-FROM emscripten/emsdk:2.0.13
+FROM emscripten/emsdk:3.1.31
 
 RUN set -eux; \
   apt-get update; \
