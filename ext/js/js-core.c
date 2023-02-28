@@ -341,7 +341,7 @@ static VALUE _rb_js_obj_to_s(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   rb_js_abi_host_string_t ret0;
   rb_js_abi_host_js_value_to_string(p->abi, &ret0);
-  return rb_str_new(ret0.ptr, ret0.len);
+  return rb_utf8_str_new(ret0.ptr, ret0.len);
 }
 
 /*

@@ -64,6 +64,11 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "undefined", JS.eval("return undefined;").to_s
   end
 
+  def test_to_s_encoding
+    assert_equal Encoding::UTF_8, JS.eval("return 'str';").to_s.encoding
+    assert_equal Encoding::UTF_8, JS.eval("return 'あいうえお';").to_s.encoding
+  end
+
   def test_inspect
     assert_equal "str", JS.eval("return 'str';").to_s
     assert_equal "24", JS.eval("return 24;").inspect
