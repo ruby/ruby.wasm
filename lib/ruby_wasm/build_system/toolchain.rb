@@ -127,7 +127,7 @@ module RubyWasm
           "binaryen-version_#{@binaryen_version}-x86_64-macos.tar.gz"
         ],
         [
-          /arm64-darwin/,
+          /arm64e?-darwin/,
           "binaryen-version_#{@binaryen_version}-arm64-macos.tar.gz"
         ]
       ]
