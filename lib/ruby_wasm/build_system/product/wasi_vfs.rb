@@ -65,7 +65,7 @@ module RubyWasm
       assets = [
         [/x86_64-linux/, "wasi-vfs-cli-x86_64-unknown-linux-gnu.zip"],
         [/x86_64-darwin/, "wasi-vfs-cli-x86_64-apple-darwin.zip"],
-        [/arm64-darwin/, "wasi-vfs-cli-aarch64-apple-darwin.zip"]
+        [/arm64e?-darwin/, "wasi-vfs-cli-aarch64-apple-darwin.zip"]
       ]
       asset = assets.find { |os, _| os =~ RUBY_PLATFORM }&.at(1)
       if asset.nil?
