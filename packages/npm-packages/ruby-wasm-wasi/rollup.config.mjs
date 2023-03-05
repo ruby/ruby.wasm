@@ -1,9 +1,11 @@
+import inject from "@rollup/plugin-inject";
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import nodePolyfills from "rollup-plugin-polyfill-node";
 
 const typescriptOptions = { tsconfig: "./tsconfig.json", declaration: false };
 
-function variant(basename) {
+function variant(basename, { browser = false } = {}) {
   return {
     input: `src/${basename}.ts`,
     output: [
@@ -23,15 +25,22 @@ function variant(basename) {
         exports: "named",
       },
     ],
-    plugins: [typescript(typescriptOptions), nodeResolve()],
+    plugins: [
+      ...(browser ? [
+        nodePolyfills(),
+        inject({ Buffer: ['buffer', 'Buffer']}),
+      ] : []),
+      typescript(typescriptOptions),
+      nodeResolve(),
+    ],
   };
 }
 
 /** @type {import('rollup').RollupOptions[]} */
 export default [
   variant("index"),
-  variant("browser"),
-  variant("browser.script"),
+  variant("browser", { browser: true }),
+  variant("browser.script", { browser: true }),
   {
     input: `src/node.ts`,
     output: [
