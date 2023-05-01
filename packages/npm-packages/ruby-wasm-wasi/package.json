@@ -35,7 +35,7 @@
     "@babel/preset-typescript": "^7.18.6",
     "@rollup/plugin-inject": "^5.0.3",
     "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^10.0.1",
+    "@rollup/plugin-typescript": "^11.1.0",
     "@types/jest": "^29.1.2",
     "@types/node": "18.16.3",
     "@wasmer/wasi": "^1.2.2",
