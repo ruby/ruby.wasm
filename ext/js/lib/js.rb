@@ -43,14 +43,12 @@ module JS
 
     def initialize(main_fiber)
       @tasks = []
-      @is_spinning = false
       @loop_fiber =
         Fiber.new do
           loop do
             while task = @tasks.shift
               task.fiber.transfer(task.value, task.status)
             end
-            @is_spinning = false
             main_fiber.transfer
           end
         end
@@ -70,10 +68,7 @@ module JS
 
     def enqueue(task)
       @tasks << task
-      unless @is_spinning
-        @is_spinning = true
-        JS.global.queueMicrotask -> { @loop_fiber.transfer }
-      end
+      JS.global.queueMicrotask -> { @loop_fiber.transfer }
     end
   end
 
