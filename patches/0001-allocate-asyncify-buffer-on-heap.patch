@@ -1,0 +1,56 @@
+From af4a44fbb3713b05b521b70e55f83cf6bc7f403b Mon Sep 17 00:00:00 2001
+From: Yuta Saito <kateinoigakukun@gmail.com>
+Date: Sun, 4 Sep 2022 14:34:24 +0000
+Subject: [PATCH] [wasm] Allocate asyncify buffer on heap to save stack usage
+
+---
+ wasm/setjmp.c | 13 +++++++++++--
+ wasm/setjmp.h |  1 -
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/wasm/setjmp.c b/wasm/setjmp.c
+index 90420877a8..841fda22a3 100644
+--- a/wasm/setjmp.c
++++ b/wasm/setjmp.c
+@@ -66,8 +66,15 @@ enum rb_wasm_jmp_buf_state {
+ void
+ async_buf_init(struct __rb_wasm_asyncify_jmp_buf* buf)
+ {
+-    buf->top = &buf->buffer[0];
+-    buf->end = &buf->buffer[WASM_SETJMP_STACK_BUFFER_SIZE];
++    char *buffer = malloc(WASM_SETJMP_STACK_BUFFER_SIZE);
++    buf->top = buffer;
++    buf->end = buffer + WASM_SETJMP_STACK_BUFFER_SIZE;
++}
++
++inline static void
++async_buf_deinit(struct __rb_wasm_asyncify_jmp_buf* buf)
++{
++    free(buf->top);
+ }
+ 
+ // Global unwinding/rewinding jmpbuf state
+@@ -100,6 +107,8 @@ _rb_wasm_setjmp_internal(rb_wasm_jmp_buf *env)
+         asyncify_stop_rewind();
+         RB_WASM_DEBUG_LOG("  JMP_BUF_STATE_RETURNING");
+         env->state = JMP_BUF_STATE_CAPTURED;
++        async_buf_deinit(&env->longjmp_buf);
++        async_buf_deinit(&env->setjmp_buf);
+         _rb_wasm_active_jmpbuf = NULL;
+         return env->payload;
+     }
+diff --git a/wasm/setjmp.h b/wasm/setjmp.h
+index 65e35c03b3..ddfc742270 100644
+--- a/wasm/setjmp.h
++++ b/wasm/setjmp.h
+@@ -11,7 +11,6 @@
+ struct __rb_wasm_asyncify_jmp_buf {
+     void* top;
+     void* end;
+-    char buffer[WASM_SETJMP_STACK_BUFFER_SIZE];
+ };
+ 
+ typedef struct {
+-- 
+2.40.0
+
