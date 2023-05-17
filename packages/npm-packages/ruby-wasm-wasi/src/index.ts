@@ -113,13 +113,13 @@ export class RubyVM {
           return value;
         },
         procToJsFunction: (rawRbAbiValue) => {
-          const rbValue = this.rbValueofPointer(rawRbAbiValue);
+          const rbValue = this.rbValueOfPointer(rawRbAbiValue);
           return (...args) => {
             rbValue.call("call", ...args.map((arg) => this.wrap(arg)));
           };
         },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
-          return this.rbValueofPointer(rawRbAbiValue);
+          return this.rbValueOfPointer(rawRbAbiValue);
         },
         jsValueToString: (value) => {
           // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
@@ -288,7 +288,7 @@ export class RubyVM {
     };
   }
 
-  private rbValueofPointer(pointer: number): RbValue {
+  private rbValueOfPointer(pointer: number): RbValue {
     const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
     return new RbValue(abiValue, this, this.privateObject());
   }
