@@ -39,41 +39,21 @@ module JS
   Null = JS.eval("return null")
 
   class PromiseScheduler
-    Task = Struct.new(:fiber, :status, :value)
-
-    def initialize(main_fiber)
-      @tasks = []
-      @is_spinning = false
-      @loop_fiber =
-        Fiber.new do
-          loop do
-            while task = @tasks.shift
-              task.fiber.transfer(task.value, task.status)
-            end
-            @is_spinning = false
-            main_fiber.transfer
-          end
-        end
+    def initialize(loop)
+      @loop = loop
     end
 
     def await(promise)
       current = Fiber.current
       promise.call(
         :then,
-        ->(value) { enqueue Task.new(current, :success, value) },
-        ->(value) { enqueue Task.new(current, :failure, value) }
+        ->(value) { current.transfer(value, :success) },
+        ->(value) { current.transfer(value, :failure) }
       )
-      value, status = @loop_fiber.transfer
+      raise "JS::Object#await can be called only from evalAsync" if @loop == current
+      value, status = @loop.transfer
       raise JS::Error.new(value) if status == :failure
       value
-    end
-
-    def enqueue(task)
-      @tasks << task
-      unless @is_spinning
-        @is_spinning = true
-        JS.global.queueMicrotask -> { @loop_fiber.transfer }
-      end
     end
   end
 
@@ -120,8 +100,8 @@ class JS::Object
   # This method looks like a synchronous method, but it actually runs asynchronously using fibers.
   # In other words, the next line to the `await` call at Ruby source will be executed after the
   # promise will be resolved. However, it does not block JavaScript event loop, so the next line
-  # to the `RubyVM.eval` or `RubyVM.evalAsync` (in the case when no `await` operator before the
-  # call expression) at JavaScript source will be executed without waiting for the promise.
+  # to the RubyVM.evalAsync` (in the case when no `await` operator before the call expression)
+  # at JavaScript source will be executed without waiting for the promise.
   #
   # The below example shows how the execution order goes. It goes in the order of "step N"
   #
