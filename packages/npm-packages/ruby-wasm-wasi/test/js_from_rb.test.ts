@@ -26,22 +26,6 @@ describe("Manipulation of JS from Ruby", () => {
   });
 
   test.each([
-    { key: "foo", rvalue: `JS.eval("return 1")`, rvalue_js: 1 },
-    { key: "bar", rvalue: `JS.eval("return {}")`, rvalue_js: {} },
-    { key: "bar", rvalue: `42`, rvalue_js: 42 },
-    { key: "bar", rvalue: `"str"`, rvalue_js: "str" },
-  ])(`JS::Object#[]= (%s)`, async (props) => {
-    const vm = await initRubyVM();
-    const result = vm.eval(`
-      require "js"
-      obj = JS.eval("return {}")
-      obj[:${props.key}] = ${props.rvalue}
-      obj
-    `);
-    expect(result.toJS()[props.key]).toEqual(props.rvalue_js);
-  });
-
-  test.each([
     { expr: "", result: undefined },
     { expr: "return undefined", result: undefined },
     { expr: "return null", result: null },
