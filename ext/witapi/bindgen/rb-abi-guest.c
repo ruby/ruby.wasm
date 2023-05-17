@@ -205,3 +205,13 @@ __attribute__((export_name("rb-vm-bugreport: func() -> ()")))
 void __wasm_export_rb_abi_guest_rb_vm_bugreport(void) {
   rb_abi_guest_rb_vm_bugreport();
 }
+__attribute__((export_name("rb-gc-enable: func() -> bool")))
+int32_t __wasm_export_rb_abi_guest_rb_gc_enable(void) {
+  bool ret = rb_abi_guest_rb_gc_enable();
+  return ret;
+}
+__attribute__((export_name("rb-gc-disable: func() -> bool")))
+int32_t __wasm_export_rb_abi_guest_rb_gc_disable(void) {
+  bool ret = rb_abi_guest_rb_gc_disable();
+  return ret;
+}

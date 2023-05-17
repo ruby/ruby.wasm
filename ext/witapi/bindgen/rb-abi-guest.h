@@ -68,6 +68,8 @@ extern "C"
   void rb_abi_guest_rb_clear_errinfo(void);
   void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_abi_value_t value, rb_abi_guest_string_t *ret0);
   void rb_abi_guest_rb_vm_bugreport(void);
+  bool rb_abi_guest_rb_gc_enable(void);
+  bool rb_abi_guest_rb_gc_disable(void);
   #ifdef __cplusplus
 }
 #endif

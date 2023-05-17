@@ -1,5 +1,6 @@
 import * as RbAbi from "./bindgen/rb-abi-guest";
 import {
+  RbJsAbiHost,
   addRbJsAbiHostToImports,
   JsAbiResult,
   JsAbiValue,
@@ -29,9 +30,41 @@ export class RubyVM {
   private instance: WebAssembly.Instance | null = null;
   private transport: JsValueTransport;
   private exceptionFormatter: RbExceptionFormatter;
+  private interfaceState: RbAbiInterfaceState = {
+    hasJSFrameAfterRbFrame: false,
+  }
 
   constructor() {
-    this.guest = new RbAbi.RbAbiGuest();
+    // Wrap exported functions from Ruby VM to stop GC during the
+    // function call if the call stack has sandwitched JS frames
+    // like JS -> Ruby -> JS -> Ruby.
+    const proxyExports = (exports: RbAbi.RbAbiGuest) => {
+      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbGcEnable", "rbGcDisable"];
+      const excluded = ["constructor"].concat(excludedMethods);
+      // wrap all methods in RbAbi.RbAbiGuest class
+      for (const key of Object.getOwnPropertyNames(RbAbi.RbAbiGuest.prototype)) {
+        if (excluded.includes(key)) {
+          continue;
+        }
+        const value = exports[key];
+        if (typeof value === "function") {
+          exports[key] = (...args: any[]) => {
+            const shouldStopGC = this.interfaceState.hasJSFrameAfterRbFrame;
+            let isAlreadyDisabled = false;
+            if (shouldStopGC) {
+              isAlreadyDisabled = exports.rbGcDisable();
+            }
+            const result = Reflect.apply(value, exports, args)
+            if (shouldStopGC && !isAlreadyDisabled) {
+              exports.rbGcEnable();
+            }
+            return result;
+          }
+        }
+      }
+      return exports;
+    }
+    this.guest = proxyExports(new RbAbi.RbAbiGuest());
     this.transport = new JsValueTransport();
     this.exceptionFormatter = new RbExceptionFormatter();
   }
@@ -80,9 +113,28 @@ export class RubyVM {
         }
       };
     }
+    // NOTE: The imported functions must disable Ruby GC if they call
+    // Ruby API that may trigger GC. Otherwise, the GC may collect
+    // objects that are still referenced by Wasm locals because Asyncify
+    // cannot scan the Wasm stack above the JS frame.
+    const proxyImports = (imports: RbJsAbiHost) => {
+      for (const [key, value] of Object.entries(imports)) {
+        if (typeof value === "function") {
+          imports[key] = (...args: any[]) => {
+            const oldValue = this.interfaceState.hasJSFrameAfterRbFrame;
+            this.interfaceState.hasJSFrameAfterRbFrame = true;
+            const result = Reflect.apply(value, imports, args);
+            this.interfaceState.hasJSFrameAfterRbFrame = oldValue;
+            return result;
+          }
+        }
+      }
+      return imports;
+    };
+
     addRbJsAbiHostToImports(
       imports,
-      {
+      proxyImports({
         evalJs: wrapTry((code) => {
           return Function(code)();
         }),
@@ -201,7 +253,7 @@ export class RubyVM {
         reflectSetPrototypeOf: function (target, prototype): boolean {
           throw new Error("Function not implemented.");
         },
-      },
+      }),
       (name) => {
         return this.instance.exports[name];
       }
@@ -292,6 +344,15 @@ export class RubyVM {
     const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
     return new RbValue(abiValue, this, this.privateObject());
   }
+}
+
+type RbAbiInterfaceState = {
+  /**
+   * Track if the last JS frame that was created by a Ruby frame
+   * to determine if we need to disable Ruby GC during nested
+   * JS->Ruby->JS->Ruby calls
+  **/
+  hasJSFrameAfterRbFrame: boolean;
 }
 
 /**
