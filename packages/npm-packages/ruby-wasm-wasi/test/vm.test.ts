@@ -119,4 +119,30 @@ eval:11:in \`<main>'`);
     expect(vm.eval(`"hello".encoding.name`).toString()).toBe("UTF-8");
     expect(vm.eval(`__ENCODING__.name`).toString()).toBe("UTF-8");
   });
+
+  // FIXME: The below two tests are now failing because we cannot make it safe
+  // to call eval within eval.
+  // See https://github.com/ruby/ruby.wasm/issues/219#issuecomment-1551758711
+  test.failing("Nested Fiber switch", async () => {
+    const vm = await initRubyVM();
+    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`)
+    setVM.call("call", vm.wrap(vm))
+    vm.eval(`
+    $f0 = Fiber.new {
+      JS::RubyVM.eval("$f1.resume")
+    }
+    $f1 = Fiber.new {}
+    $f0.resume
+    `)
+    vm.eval(`puts $q.inspect`)
+  })
+
+  test.failing("raise in nested eval", async () => {
+    const vm = await initRubyVM();
+    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`)
+    setVM.call("call", vm.wrap(vm))
+    expect(() => {
+      vm.eval(`JS::RubyVM.eval("raise 'Exception from nested eval'")`)
+    }).toThrowError("Exception from nested eval")
+  })
 });
