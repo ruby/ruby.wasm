@@ -32,9 +32,8 @@ describe("Async Ruby code evaluation", () => {
 
   test("await outside of evalAsync", async () => {
     const vm = await initRubyVM();
-    const result = vm.eval(
-      `require "js"; JS.global[:Promise].resolve(42).await`
-    );
-    expect(result.call("nil?").toString()).toBe("true");
+    expect(() => {
+      vm.eval(`require "js"; JS.global[:Promise].resolve(42).await`);
+    }).toThrowError("JS::Object#await can be called only from evalAsync");
   });
 });
