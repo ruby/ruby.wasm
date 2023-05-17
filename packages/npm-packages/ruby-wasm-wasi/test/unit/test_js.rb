@@ -23,4 +23,8 @@ class JS::TestJS < Test::Unit::TestCase
       }
     JS
   end
+
+  def test_try_convert
+    assert_nil JS.try_convert(Object.new)
+  end
 end
