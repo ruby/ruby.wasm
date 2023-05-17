@@ -1,4 +1,4 @@
-import { data_view, to_uint32, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, Slab, throw_invalid_bool } from './intrinsics.js';
+import { data_view, to_uint32, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, Slab } from './intrinsics.js';
 export class RbAbiGuest {
   constructor() {
     this._resource0_slab = new Slab();
@@ -160,16 +160,6 @@ export class RbAbiGuest {
   }
   rbVmBugreport() {
     this._exports['rb-vm-bugreport: func() -> ()']();
-  }
-  rbGcEnable() {
-    const ret = this._exports['rb-gc-enable: func() -> bool']();
-    const bool0 = ret;
-    return bool0 == 0 ? false : (bool0 == 1 ? true : throw_invalid_bool());
-  }
-  rbGcDisable() {
-    const ret = this._exports['rb-gc-disable: func() -> bool']();
-    const bool0 = ret;
-    return bool0 == 0 ? false : (bool0 == 1 ? true : throw_invalid_bool());
   }
 }
 

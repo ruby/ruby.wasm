@@ -80,8 +80,6 @@ export class RbAbiGuest {
   rbClearErrinfo(): void;
   rstringPtr(value: RbAbiValue): string;
   rbVmBugreport(): void;
-  rbGcEnable(): boolean;
-  rbGcDisable(): boolean;
 }
 
 export class RbIseq {

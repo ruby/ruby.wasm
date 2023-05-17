@@ -18,6 +18,3 @@ rb-clear-errinfo: func()
 rstring-ptr: func(value: rb-abi-value) -> string
 
 rb-vm-bugreport: func()
-
-rb-gc-enable: func() -> bool
-rb-gc-disable: func() -> bool
