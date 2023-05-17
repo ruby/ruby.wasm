@@ -73,8 +73,17 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "str", JS.eval("return 'str';").to_s
     assert_equal "24", JS.eval("return 24;").inspect
     assert_equal "true", JS.eval("return true;").inspect
-    assert_equal "null", JS.eval("return null;").inspect
-    assert_equal "undefined", JS.eval("return undefined;").inspect
+    assert_equal "null", JS::Null.inspect
+    assert_equal "undefined", JS::Undefined.inspect
+    assert_equal "[object Object]", JS.eval("return {}").inspect
+    assert_equal "[object X class]", JS.eval(<<~JS).inspect
+      class X {
+        get [Symbol.toStringTag]() {
+          return 'X class';
+        }
+      }
+      return new X();
+    JS
   end
 
   def test_to_i_from_number
@@ -149,6 +158,18 @@ class JS::TestObject < Test::Unit::TestCase
   def test_call
     assert_nothing_raised { JS.global.call(:Array) }
     assert_equal "1,2,3", JS.global.call(:Array, 1, 2, 3).to_s
+  end
+
+  def test_call_with_undefined_method
+    assert_raise("which is a undefined and not a function") do
+      JS.global.call(:undefined_method)
+    end
+  end
+
+  def test_call_with_non_js_object
+    assert_raise("argument 2 is not a JS::Object like object") do
+      JS.global.call(:Object, Object.new)
+    end
   end
 
   def test_call_with_stress_gc
