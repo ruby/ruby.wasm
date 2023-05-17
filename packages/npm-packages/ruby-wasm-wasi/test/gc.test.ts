@@ -83,7 +83,10 @@ describe("GC integration", () => {
     expect(o2.call("hash").toString()).toBe(o3.call("hash").toString());
   });
 
-  test("stop GC while having a sandwitched JS frame", async () => {
+  // TODO: Stopping GC while having a sandwitched JS frame is one of the options
+  // to make nested eval safe. But there is still a problem with Fiber switching,
+  // so this test is skipped for now.
+  test.skip("stop GC while having a sandwitched JS frame", async () => {
     const vm = await initRubyVM();
     const o = vm.eval(`
     require "js"

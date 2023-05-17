@@ -35,9 +35,8 @@ export class RubyVM {
   }
 
   constructor() {
-    // Wrap exported functions from Ruby VM to stop GC during the
-    // function call if the call stack has sandwitched JS frames
-    // like JS -> Ruby -> JS -> Ruby.
+    // Wrap exported functions from Ruby VM to prohibit nested VM operation
+    // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
     const proxyExports = (exports: RbAbi.RbAbiGuest) => {
       const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbGcEnable", "rbGcDisable"];
       const excluded = ["constructor"].concat(excludedMethods);
@@ -49,16 +48,11 @@ export class RubyVM {
         const value = exports[key];
         if (typeof value === "function") {
           exports[key] = (...args: any[]) => {
-            const shouldStopGC = this.interfaceState.hasJSFrameAfterRbFrame;
-            let isAlreadyDisabled = false;
-            if (shouldStopGC) {
-              isAlreadyDisabled = exports.rbGcDisable();
+            const isNestedVMCall = this.interfaceState.hasJSFrameAfterRbFrame;
+            if (isNestedVMCall) {
+              throw new Error("Nested VM operation is prohibited. If you are trying to call RubyVM API environment through Ruby, please call it from JS environment directly.");
             }
-            const result = Reflect.apply(value, exports, args)
-            if (shouldStopGC && !isAlreadyDisabled) {
-              exports.rbGcEnable();
-            }
-            return result;
+            return Reflect.apply(value, exports, args)
           }
         }
       }
