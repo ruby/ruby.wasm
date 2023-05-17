@@ -209,6 +209,8 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal 42.to_s, object["foo"].to_s
 
     assert_raise(JS::Error) { JS::Undefined[:foo] }
+
+    assert_equal JS::Undefined.to_s, object["bar"].to_s
   end
 
   def test_member_set
@@ -221,6 +223,10 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal 42.to_s, object["foo"].to_s
 
     assert_raise(JS::Error) { JS::Undefined[:foo] = 42 }
+
+    # Create new property
+    object["bar"] = 41
+    assert_equal 41.to_s, object["bar"].to_s
   end
 
   def test_member_set_with_stress_gc

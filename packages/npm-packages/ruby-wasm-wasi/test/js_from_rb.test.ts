@@ -11,21 +11,6 @@ describe("Manipulation of JS from Ruby", () => {
   });
 
   test.each([
-    { expr: "JS.global[:Object]", result: Object },
-    { expr: "JS.global[:Object][:keys]", result: Object.keys },
-    { expr: "JS.global[:Object][:unknown_key]", result: undefined },
-    // reflect `Reflect` itself
-    { expr: "JS.global[:Reflect]", result: Reflect },
-  ])(`JS::Object#[] (%s)`, async (props) => {
-    const vm = await initRubyVM();
-    const result = vm.eval(`
-      require "js"
-      ${props.expr}
-    `);
-    expect(result.toJS()).toBe(props.result);
-  });
-
-  test.each([
     { expr: "", result: undefined },
     { expr: "return undefined", result: undefined },
     { expr: "return null", result: null },
