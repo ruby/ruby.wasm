@@ -303,4 +303,11 @@ void rb_vm_bugreport(const void *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
 
+bool rb_abi_guest_rb_gc_enable(void) {
+  return rb_gc_enable() == Qtrue;
+}
+bool rb_abi_guest_rb_gc_disable(void) {
+  return rb_gc_disable() == Qtrue;
+}
+
 void Init_witapi(void) {}

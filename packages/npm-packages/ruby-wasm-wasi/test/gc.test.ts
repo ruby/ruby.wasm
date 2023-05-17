@@ -82,4 +82,23 @@ describe("GC integration", () => {
     expect(o1.call("hash").toString()).toBe(o2.call("hash").toString());
     expect(o2.call("hash").toString()).toBe(o3.call("hash").toString());
   });
+
+  test("stop GC while having a sandwitched JS frame", async () => {
+    const vm = await initRubyVM();
+    const o = vm.eval(`
+    require "js"
+
+    JS.eval(<<~JS)
+      return {
+        takeVM(vm) {
+          return vm.eval("GC.disable").toJS();
+        }
+      }
+    JS
+    `);
+    const wasDisabled = o.call("takeVM", vm.wrap(vm));
+    expect(wasDisabled.toJS()).toBe(true);
+    const isNotEnabledBack = vm.eval("GC.enable");
+    expect(isNotEnabledBack.toJS()).toBe(false);
+  });
 });
