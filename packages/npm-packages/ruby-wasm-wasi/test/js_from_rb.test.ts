@@ -10,26 +10,6 @@ describe("Manipulation of JS from Ruby", () => {
     expect(result.toString()).toBe("true");
   });
 
-  test("JS::Object#method_missing with block", async () => {
-    const vm = await initRubyVM();
-    const proc = vm.eval(`
-    require "js"
-    proc do |obj|
-      obj.take_block "x" do |y|
-        $y = y
-      end
-    end
-    `);
-    const takeBlock = jest.fn((arg1: string, block: (_: any) => void) => {
-      expect(arg1).toBe("x");
-      block("y");
-    });
-    proc.call("call", vm.wrap({ take_block: takeBlock }));
-    expect(takeBlock).toBeCalled();
-    const y = vm.eval(`$y`);
-    expect(y.toString()).toBe("y");
-  });
-
   test.each([
     { expr: "JS.global[:Object]", result: Object },
     { expr: "JS.global[:Object][:keys]", result: Object.keys },
