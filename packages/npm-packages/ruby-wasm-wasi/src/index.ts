@@ -38,7 +38,7 @@ export class RubyVM {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
     const proxyExports = (exports: RbAbi.RbAbiGuest) => {
-      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbGcEnable", "rbGcDisable"];
+      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate"];
       const excluded = ["constructor"].concat(excludedMethods);
       // wrap all methods in RbAbi.RbAbiGuest class
       for (const key of Object.getOwnPropertyNames(RbAbi.RbAbiGuest.prototype)) {
@@ -107,10 +107,10 @@ export class RubyVM {
         }
       };
     }
-    // NOTE: The imported functions must disable Ruby GC if they call
-    // Ruby API that may trigger GC. Otherwise, the GC may collect
-    // objects that are still referenced by Wasm locals because Asyncify
-    // cannot scan the Wasm stack above the JS frame.
+    // NOTE: The GC may collect objects that are still referenced by Wasm
+    // locals because Asyncify cannot scan the Wasm stack above the JS frame.
+    // So we need to keep track whether the JS frame is sandwitched by Ruby
+    // frames or not, and prohibit nested VM operation if it is.
     const proxyImports = (imports: RbJsAbiHost) => {
       for (const [key, value] of Object.entries(imports)) {
         if (typeof value === "function") {
@@ -343,8 +343,7 @@ export class RubyVM {
 type RbAbiInterfaceState = {
   /**
    * Track if the last JS frame that was created by a Ruby frame
-   * to determine if we need to disable Ruby GC during nested
-   * JS->Ruby->JS->Ruby calls
+   * to determine if we have a sandwitched JS frame between Ruby frames.
   **/
   hasJSFrameAfterRbFrame: boolean;
 }
