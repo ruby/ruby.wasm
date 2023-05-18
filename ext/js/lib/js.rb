@@ -50,7 +50,9 @@ module JS
         ->(value) { current.transfer(value, :success) },
         ->(value) { current.transfer(value, :failure) }
       )
-      raise "JS::Object#await can be called only from evalAsync" if @loop == current
+      if @loop == current
+        raise "JS::Object#await can be called only from evalAsync"
+      end
       value, status = @loop.transfer
       raise JS::Error.new(value) if status == :failure
       value

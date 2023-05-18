@@ -45,11 +45,13 @@ class JS::TestAsync < Test::Unit::TestCase
 
   def test_await_in_fiber
     fiber_ended = false
-    Fiber.new do
-      promise = JS.eval("return Promise.resolve(42)")
-      assert_equal 42, promise.await.to_i
-      fiber_ended = true
-    end.resume
+    Fiber
+      .new do
+        promise = JS.eval("return Promise.resolve(42)")
+        assert_equal 42, promise.await.to_i
+        fiber_ended = true
+      end
+      .resume
     assert_equal true, fiber_ended
   end
 end

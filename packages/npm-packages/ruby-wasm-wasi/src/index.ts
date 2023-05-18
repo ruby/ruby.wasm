@@ -32,16 +32,24 @@ export class RubyVM {
   private exceptionFormatter: RbExceptionFormatter;
   private interfaceState: RbAbiInterfaceState = {
     hasJSFrameAfterRbFrame: false,
-  }
+  };
 
   constructor() {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
     const proxyExports = (exports: RbAbi.RbAbiGuest) => {
-      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbSetShouldProhibitRewind", "rbGcDisable", "rbGcEnable"];
+      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = [
+        "addToImports",
+        "instantiate",
+        "rbSetShouldProhibitRewind",
+        "rbGcDisable",
+        "rbGcEnable",
+      ];
       const excluded = ["constructor"].concat(excludedMethods);
       // wrap all methods in RbAbi.RbAbiGuest class
-      for (const key of Object.getOwnPropertyNames(RbAbi.RbAbiGuest.prototype)) {
+      for (const key of Object.getOwnPropertyNames(
+        RbAbi.RbAbiGuest.prototype
+      )) {
         if (excluded.includes(key)) {
           continue;
         }
@@ -50,22 +58,23 @@ export class RubyVM {
           exports[key] = (...args: any[]) => {
             const isNestedVMCall = this.interfaceState.hasJSFrameAfterRbFrame;
             if (isNestedVMCall) {
-              const oldShouldProhibitRewind = this.guest.rbSetShouldProhibitRewind(true)
-              const oldIsDisabledGc = this.guest.rbGcDisable()
-              const result = Reflect.apply(value, exports, args)
-              this.guest.rbSetShouldProhibitRewind(oldShouldProhibitRewind)
+              const oldShouldProhibitRewind =
+                this.guest.rbSetShouldProhibitRewind(true);
+              const oldIsDisabledGc = this.guest.rbGcDisable();
+              const result = Reflect.apply(value, exports, args);
+              this.guest.rbSetShouldProhibitRewind(oldShouldProhibitRewind);
               if (!oldIsDisabledGc) {
-                this.guest.rbGcEnable()
+                this.guest.rbGcEnable();
               }
               return result;
             } else {
-              return Reflect.apply(value, exports, args)
+              return Reflect.apply(value, exports, args);
             }
-          }
+          };
         }
       }
       return exports;
-    }
+    };
     this.guest = proxyExports(new RbAbi.RbAbiGuest());
     this.transport = new JsValueTransport();
     this.exceptionFormatter = new RbExceptionFormatter();
@@ -121,25 +130,29 @@ export class RubyVM {
       };
     }
     imports["rb-js-abi-host"] = {
-      rb_wasm_throw_prohibit_rewind_exception: (messagePtr: number, messageLen: number) => {
+      rb_wasm_throw_prohibit_rewind_exception: (
+        messagePtr: number,
+        messageLen: number
+      ) => {
         const memory = this.instance.exports.memory as WebAssembly.Memory;
         const str = new TextDecoder().decode(
           new Uint8Array(memory.buffer, messagePtr, messageLen)
         );
         throw new RbFatalError(
-          "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " + `(${str})\n`
-          + "Nested VM operation means that the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby "
-          + "caused by something like `window.rubyVM.eval(\"JS.global[:rubyVM].eval('Fiber.yield')\")`\n"
-          + "\n"
-          + "Please check your call stack and make sure that you are **not** doing any of the following inside the nested Ruby frame:\n"
-          + "  1. Switching fibers (e.g. Fiber#resume, Fiber.yield, and Fiber#transfer)\n"
-          + "     Note that JS::Object#await switches fibers internally\n"
-          + "  2. Raising uncaught exceptions\n"
-          + "     Please catch all exceptions inside the nested operation\n"
-          + "  3. Calling Continuation APIs\n"
+          "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
+            `(${str})\n` +
+            "Nested VM operation means that the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby " +
+            "caused by something like `window.rubyVM.eval(\"JS.global[:rubyVM].eval('Fiber.yield')\")`\n" +
+            "\n" +
+            "Please check your call stack and make sure that you are **not** doing any of the following inside the nested Ruby frame:\n" +
+            "  1. Switching fibers (e.g. Fiber#resume, Fiber.yield, and Fiber#transfer)\n" +
+            "     Note that JS::Object#await switches fibers internally\n" +
+            "  2. Raising uncaught exceptions\n" +
+            "     Please catch all exceptions inside the nested operation\n" +
+            "  3. Calling Continuation APIs\n"
         );
-      }
-    }
+      },
+    };
     // NOTE: The GC may collect objects that are still referenced by Wasm
     // locals because Asyncify cannot scan the Wasm stack above the JS frame.
     // So we need to keep track whether the JS frame is sandwitched by Ruby
@@ -153,7 +166,7 @@ export class RubyVM {
             const result = Reflect.apply(value, imports, args);
             this.interfaceState.hasJSFrameAfterRbFrame = oldValue;
             return result;
-          }
+          };
         }
       }
       return imports;
@@ -377,9 +390,9 @@ type RbAbiInterfaceState = {
   /**
    * Track if the last JS frame that was created by a Ruby frame
    * to determine if we have a sandwitched JS frame between Ruby frames.
-  **/
+   **/
   hasJSFrameAfterRbFrame: boolean;
-}
+};
 
 /**
  * Export a JS value held by the Ruby VM to the JS environment.

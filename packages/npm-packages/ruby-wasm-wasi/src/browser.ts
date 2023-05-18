@@ -9,14 +9,24 @@ const consolePrinter = () => {
 
   return {
     addToImports(imports: WebAssembly.Imports): void {
-      const original = imports.wasi_snapshot_preview1.fd_write as (fd: number, iovs: number, iovsLen: number, nwritten: number) => number;
-      imports.wasi_snapshot_preview1.fd_write = (fd: number, iovs: number, iovsLen: number, nwritten: number): number => {
+      const original = imports.wasi_snapshot_preview1.fd_write as (
+        fd: number,
+        iovs: number,
+        iovsLen: number,
+        nwritten: number
+      ) => number;
+      imports.wasi_snapshot_preview1.fd_write = (
+        fd: number,
+        iovs: number,
+        iovsLen: number,
+        nwritten: number
+      ): number => {
         if (fd !== 1 && fd !== 2) {
           return original(fd, iovs, iovsLen, nwritten);
         }
 
-        if (typeof memory === 'undefined' || typeof view === 'undefined') {
-          throw new Error('Memory is not set');
+        if (typeof memory === "undefined" || typeof view === "undefined") {
+          throw new Error("Memory is not set");
         }
         if (view.buffer.byteLength === 0) {
           view = new DataView(memory.buffer);
@@ -30,7 +40,7 @@ const consolePrinter = () => {
         });
 
         let written = 0;
-        let str = '';
+        let str = "";
         for (const buffer of buffers) {
           str += decoder.decode(buffer);
           written += buffer.byteLength;
@@ -46,8 +56,8 @@ const consolePrinter = () => {
     setMemory(m: WebAssembly.Memory) {
       memory = m;
       view = new DataView(m.buffer);
-    }
-  }
+    },
+  };
 };
 
 export const DefaultRubyVM = async (

@@ -106,7 +106,7 @@ describe("GC integration", () => {
     vm.eval("GC.start");
 
     // Disable GC before the nested call
-    vm.eval("GC.disable")
+    vm.eval("GC.disable");
     const o2 = vm.eval(`
     JS.eval(<<~JS)
       return {

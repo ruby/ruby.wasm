@@ -45,7 +45,7 @@ describe("Packaging validation", () => {
     const mod = await loadWasmModule(`ruby+stdlib.wasm`);
     const { vm } = await DefaultRubyVM(mod);
     vm.eval(`require "stringio"`);
-  })
+  });
 
   test.each([
     { file: "ruby+stdlib.wasm", stdlib: true },
