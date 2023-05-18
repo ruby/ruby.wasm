@@ -3,7 +3,7 @@ require "js"
 
 class JS::TestProc < Test::Unit::TestCase
   def test_with_js_call
-    function_to_call = JS.eval('return { a: (callback) => { callback(1) } }')
+    function_to_call = JS.eval("return { a: (callback) => { callback(1) } }")
     b = nil
     function_to_call.call(:a, Proc.new { |a| b = a.to_i })
     assert_equal 1, b

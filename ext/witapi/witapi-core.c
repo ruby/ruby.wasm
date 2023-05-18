@@ -63,8 +63,7 @@ __attribute__((import_module("asyncify"), import_name("stop_unwind"))) void
 asyncify_stop_unwind(void);
 __attribute__((import_module("asyncify"), import_name("start_rewind"))) void
 asyncify_start_rewind(void *buf);
-#define asyncify_start_rewind(buf) \
-  asyncify_start_rewind((buf))
+#define asyncify_start_rewind(buf) asyncify_start_rewind((buf))
 __attribute__((import_module("asyncify"), import_name("stop_rewind"))) void
 asyncify_stop_rewind(void);
 
@@ -89,9 +88,9 @@ __attribute__((noreturn)) void
 rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
 
 #define RB_WASM_CHECK_REWIND_PROHIBITED(msg)                                   \
-  /*
-    If the unwond source and rewinding destination are same, it's acceptable
-    to rewind even under nested VM operations.
+  /*                                                                           \
+    If the unwond source and rewinding destination are same, it's acceptable   \
+    to rewind even under nested VM operations.                                 \
    */                                                                          \
   if (rb_should_prohibit_rewind &&                                             \
       (asyncify_buf != asyncify_unwound_buf || fiber_entry_point)) {           \
@@ -329,9 +328,7 @@ void rb_vm_bugreport(const void *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
 
-bool rb_abi_guest_rb_gc_enable(void) {
-  return rb_gc_enable() == Qtrue;
-}
+bool rb_abi_guest_rb_gc_enable(void) { return rb_gc_enable() == Qtrue; }
 
 VALUE rb_gc_disable_no_rest(void);
 bool rb_abi_guest_rb_gc_disable(void) {

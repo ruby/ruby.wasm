@@ -129,23 +129,24 @@ eval:11:in \`<main>'`);
     $f1 = Fiber.new {}
     $f0.resume
     `,
-    `JS::RubyVM.eval("raise 'Exception from nested eval'")`
-  ])
-  ("nested VM rewinding operation should throw fatal error", async (code) => {
+    `JS::RubyVM.eval("raise 'Exception from nested eval'")`,
+  ])("nested VM rewinding operation should throw fatal error", async (code) => {
     const vm = await initRubyVM();
-    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`)
-    setVM.call("call", vm.wrap(vm))
+    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`);
+    setVM.call("call", vm.wrap(vm));
     expect(() => {
-      vm.eval(code)
-    }).toThrowError("Ruby APIs that may rewind the VM stack are prohibited")
-  })
+      vm.eval(code);
+    }).toThrowError("Ruby APIs that may rewind the VM stack are prohibited");
+  });
 
   test("caught raise in nested eval is ok", async () => {
     const vm = await initRubyVM();
-    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`)
-    setVM.call("call", vm.wrap(vm))
+    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`);
+    setVM.call("call", vm.wrap(vm));
     expect(() => {
-      vm.eval(`JS::RubyVM.eval("begin; raise 'Exception from nested eval'; rescue; end")`)
-    }).not.toThrowError()
-  })
+      vm.eval(
+        `JS::RubyVM.eval("begin; raise 'Exception from nested eval'; rescue; end")`
+      );
+    }).not.toThrowError();
+  });
 });

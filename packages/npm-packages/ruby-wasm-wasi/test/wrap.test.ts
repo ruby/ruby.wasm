@@ -21,4 +21,4 @@ describe("RubyVM#wrap", () => {
     const hash = vm.eval(`Hash.new`);
     hash.call("store", vm.eval(`"key1"`), vm.wrap(new Object()));
   });
-})
+});

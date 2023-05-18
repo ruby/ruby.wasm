@@ -26,10 +26,9 @@ function variant(basename, { browser = false } = {}) {
       },
     ],
     plugins: [
-      ...(browser ? [
-        nodePolyfills(),
-        inject({ Buffer: ['buffer', 'Buffer']}),
-      ] : []),
+      ...(browser
+        ? [nodePolyfills(), inject({ Buffer: ["buffer", "Buffer"] })]
+        : []),
       typescript(typescriptOptions),
       nodeResolve(),
     ],

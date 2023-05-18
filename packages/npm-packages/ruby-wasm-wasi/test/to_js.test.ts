@@ -29,5 +29,4 @@ describe("RbValue#toJS", () => {
     const result = JS.call("eval", vm.eval(`"${props.expr}"`));
     expect(result.toJS()).toBe(props.result);
   });
-
 });
