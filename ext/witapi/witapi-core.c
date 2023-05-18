@@ -331,6 +331,11 @@ bool rb_abi_guest_rb_gc_enable(void) { return rb_gc_enable() == Qtrue; }
 
 VALUE rb_gc_disable_no_rest(void);
 bool rb_abi_guest_rb_gc_disable(void) {
+  // NOTE: rb_gc_disable() is usually preferred to free up memory as much as
+  // possible before disabling GC. However it may trigger GC through gc_rest(),
+  // and triggering GC having a sandwitched JS frame is unsafe because it misses
+  // to mark some living objects in the frames behind the JS frame. So we use
+  // rb_gc_disable_no_rest(), which does not trigger GC, instead.
   return rb_gc_disable_no_rest() == Qtrue;
 }
 
