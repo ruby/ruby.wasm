@@ -18,3 +18,5 @@ rb-clear-errinfo: func()
 rstring-ptr: func(value: rb-abi-value) -> string
 
 rb-vm-bugreport: func()
+
+rb-set-should-prohibit-rewind: func(new-value: bool) -> bool
