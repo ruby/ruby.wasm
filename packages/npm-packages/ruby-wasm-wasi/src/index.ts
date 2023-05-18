@@ -146,7 +146,7 @@ export class RubyVM {
             "\n" +
             "Please check your call stack and make sure that you are **not** doing any of the following inside the nested Ruby frame:\n" +
             "  1. Switching fibers (e.g. Fiber#resume, Fiber.yield, and Fiber#transfer)\n" +
-            "     Note that JS::Object#await switches fibers internally\n" +
+            "     Note that `evalAsync` JS API switches fibers internally\n" +
             "  2. Raising uncaught exceptions\n" +
             "     Please catch all exceptions inside the nested operation\n" +
             "  3. Calling Continuation APIs\n"
