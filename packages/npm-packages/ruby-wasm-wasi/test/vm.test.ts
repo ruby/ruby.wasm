@@ -139,39 +139,41 @@ eval:11:in \`<main>'`);
     }).toThrowError("Ruby APIs that may rewind the VM stack are prohibited");
   });
 
-  test.each([
-    `JS::RubyVM.evalAsync("")`,
-  ])("nested VM rewinding operation should throw fatal error (async)", async (code) => {
-    // Supress bugreport message triggered by the fatal error inside evalAsync
-    const vm = await initRubyVM({ suppressStderr: true });
-    const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`);
-    setVM.call("call", vm.wrap(vm));
+  test.each([`JS::RubyVM.evalAsync("")`])(
+    "nested VM rewinding operation should throw fatal error (async)",
+    async (code) => {
+      // Supress bugreport message triggered by the fatal error inside evalAsync
+      const vm = await initRubyVM({ suppressStderr: true });
+      const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`);
+      setVM.call("call", vm.wrap(vm));
 
-    // HACK: We need to capture all promises to avoid unhandled promise rejection
-    const promises: Promise<any>[] = []
-    const _Promise = global.Promise
-    const spy = jest.spyOn(global, "Promise")
-      .mockImplementation((future) => {
-        const promise = new _Promise(future)
-        promises.push(promise)
-        return promise
-      })
+      // HACK: We need to capture all promises to avoid unhandled promise rejection
+      const promises: Promise<any>[] = [];
+      const _Promise = global.Promise;
+      const spy = jest.spyOn(global, "Promise").mockImplementation((future) => {
+        const promise = new _Promise(future);
+        promises.push(promise);
+        return promise;
+      });
 
-    vm.evalAsync(code)
+      vm.evalAsync(code);
 
-    const rejections: Error[] = []
-    for (const promise of promises) {
-      try {
-        await promise
-      } catch (e) {
-        rejections.push(e)
+      const rejections: Error[] = [];
+      for (const promise of promises) {
+        try {
+          await promise;
+        } catch (e) {
+          rejections.push(e);
+        }
       }
+
+      spy.mockReset();
+
+      expect(rejections[0].message).toMatch(
+        "Ruby APIs that may rewind the VM stack are prohibited"
+      );
     }
-
-    spy.mockReset()
-
-    expect(rejections[0].message).toMatch("Ruby APIs that may rewind the VM stack are prohibited")
-  });
+  );
 
   test("caught raise in nested eval is ok", async () => {
     const vm = await initRubyVM();
