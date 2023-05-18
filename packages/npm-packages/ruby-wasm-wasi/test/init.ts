@@ -8,7 +8,7 @@ const rubyModule = (async () => {
   if (process.env.RUBY_ROOT) {
     binaryPath = path.join(process.env.RUBY_ROOT, "./usr/local/bin/ruby");
   } else {
-    binaryPath = path.join(__dirname, "./../dist/ruby+stdlib.wasm");
+    binaryPath = path.join(__dirname, "./../dist/ruby.debug+stdlib.wasm");
   }
   const binary = await fs.readFile(binaryPath);
   return await WebAssembly.compile(binary.buffer);
