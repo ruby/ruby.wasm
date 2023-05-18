@@ -14,13 +14,14 @@ const rubyModule = (async () => {
   return await WebAssembly.compile(binary.buffer);
 })();
 
-export const initRubyVM = async () => {
+export const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
   let preopens = {};
   if (process.env.RUBY_ROOT) {
     preopens["/usr"] = path.join(process.env.RUBY_ROOT, "./usr");
   }
   const wasi = new WASI({
     args: ["ruby.wasm"].concat(process.argv.slice(2)),
+    stderr: suppressStderr ? 0 : 2,
     preopens,
   });
 
