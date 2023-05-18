@@ -161,6 +161,16 @@ export class RbAbiGuest {
   rbVmBugreport() {
     this._exports['rb-vm-bugreport: func() -> ()']();
   }
+  rbGcEnable() {
+    const ret = this._exports['rb-gc-enable: func() -> bool']();
+    const bool0 = ret;
+    return bool0 == 0 ? false : (bool0 == 1 ? true : throw_invalid_bool());
+  }
+  rbGcDisable() {
+    const ret = this._exports['rb-gc-disable: func() -> bool']();
+    const bool0 = ret;
+    return bool0 == 0 ? false : (bool0 == 1 ? true : throw_invalid_bool());
+  }
   rbSetShouldProhibitRewind(arg0) {
     const ret = this._exports['rb-set-should-prohibit-rewind: func(new-value: bool) -> bool'](arg0 ? 1 : 0);
     const bool0 = ret;

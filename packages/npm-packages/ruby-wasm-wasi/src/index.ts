@@ -38,7 +38,7 @@ export class RubyVM {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
     const proxyExports = (exports: RbAbi.RbAbiGuest) => {
-      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbSetShouldProhibitRewind"];
+      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbSetShouldProhibitRewind", "rbGcDisable", "rbGcEnable"];
       const excluded = ["constructor"].concat(excludedMethods);
       // wrap all methods in RbAbi.RbAbiGuest class
       for (const key of Object.getOwnPropertyNames(RbAbi.RbAbiGuest.prototype)) {
@@ -49,15 +49,18 @@ export class RubyVM {
         if (typeof value === "function") {
           exports[key] = (...args: any[]) => {
             const isNestedVMCall = this.interfaceState.hasJSFrameAfterRbFrame;
-            let oldValue = false;
             if (isNestedVMCall) {
-              oldValue = this.guest.rbSetShouldProhibitRewind(true)
+              const oldShouldProhibitRewind = this.guest.rbSetShouldProhibitRewind(true)
+              const oldIsDisabledGc = this.guest.rbGcDisable()
+              const result = Reflect.apply(value, exports, args)
+              this.guest.rbSetShouldProhibitRewind(oldShouldProhibitRewind)
+              if (!oldIsDisabledGc) {
+                this.guest.rbGcEnable()
+              }
+              return result;
+            } else {
+              return Reflect.apply(value, exports, args)
             }
-            const result = Reflect.apply(value, exports, args)
-            if (isNestedVMCall) {
-              this.guest.rbSetShouldProhibitRewind(oldValue)
-            }
-            return result;
           }
         }
       }
