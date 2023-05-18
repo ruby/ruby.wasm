@@ -63,7 +63,6 @@ __attribute__((import_module("asyncify"), import_name("stop_unwind"))) void
 asyncify_stop_unwind(void);
 __attribute__((import_module("asyncify"), import_name("start_rewind"))) void
 asyncify_start_rewind(void *buf);
-#define asyncify_start_rewind(buf) asyncify_start_rewind((buf))
 __attribute__((import_module("asyncify"), import_name("stop_rewind"))) void
 asyncify_stop_rewind(void);
 
