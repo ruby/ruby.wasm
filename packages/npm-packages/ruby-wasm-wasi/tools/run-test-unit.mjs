@@ -17,7 +17,7 @@ const instantiateNodeWasi = async (rootTestFile) => {
     binaryPath = path.join(process.env.RUBY_ROOT, "./usr/local/bin/ruby");
     preopens["/usr"] = path.join(process.env.RUBY_ROOT, "./usr");
   } else {
-    binaryPath = path.join(dirname, "../dist/ruby+stdlib.wasm");
+    binaryPath = path.join(dirname, "../dist/ruby.debug+stdlib.wasm");
   }
   const binary = await fs.readFile(binaryPath);
   const rubyModule = await WebAssembly.compile(binary);
