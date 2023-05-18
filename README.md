@@ -15,7 +15,7 @@ Create and save `index.html` page with the following contents:
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/ruby-3_2-wasm-wasi@1.0.1/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ruby-3_2-wasm-wasi@2.0.0/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     puts "Hello, world!"
   </script>

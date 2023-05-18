@@ -1,6 +1,6 @@
 {
   "name": "ruby-3_2-wasm-wasi",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Ruby 3.2 built on WASI",
   "main": "./dist/index.cjs.js",
   "umd:main": "./dist/index.umd.js",
