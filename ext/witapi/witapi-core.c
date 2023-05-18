@@ -329,6 +329,15 @@ void rb_vm_bugreport(const void *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
 
+bool rb_abi_guest_rb_gc_enable(void) {
+  return rb_gc_enable() == Qtrue;
+}
+
+VALUE rb_gc_disable_no_rest(void);
+bool rb_abi_guest_rb_gc_disable(void) {
+  return rb_gc_disable_no_rest() == Qtrue;
+}
+
 bool rb_abi_guest_rb_set_should_prohibit_rewind(bool value) {
   bool old = rb_should_prohibit_rewind;
   rb_should_prohibit_rewind = value;

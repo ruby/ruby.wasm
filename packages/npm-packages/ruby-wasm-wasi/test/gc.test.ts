@@ -83,10 +83,7 @@ describe("GC integration", () => {
     expect(o2.call("hash").toString()).toBe(o3.call("hash").toString());
   });
 
-  // TODO: Stopping GC while having a sandwitched JS frame is one of the options
-  // to make nested eval safe. But there is still a problem with Fiber switching,
-  // so this test is skipped for now.
-  test.skip("stop GC while having a sandwitched JS frame", async () => {
+  test("stop GC while having a sandwitched JS frame", async () => {
     const vm = await initRubyVM();
     const o = vm.eval(`
     require "js"
@@ -101,7 +98,28 @@ describe("GC integration", () => {
     `);
     const wasDisabled = o.call("takeVM", vm.wrap(vm));
     expect(wasDisabled.toJS()).toBe(true);
+    // Ensure that GC is enabled back
     const isNotEnabledBack = vm.eval("GC.enable");
     expect(isNotEnabledBack.toJS()).toBe(false);
+
+    // Re-start pending GC (including the incremental one)
+    vm.eval("GC.start");
+
+    // Disable GC before the nested call
+    vm.eval("GC.disable")
+    const o2 = vm.eval(`
+    JS.eval(<<~JS)
+      return {
+        takeVM(vm) {
+          return vm.eval("GC.disable").toJS();
+        }
+      }
+    JS
+    `);
+    const wasDisabled2 = o2.call("takeVM", vm.wrap(vm));
+    expect(wasDisabled2.toJS()).toBe(true);
+    // Ensure that GC is still disabled because it was disabled before the nested call
+    const isNotEnabledBack2 = vm.eval("GC.enable");
+    expect(isNotEnabledBack2.toJS()).toBe(true);
   });
 });
