@@ -51,7 +51,11 @@ module JS
         ->(value) { current.transfer(value, :failure) }
       )
       if @loop == current
-        raise "JS::Object#await can be called only from evalAsync"
+        raise ("JS::Object#await can be called only from RubyVM#evalAsync JS API\n" +
+               "If you are using browser.script.iife.js, please ensure that you specify `data-eval=\"async\"` in your script tag\n" +
+               "e.g. <script type=\"text/ruby\" data-eval=\"async\">puts :hello</script>\n" +
+               "Or <script type=\"text/ruby\" data-eval=\"async\" src=\"path/to/script.rb\"></script>")
+
       end
       value, status = @loop.transfer
       raise JS::Error.new(value) if status == :failure

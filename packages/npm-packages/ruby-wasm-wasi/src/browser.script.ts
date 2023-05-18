@@ -33,14 +33,32 @@ const runRubyScriptsInHtml = async (vm) => {
   );
 
   // Run Ruby scripts sequentially.
-  for await (const rubyScript of promisingRubyScripts) {
-    if (rubyScript) {
-      vm.eval(rubyScript);
+  for await (const script of promisingRubyScripts) {
+    if (script) {
+      const { scriptContent, evalStyle } = script;
+      switch (evalStyle) {
+        case "async":
+          vm.evalAsync(scriptContent);
+          break;
+        case "sync":
+          vm.eval(scriptContent);
+          break;
+      }
     }
   }
 };
 
-const loadScriptAsync = async (tag: Element): Promise<string> => {
+const deriveEvalStyle = (tag: Element): "async" | "sync" => {
+  const rawEvalStyle = tag.getAttribute("data-eval") || "sync";
+  if (rawEvalStyle !== "async" && rawEvalStyle !== "sync") {
+    console.warn(`data-eval attribute of script tag must be "async" or "sync". ${rawEvalStyle} is ignored and "sync" is used instead.`);
+    return "sync";
+  }
+  return rawEvalStyle;
+};
+
+const loadScriptAsync = async (tag: Element): Promise<{ scriptContent: string, evalStyle: "async" | "sync" } | null> => {
+  const evalStyle = deriveEvalStyle(tag);
   // Inline comments can be written with the src attribute of the script tag.
   // The presence of the src attribute is checked before the presence of the inline.
   // see: https://html.spec.whatwg.org/multipage/scripting.html#inline-documentation-for-external-scripts
@@ -49,11 +67,11 @@ const loadScriptAsync = async (tag: Element): Promise<string> => {
     const response = await fetch(url);
 
     if (response.ok) {
-      return await response.text();
+      return { scriptContent: await response.text(), evalStyle };
     }
 
     return Promise.resolve(null);
   }
 
-  return Promise.resolve(tag.innerHTML);
+  return Promise.resolve({ scriptContent: tag.innerHTML, evalStyle });
 };
