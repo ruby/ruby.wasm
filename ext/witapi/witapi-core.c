@@ -63,6 +63,8 @@ __attribute__((import_module("asyncify"), import_name("stop_unwind"))) void
 asyncify_stop_unwind(void);
 __attribute__((import_module("asyncify"), import_name("start_rewind"))) void
 asyncify_start_rewind(void *buf);
+#define asyncify_start_rewind(buf) \
+  asyncify_start_rewind((buf))
 __attribute__((import_module("asyncify"), import_name("stop_rewind"))) void
 asyncify_stop_rewind(void);
 
@@ -79,6 +81,23 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
 #  define RB_WASM_DEBUG_LOG(...) (void)0
 #endif
 
+static bool rb_should_prohibit_rewind = false;
+
+__attribute__((import_module("rb-js-abi-host"),
+               import_name("rb_wasm_throw_prohibit_rewind_exception")))
+__attribute__((noreturn)) void
+rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
+
+#define RB_WASM_CHECK_REWIND_PROHIBITED(msg)                                   \
+  /*
+    If the unwond source and rewinding destination are same, it's acceptable
+    to rewind even under nested VM operations.
+   */                                                                          \
+  if (rb_should_prohibit_rewind &&                                             \
+      (asyncify_buf != asyncify_unwound_buf || fiber_entry_point)) {           \
+    rb_wasm_throw_prohibit_rewind_exception(msg, sizeof(msg) - 1);             \
+  }
+
 #define RB_WASM_LIB_RT(MAIN_ENTRY)                                             \
   {                                                                            \
                                                                                \
@@ -93,14 +112,18 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
       }                                                                        \
                                                                                \
       bool new_fiber_started = false;                                          \
-      void *asyncify_buf;                                                      \
+      void *asyncify_buf = NULL;                                               \
+      extern void *rb_asyncify_unwind_buf;                                     \
+      void *asyncify_unwound_buf = rb_asyncify_unwind_buf;                     \
       asyncify_stop_unwind();                                                  \
                                                                                \
       if ((asyncify_buf = rb_wasm_handle_jmp_unwind()) != NULL) {              \
+        RB_WASM_CHECK_REWIND_PROHIBITED("rb_wasm_handle_jmp_unwind")           \
         asyncify_start_rewind(asyncify_buf);                                   \
         continue;                                                              \
       }                                                                        \
       if ((asyncify_buf = rb_wasm_handle_scan_unwind()) != NULL) {             \
+        RB_WASM_CHECK_REWIND_PROHIBITED("rb_wasm_handle_scan_unwind")          \
         asyncify_start_rewind(asyncify_buf);                                   \
         continue;                                                              \
       }                                                                        \
@@ -108,9 +131,12 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
       asyncify_buf = rb_wasm_handle_fiber_unwind(&fiber_entry_point, &arg0,    \
                                                  &arg1, &new_fiber_started);   \
       if (asyncify_buf) {                                                      \
+        RB_WASM_CHECK_REWIND_PROHIBITED("rb_wasm_handle_fiber_unwind")         \
         asyncify_start_rewind(asyncify_buf);                                   \
         continue;                                                              \
       } else if (new_fiber_started) {                                          \
+        RB_WASM_CHECK_REWIND_PROHIBITED(                                       \
+            "rb_wasm_handle_fiber_unwind but new fiber");                      \
         continue;                                                              \
       }                                                                        \
                                                                                \
@@ -302,5 +328,11 @@ uint32_t rb_abi_guest_rb_abi_value_data_ptr(rb_abi_guest_rb_abi_value_t self) {
 void rb_vm_bugreport(const void *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
+
+bool rb_abi_guest_rb_set_should_prohibit_rewind(bool value) {
+  bool old = rb_should_prohibit_rewind;
+  rb_should_prohibit_rewind = value;
+  return old;
+}
 
 void Init_witapi(void) {}

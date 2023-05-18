@@ -38,7 +38,7 @@ export class RubyVM {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
     const proxyExports = (exports: RbAbi.RbAbiGuest) => {
-      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate"];
+      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = ["addToImports", "instantiate", "rbSetShouldProhibitRewind"];
       const excluded = ["constructor"].concat(excludedMethods);
       // wrap all methods in RbAbi.RbAbiGuest class
       for (const key of Object.getOwnPropertyNames(RbAbi.RbAbiGuest.prototype)) {
@@ -49,10 +49,15 @@ export class RubyVM {
         if (typeof value === "function") {
           exports[key] = (...args: any[]) => {
             const isNestedVMCall = this.interfaceState.hasJSFrameAfterRbFrame;
+            let oldValue = false;
             if (isNestedVMCall) {
-              throw new Error("Nested VM operation is prohibited. If you are trying to call RubyVM API environment through Ruby, please call it from JS environment directly.");
+              oldValue = this.guest.rbSetShouldProhibitRewind(true)
             }
-            return Reflect.apply(value, exports, args)
+            const result = Reflect.apply(value, exports, args)
+            if (isNestedVMCall) {
+              this.guest.rbSetShouldProhibitRewind(oldValue)
+            }
+            return result;
           }
         }
       }
@@ -103,9 +108,34 @@ export class RubyVM {
         try {
           return { tag: "success", val: f(...args) };
         } catch (e) {
+          if (e instanceof RbFatalError) {
+            // RbFatalError should not be caught by Ruby because it Ruby VM
+            // can be already in an inconsistent state.
+            throw e;
+          }
           return { tag: "failure", val: e };
         }
       };
+    }
+    imports["rb-js-abi-host"] = {
+      rb_wasm_throw_prohibit_rewind_exception: (messagePtr: number, messageLen: number) => {
+        const memory = this.instance.exports.memory as WebAssembly.Memory;
+        const str = new TextDecoder().decode(
+          new Uint8Array(memory.buffer, messagePtr, messageLen)
+        );
+        throw new RbFatalError(
+          "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " + `(${str})\n`
+          + "Nested VM operation means that the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby "
+          + "caused by something like `window.rubyVM.eval(\"JS.global[:rubyVM].eval('Fiber.yield')\")`\n"
+          + "\n"
+          + "Please check your call stack and make sure that you are **not** doing any of the following inside the nested Ruby frame:\n"
+          + "  1. Switching fibers (e.g. Fiber#resume, Fiber.yield, and Fiber#transfer)\n"
+          + "     Note that JS::Object#await switches fibers internally\n"
+          + "  2. Raising uncaught exceptions\n"
+          + "     Please catch all exceptions inside the nested operation\n"
+          + "  3. Calling Continuation APIs\n"
+        );
+      }
     }
     // NOTE: The GC may collect objects that are still referenced by Wasm
     // locals because Asyncify cannot scan the Wasm stack above the JS frame.
@@ -619,5 +649,18 @@ export class RbError extends Error {
    */
   constructor(message: string) {
     super(message);
+  }
+}
+
+/**
+ * Error class thrown by Ruby execution when it is not possible to recover.
+ * This is usually caused when Ruby VM is in an inconsistent state.
+ */
+export class RbFatalError extends RbError {
+  /**
+   * @hideconstructor
+   */
+  constructor(message: string) {
+    super("Ruby Fatal Error: " + message);
   }
 }
