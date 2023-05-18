@@ -38,34 +38,6 @@ namespace :npm do
     end
   end
 
-  desc "Bump version"
-  task :bump_version, %i[package version] do |t, args|
-    require "json"
-    package = args[:package] or raise "package name is required"
-    version = args[:version] or raise "version is required"
-    pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{package}"
-    pkg_json = "#{pkg_dir}/package.json"
-    package = JSON.parse(File.read(pkg_json))
-    old_version = package["version"]
-    pkg_name = package["name"]
-    package["version"] = version
-    File.write(pkg_json, JSON.pretty_generate(package) + "\n")
-
-    # Update package-lock.json
-    Dir.chdir(pkg_dir) { sh "npm install" }
-    # Update README.md and other docs
-    `git grep -l #{pkg_name}@#{old_version}`.split.each do |file|
-      content = File.read(file)
-      next_nightly = Date.today.strftime("%Y-%m-%d")
-      content.gsub!(
-        /#{pkg_name}@#{old_version}-\d{4}-\d{2}-\d{2}-a/,
-        "#{pkg_name}@#{version}-#{next_nightly}-a"
-      )
-      content.gsub!(/#{pkg_name}@#{old_version}/, "#{pkg_name}@#{version}")
-      File.write(file, content)
-    end
-  end
-
   desc "Build all npm packages"
   multitask all: NPM_PACKAGES.map { |pkg| pkg[:name] }
 end
