@@ -1,0 +1,7 @@
+{
+    "name": "ruby.wasm",
+    "private": true,
+    "workspaces": [
+        "packages/npm-packages/*"
+    ]
+}
