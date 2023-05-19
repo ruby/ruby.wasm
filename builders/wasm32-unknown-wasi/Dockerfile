@@ -1,10 +1,6 @@
 FROM debian:bullseye
 
-ARG WASI_SDK_VERSION_MAJOR=14
-ARG WASI_SDK_VERSION_MINOR=0
 ARG WASI_PRESET_ARGS_VERSION=0.1.1
-
-ENV WASI_SDK_PATH="/opt/wasi-sdk" 
 
 RUN set -eux; \
   apt-get update; \
@@ -13,12 +9,6 @@ RUN set -eux; \
   apt-get install nodejs -y; \
   apt-get clean; \
   rm -r /var/lib/apt/lists/*
-
-RUN set -eux pipefail; \
-  wasi_sdk_deb="wasi-sdk_${WASI_SDK_VERSION_MAJOR}.${WASI_SDK_VERSION_MINOR}_amd64.deb"; \
-  curl -LO "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION_MAJOR}/${wasi_sdk_deb}"; \
-  dpkg -i "$wasi_sdk_deb"; \
-  rm -f "$wasi_sdk_deb";
 
 RUN set -eux pipefail; \
   wasi_preset_args_url="https://github.com/kateinoigakukun/wasi-preset-args/releases/download/v${WASI_PRESET_ARGS_VERSION}/wasi-preset-args-x86_64-unknown-linux-gnu.zip"; \
