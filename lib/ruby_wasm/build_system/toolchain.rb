@@ -103,6 +103,10 @@ module RubyWasm
       @wasm_opt_path
     end
 
+    def wasi_sdk_path
+      @wasi_sdk_path
+    end
+
     def download_url(version_major, version_minor)
       version = "#{version_major}.#{version_minor}"
       assets = [
