@@ -50,20 +50,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
-      - name: Build
-        uses: docker/build-push-action@v4
-        with:
-          context: builders/${{ matrix.entry.tag }}
-          outputs: type=docker,dest=/tmp/image.tar
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Upload image artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ruby.wasm-builder-${{ matrix.entry.tag }}
-          path: /tmp/image.tar
-      - name: Push
-        uses: docker/build-push-action@v4
+      - uses: docker/build-push-action@v4
         with:
           context: builders/${{ matrix.entry.tag }}
           push: ${{ github.ref == 'refs/heads/main' }}
@@ -95,7 +82,7 @@ jobs:
       matrix:
         entry: ${{ fromJson(needs.build-rake-task-matrix.outputs.entries) }}
 
-    needs: [build-builder-image, build-rake-task-matrix]
+    needs: [build-rake-task-matrix]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -106,15 +93,14 @@ jobs:
         with:
           path: ./rubies
           key: ${{ matrix.entry.rubies_cache_key }}
-      - name: Fetch builder image
-        uses: actions/download-artifact@v3
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/build-push-action@v4
+        id: builder-image
         with:
-          name: ruby.wasm-builder-${{ matrix.entry.builder }}
-      - name: Load builder image
-        id: load-image
-        run: |
-          docker load --input image.tar | tee image-info.txt
-          echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
+          context: builders/${{ matrix.entry.builder }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
@@ -124,7 +110,7 @@ jobs:
         run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
-        run: docker run -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build -e "RUBYWASM_UID=$(id -u)" -e "RUBYWASM_GID=$(id -g)" -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" sha256:$BUILDER_IMAGE_ID rake ${{ matrix.entry.task }}
+        run: docker run -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build -e "RUBYWASM_UID=$(id -u)" -e "RUBYWASM_GID=$(id -g)" -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" ${{ steps.builder-image.outputs.imageid }} rake ${{ matrix.entry.task }}
       - name: rake ${{ matrix.entry.test }}
         run: rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
