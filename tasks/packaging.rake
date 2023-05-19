@@ -19,9 +19,11 @@ namespace :npm do
       sh "npm pack", chdir: pkg_dir
     end
 
-    desc "Check npm package #{pkg[:name]}"
-    task "#{pkg[:name]}-check" do
-      sh "npm test", chdir: pkg_dir
+    namespace pkg[:name] do
+      desc "Check npm package #{pkg[:name]}"
+      task "check" do
+        sh "npm test", chdir: pkg_dir
+      end
     end
   end
 
