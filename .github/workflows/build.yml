@@ -39,8 +39,8 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { tag: wasm32-unknown-wasi }
-          - { tag: wasm32-unknown-emscripten }
+          - { target: wasm32-unknown-wasi }
+          - { target: wasm32-unknown-emscripten }
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -50,11 +50,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
+      - uses: docker/metadata-action@v4
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/ruby.wasm/builder/${{ matrix.entry.target }}
       - uses: docker/build-push-action@v4
         with:
-          context: builders/${{ matrix.entry.tag }}
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.tag }}
+          context: builders/${{ matrix.entry.target }}
+          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/tags/*' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
