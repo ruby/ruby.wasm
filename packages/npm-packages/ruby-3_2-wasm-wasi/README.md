@@ -22,7 +22,7 @@ See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/n
 
 ```javascript
 import fs from "fs/promises";
-import { DefaultRubyVM } from "ruby-wasm-wasi/dist/node.cjs.js";
+import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/node.cjs.js";
 
 const main = async () => {
   const binary = await fs.readFile(
@@ -55,7 +55,7 @@ In browser, you need a WASI polyfill. See [the example project](https://github.c
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/ruby-wasm-wasi@latest/dist/browser.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@latest/dist/browser.umd.js"></script>
   <script>
     const { DefaultRubyVM } = window["ruby-wasm-wasi"];
     const main = async () => {

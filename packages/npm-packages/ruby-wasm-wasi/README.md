@@ -1,4 +1,4 @@
-# ruby-wasm-wasi
+# @ruby/wasm-wasi
 
 This package is a template for each channel-specific package.
 
