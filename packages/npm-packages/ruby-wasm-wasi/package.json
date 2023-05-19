@@ -27,8 +27,9 @@
     "test:jest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
     "test:unit": "./tools/run-test-unit.mjs",
     "format": "prettier --write .",
+    "build:static": "./tools/pack-bindgen-src.sh ./dist",
     "build:rollup": "rollup -c rollup.config.mjs && tsc --build",
-    "build": "npm run build:rollup"
+    "build": "npm run build:static && npm run build:rollup"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",
