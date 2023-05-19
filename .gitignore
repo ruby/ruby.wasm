@@ -4,7 +4,6 @@ dist
 /rubies
 /release
 /Gemfile.lock
-wapm_packages
 
 .cache
 compile_commands.json

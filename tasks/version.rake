@@ -22,12 +22,9 @@ def bump_version_npm_package(package, version)
   end
 end
 
-
 task :bump_version, %i[version] do |t, args|
   version = args[:version] or raise "version is required"
-  NPM_PACKAGES.each do |pkg|
-    bump_version_npm_package(pkg[:name], version)
-  end
+  NPM_PACKAGES.each { |pkg| bump_version_npm_package(pkg[:name], version) }
   # Update ./package-lock.json
   sh "npm install"
 end
