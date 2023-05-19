@@ -51,7 +51,7 @@ end
 
 namespace :standalone do
   STANDALONE_PACKAGES.each do |pkg|
-    pkg_dir = "#{Dir.pwd}/packages/standalone-packages/#{pkg[:name]}"
+    pkg_dir = "#{Dir.pwd}/packages/standalone/#{pkg[:name]}"
 
     desc "Build standalone package #{pkg[:name]}"
     task "#{pkg[:name]}" => ["build:#{pkg[:build]}"] do
