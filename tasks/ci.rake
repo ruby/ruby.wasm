@@ -73,7 +73,7 @@ def rake_task_matrix
           File.read("packages/npm-packages/#{pkg[:name]}/package.json")
         )
       if package_json["scripts"] && package_json["scripts"]["test"]
-        entry[:test] = "npm:#{pkg[:name]}-check"
+        entry[:test] = "npm:#{pkg[:name]}:check"
       end
       entry
     end

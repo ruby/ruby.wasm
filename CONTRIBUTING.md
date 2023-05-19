@@ -24,7 +24,7 @@ $ rake build:head-wasm32-unknown-wasi-full-js-debug
 # Build npm package
 $ rake npm:ruby-head-wasm-wasi
 # Test npm package
-$ rake npm:ruby-head-wasm-wasi-check
+$ rake npm:ruby-head-wasm-wasi:check
 ```
 
 If you need to re-build Ruby, please clean `./rubies` directory, and run `rake npm:ruby-head-wasm-wasi` again.
