@@ -18,5 +18,4 @@ dist_dir="$package_dir/dist"
 rm -rf "$dist_dir"
 set -ex
 (cd "$package_dir" && npm run build)
-cp -R "$base_package_dir/dist/." "$dist_dir"
 $base_package_dir/tools/pack-ruby-wasm.sh "$ruby_root" "$dist_dir"
