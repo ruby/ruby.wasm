@@ -1,4 +1,5 @@
 import json from "@rollup/plugin-json";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import fs from "fs";
 import path from "path";
 
@@ -13,6 +14,6 @@ export default [
         banner: "/* " + fs.readFileSync(path.resolve("../../../NOTICE"), "utf8") + "*/",
       }
     ],
-    plugins: [json()],
+    plugins: [json(), nodeResolve()],
   },
 ];
