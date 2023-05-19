@@ -44,12 +44,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3.3.1
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
       - uses: docker/setup-buildx-action@v2
       - uses: docker/login-action@v2
         with:
@@ -61,8 +55,8 @@ jobs:
         with:
           context: builders/${{ matrix.entry.tag }}
           outputs: type=docker,dest=/tmp/image.tar
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Upload image artifact
         uses: actions/upload-artifact@v3
         with:
@@ -74,13 +68,8 @@ jobs:
           context: builders/${{ matrix.entry.tag }}
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ghcr.io/${{ github.repository_owner }}/ruby.wasm-builder:${{ matrix.entry.tag }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      # https://github.com/docker/build-push-action/issues/252#issuecomment-744400434
-      - run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-rake-task-matrix:
     runs-on: ubuntu-20.04
