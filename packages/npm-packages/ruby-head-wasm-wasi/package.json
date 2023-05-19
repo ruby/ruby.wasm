@@ -12,7 +12,9 @@
   ],
   "scripts": {
     "test": "cd ../ruby-wasm-wasi && npm test",
-    "build": "rollup -c rollup.config.mjs"
+    "build:deps": "cd ../ruby-wasm-wasi && npm run build",
+    "build:rollup": "rollup -c rollup.config.mjs",
+    "build": "npm run build:deps && npm run build:rollup"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
   "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi",
