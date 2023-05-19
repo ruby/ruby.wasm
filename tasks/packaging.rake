@@ -26,7 +26,6 @@ namespace :npm do
     task pkg[:name] do
       wasi_vfs.install_cli
       wasi_sdk.install_binaryen
-      sh "npm ci", chdir: pkg_dir unless File.exist? "#{pkg_dir}/node_modules"
       Rake::Task["npm:#{pkg[:name]}:build"].invoke
       sh "npm pack", chdir: pkg_dir
     end
