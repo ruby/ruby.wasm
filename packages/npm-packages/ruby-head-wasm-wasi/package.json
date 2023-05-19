@@ -36,6 +36,6 @@
     "rollup-plugin-polyfill-node": "^0.12.0"
   },
   "dependencies": {
-    "ruby-wasm-wasi": "^0.0.0"
+    "@ruby/wasm-wasi": "^0.0.0"
   }
 }
