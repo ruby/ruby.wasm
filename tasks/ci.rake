@@ -77,17 +77,17 @@ def rake_task_matrix
       end
       entry
     end
-  wapm_entries =
-    WAPM_PACKAGES.map do |pkg|
+  standalone_entries =
+    STANDALONE_PACKAGES.map do |pkg|
       {
-        task: "wapm:#{pkg[:name]}-build",
-        artifact: "packages/wapm-packages/#{pkg[:name]}/dist",
-        artifact_name: "wapm-#{pkg[:name]}",
+        task: "standalone:#{pkg[:name]}",
+        artifact: "packages/standalone-packages/#{pkg[:name]}/dist",
+        artifact_name: "standalone-#{pkg[:name]}",
         builder: "wasm32-unknown-wasi",
         rubies_cache_key: ruby_cache_keys[pkg[:build]]
       }
     end
-  { build: build_entries, npm: npm_entries, wapm: wapm_entries }
+  { build: build_entries, npm: npm_entries, standalone: standalone_entries }
 end
 
 namespace :ci do

@@ -123,7 +123,7 @@ NPM_PACKAGES = [
   }
 ]
 
-WAPM_PACKAGES = [
+STANDALONE_PACKAGES = [
   { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
   { name: "irb", build: "head-wasm32-unknown-wasi-full" }
 ]

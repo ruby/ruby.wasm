@@ -13,7 +13,8 @@ namespace :npm do
     namespace pkg[:name] do
       desc "Build npm package #{pkg[:name]}"
       task "build" => ["build:#{pkg[:build]}"] do
-        sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
+        sh tools,
+           "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
       end
 
       desc "Check npm package #{pkg[:name]}"
@@ -48,24 +49,18 @@ namespace :npm do
   multitask all: NPM_PACKAGES.map { |pkg| pkg[:name] }
 end
 
-namespace :wapm do
-  WAPM_PACKAGES.each do |pkg|
-    pkg_dir = "#{Dir.pwd}/packages/wapm-packages/#{pkg[:name]}"
+namespace :standalone do
+  STANDALONE_PACKAGES.each do |pkg|
+    pkg_dir = "#{Dir.pwd}/packages/standalone-packages/#{pkg[:name]}"
 
-    desc "Build wapm package #{pkg[:name]}"
-    task "#{pkg[:name]}-build" => ["build:#{pkg[:build]}"] do
+    desc "Build standalone package #{pkg[:name]}"
+    task "#{pkg[:name]}" => ["build:#{pkg[:build]}"] do
       wasi_vfs.install_cli
       wasi_sdk.install_binaryen
       base_dir = Dir.pwd
       sh tools,
          "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}",
          chdir: pkg_dir
-    end
-
-    desc "Publish wapm package #{pkg[:name]}"
-    task "#{pkg[:name]}-publish" => ["#{pkg[:name]}-build"] do
-      RubyWasm::Toolchain.check_executable("wapm")
-      sh "wapm publish", chdir: pkg_dir
     end
   end
 end
