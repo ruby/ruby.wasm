@@ -57,11 +57,12 @@ jobs:
           outputs: type=docker,dest=/tmp/image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - run: gzip -c /tmp/image.tar > /tmp/image.tar.gz
       - name: Upload image artifact
         uses: actions/upload-artifact@v3
         with:
           name: ruby.wasm-builder-${{ matrix.entry.tag }}
-          path: /tmp/image.tar
+          path: /tmp/image.tar.gz
       - name: Push
         uses: docker/build-push-action@v4
         with:
@@ -113,7 +114,7 @@ jobs:
       - name: Load builder image
         id: load-image
         run: |
-          docker load --input image.tar | tee image-info.txt
+          docker load --input image.tar.gz | tee image-info.txt
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
       - uses: ruby/setup-ruby@v1
         with:
