@@ -8,7 +8,7 @@ This document describes development setup and pointers for diving into this proj
 ```console
 $ git clone https://github.com/ruby/ruby.wasm
 $ cd ruby.wasm
-$ bundle install
+$ ./bin/setup
 $ rake --tasks
 ```
 

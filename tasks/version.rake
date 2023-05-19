@@ -9,7 +9,6 @@ def bump_version_npm_package(package, version)
   File.write(pkg_json, JSON.pretty_generate(package) + "\n")
 
   # Update package-lock.json
-  Dir.chdir(pkg_dir) { sh "npm install" }
   # Update README.md and other docs
   `git grep -l #{pkg_name}@#{old_version}`.split.each do |file|
     content = File.read(file)
@@ -29,4 +28,6 @@ task :bump_version, %i[version] do |t, args|
   NPM_PACKAGES.each do |pkg|
     bump_version_npm_package(pkg[:name], version)
   end
+  # Update ./package-lock.json
+  sh "npm install"
 end
