@@ -126,6 +126,10 @@ jobs:
         run: |
           docker load --input image.tar | tee image-info.txt
           echo "BUILDER_IMAGE_ID=$(cut -d ':' -f 3 image-info.txt)" >> $GITHUB_ENV
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
       - run: ./bin/setup
       - name: Pre-release configuration
         run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
