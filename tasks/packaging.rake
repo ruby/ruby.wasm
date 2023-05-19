@@ -10,20 +10,25 @@ namespace :npm do
     base_dir = Dir.pwd
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
-    desc "Build npm package #{pkg[:name]}"
-    task pkg[:name] => ["build:#{pkg[:build]}"] do
-      wasi_vfs.install_cli
-      wasi_sdk.install_binaryen
-      sh "npm ci", chdir: pkg_dir
-      sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
-      sh "npm pack", chdir: pkg_dir
-    end
-
     namespace pkg[:name] do
+      desc "Build npm package #{pkg[:name]}"
+      task "build" => ["build:#{pkg[:build]}"] do
+        sh tools, "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
+      end
+
       desc "Check npm package #{pkg[:name]}"
       task "check" do
         sh "npm test", chdir: pkg_dir
       end
+    end
+
+    desc "Make tarball for npm package #{pkg[:name]}"
+    task pkg[:name] do
+      wasi_vfs.install_cli
+      wasi_sdk.install_binaryen
+      sh "npm ci", chdir: pkg_dir unless File.exist? "#{pkg_dir}/node_modules"
+      Rake::Task["npm:#{pkg[:name]}:build"].invoke
+      sh "npm pack", chdir: pkg_dir
     end
   end
 
