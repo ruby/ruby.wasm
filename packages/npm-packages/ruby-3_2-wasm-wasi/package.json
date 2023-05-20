@@ -37,6 +37,6 @@
     "rollup": "^3.2.2"
   },
   "dependencies": {
-    "@ruby/wasm-wasi": "0.0.0-next"
+    "@ruby/wasm-wasi": "^2.0.0"
   }
 }
