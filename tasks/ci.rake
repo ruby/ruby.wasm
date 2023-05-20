@@ -81,7 +81,7 @@ def rake_task_matrix
     STANDALONE_PACKAGES.map do |pkg|
       {
         task: "standalone:#{pkg[:name]}",
-        artifact: "packages/standalone-packages/#{pkg[:name]}/dist",
+        artifact: "packages/standalone/#{pkg[:name]}/dist",
         artifact_name: "standalone-#{pkg[:name]}",
         builder: "wasm32-unknown-wasi",
         rubies_cache_key: ruby_cache_keys[pkg[:build]]
