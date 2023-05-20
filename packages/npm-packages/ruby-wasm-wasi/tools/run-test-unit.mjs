@@ -160,7 +160,9 @@ const test = async (instantiate) => {
 
 const main = async () => {
   await test(instantiateNodeWasi);
-  await test(instantiateWasmerWasi);
+  if (!process.env.RUBY_ROOT) {
+    await test(instantiateWasmerWasi);
+  }
 };
 
 main();

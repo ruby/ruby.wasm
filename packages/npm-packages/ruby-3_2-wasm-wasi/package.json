@@ -11,13 +11,14 @@
     "README.md"
   ],
   "scripts": {
-    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-3_2-wasm-wasi npm -C ../ruby-wasm-wasi test",
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-3_2-wasm-wasi npm -C ../ruby-wasm-wasi run test:run",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
-    "build:static:wasm": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
+    "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-3_2-wasm-wasi",
-    "build:static": "npm run build:static:wasm && npm run build:static:compat",
+    "build:static": "npm run build:static:files && npm run build:static:compat",
+    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/3_2-wasm32-unknown-wasi-full-js-debug ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
-    "build": "npm run build:deps && npm run build:static && npm run build:rollup"
+    "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
   "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3_2-wasm-wasi",

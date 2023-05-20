@@ -30,6 +30,7 @@ const initRubyVM = async (rubyModule: WebAssembly.Module, args: string[]) => {
 describe("Packaging validation", () => {
   jest.setTimeout(20 /*sec*/ * 1000);
   if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
+    test.skip('skip', () => {})
     return;
   }
 
