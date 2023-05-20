@@ -35,12 +35,25 @@ namespace :npm do
   task :configure_prerelease, [:prerel] do |t, args|
     require "json"
     prerel = args[:prerel]
+    new_pkgs = {}
     NPM_PACKAGES.each do |pkg|
       pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
       pkg_json = "#{pkg_dir}/package.json"
       package = JSON.parse(File.read(pkg_json))
-      package["version"] += "-#{prerel}"
-      File.write(pkg_json, JSON.pretty_generate(package))
+
+      version = package["version"] + "-#{prerel}"
+      new_pkgs[package["name"]] = version
+      sh *["npm", "pkg", "set", "version=#{version}"], chdir: pkg_dir
+    end
+
+    NPM_PACKAGES.each do |pkg|
+      pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
+      pkg_json = "#{pkg_dir}/package.json"
+      package = JSON.parse(File.read(pkg_json))
+      (package["dependencies"] || []).each do |dep, _|
+        next unless new_pkgs[dep]
+        sh *["npm", "pkg", "set", "dependencies.#{dep}=#{new_pkgs[dep]}"], chdir: pkg_dir
+      end
     end
   end
 
