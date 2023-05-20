@@ -30,7 +30,7 @@
     "test:unit": "./tools/run-test-unit.mjs",
     "test:e2e": "npm run test:e2e:example",
     "test:e2e:example": "playwright install && playwright test -c test-e2e/playwright.examples.config.ts",
-    "serve:example": "ruby -run -e httpd ./example -p 8085",
+    "serve:example": "bundle exec ruby -run -e httpd ./example -p 8085",
     "format": "prettier --write .",
     "build:static": "./tools/pack-bindgen-src.sh ./dist",
     "build:rollup": "rollup -c rollup.config.mjs && tsc --build",
