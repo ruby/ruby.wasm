@@ -23,7 +23,9 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test": "npm run test:unit && npm run test:jest",
+    "test:run": "npm run test:unit && npm run test:jest",
+    "test:head": "RUBY_ROOT=../../../rubies/head-wasm32-unknown-wasi-full-js-debug npm run test:run",
+    "test": "npm run test:head",
     "test:jest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
     "test:unit": "./tools/run-test-unit.mjs",
     "format": "prettier --write .",

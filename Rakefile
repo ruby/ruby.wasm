@@ -108,6 +108,11 @@ NPM_PACKAGES = [
     target: "wasm32-unknown-emscripten"
   },
   {
+    name: "ruby-wasm-wasi",
+    build: "head-wasm32-unknown-wasi-full-js-debug",
+    target: "wasm32-unknown-wasi"
+  },
+  {
     name: "ruby-head-wasm-wasi",
     build: "head-wasm32-unknown-wasi-full-js-debug",
     target: "wasm32-unknown-wasi"

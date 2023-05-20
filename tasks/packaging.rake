@@ -13,8 +13,7 @@ namespace :npm do
     namespace pkg[:name] do
       desc "Build npm package #{pkg[:name]}"
       task "build" => ["build:#{pkg[:build]}"] do
-        sh tools,
-           "#{pkg_dir}/build-package.sh #{base_dir}/rubies/#{pkg[:build]}"
+        sh tools, "npm run build", chdir: pkg_dir
       end
 
       desc "Check npm package #{pkg[:name]}"
