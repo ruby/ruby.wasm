@@ -81,29 +81,25 @@ BUILD_PROFILES = {
 }
 
 BUILDS =
-  BUILD_SOURCES.keys.flat_map do |src|
-    %w[wasm32-unknown-wasi wasm32-unknown-emscripten].flat_map do |target|
-      BUILD_PROFILES
-        .keys
-        .select do |profile_name|
-          if target == "wasm32-unknown-emscripten"
-            profile = BUILD_PROFILES[profile_name]
-            user_exts = profile[:user_exts]
-            # Skip builds with JS extensions or debug mode for Emscripten
-            # because JS extensions have incompatible import/export entries
-            # and debug mode is rarely used for Emscripten.
-            next(
-              !(
-                user_exts.include?("witapi") || user_exts.include?("js") ||
-                  profile[:debug]
-              )
-            )
-          end
-          next true
-        end
-        .map { |profile| { src: src, target: target, profile: profile } }
+  %w[wasm32-unknown-wasi wasm32-unknown-emscripten]
+    .product(BUILD_SOURCES.keys, BUILD_PROFILES.keys)
+    .select do |target, _, profile_name|
+      if target == "wasm32-unknown-emscripten"
+        profile = BUILD_PROFILES[profile_name]
+        user_exts = profile[:user_exts]
+        # Skip builds with JS extensions or debug mode for Emscripten
+        # because JS extensions have incompatible import/export entries
+        # and debug mode is rarely used for Emscripten.
+        next(
+          !(
+            user_exts.include?("witapi") || user_exts.include?("js") ||
+              profile[:debug]
+          )
+        )
+      end
+      next true
     end
-  end
+    .map { |t, s, p| { src: s, target: t, profile: p } }
 
 NPM_PACKAGES = [
   {
