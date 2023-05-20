@@ -3,5 +3,8 @@
     "private": true,
     "workspaces": [
         "packages/npm-packages/*"
-    ]
+    ],
+    "devDependencies": {
+        "@playwright/test": "^1.34.0"
+    }
 }
