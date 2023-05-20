@@ -16,6 +16,8 @@ test.beforeEach(async ({ context }) => {
       const relativePath = request.url().match(cdnPattern)[1]
       route.fulfill({ path: path.join(process.env.RUBY_NPM_PACKAGE_ROOT, "dist", relativePath) })
     })
+  } else {
+    console.info("Testing against CDN deployed files")
   }
 })
 
