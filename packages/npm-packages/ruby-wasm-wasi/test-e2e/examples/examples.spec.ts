@@ -1,10 +1,21 @@
 import { test, expect, Page } from '@playwright/test';
+import fs from "fs"
+import path from "path"
 
 test.beforeEach(async ({ context }) => {
   if (process.env.DEBUG) {
     context.on('request', request => console.log('>>', request.method(), request.url()));
     context.on('response', response => console.log('<<', response.status(), response.url()));
     context.on("console", msg => console.log("LOG:", msg.text()))
+  }
+  if (process.env.RUBY_NPM_PACKAGE_ROOT) {
+    const cdnPattern = /cdn.jsdelivr.net\/npm\/ruby-head-wasm-wasi@.+\/dist\/(.+)/
+    context.route(cdnPattern, route => {
+      const request = route.request()
+      console.log(">> [MOCK]", request.method(), request.url())
+      const relativePath = request.url().match(cdnPattern)[1]
+      route.fulfill({ path: path.join(process.env.RUBY_NPM_PACKAGE_ROOT, "dist", relativePath) })
+    })
   }
 })
 
