@@ -7,18 +7,24 @@ import path from "path";
 import * as nodeWasi from "wasi";
 import { RubyVM } from "../dist/index.cjs.js";
 
-const instantiateNodeWasi = async (rootTestFile) => {
-  const dirname = path.dirname(new URL(import.meta.url).pathname);
+const deriveRubySetup = () => {
+  let preopens = {}
   let binaryPath;
-  let preopens = {
-    __root__: path.join(dirname, ".."),
-  };
   if (process.env.RUBY_ROOT) {
     binaryPath = path.join(process.env.RUBY_ROOT, "./usr/local/bin/ruby");
     preopens["/usr"] = path.join(process.env.RUBY_ROOT, "./usr");
+  } else if (process.env.RUBY_NPM_PACKAGE_ROOT) {
+    binaryPath = path.join(process.env.RUBY_NPM_PACKAGE_ROOT, "./dist/ruby.debug+stdlib.wasm");
   } else {
-    binaryPath = path.join(dirname, "../dist/ruby.debug+stdlib.wasm");
+    throw new Error("RUBY_ROOT or RUBY_NPM_PACKAGE_ROOT must be set");
   }
+  return { binaryPath, preopens };
+}
+
+const instantiateNodeWasi = async (rootTestFile) => {
+  const dirname = path.dirname(new URL(import.meta.url).pathname);
+  const { binaryPath, preopens } = deriveRubySetup();
+  preopens["__root__"] = path.join(dirname, "..");
   const binary = await fs.readFile(binaryPath);
   const rubyModule = await WebAssembly.compile(binary);
   const wasi = new nodeWasi.WASI({
@@ -81,11 +87,10 @@ const instantiateWasmerWasi = async (rootTestFile) => {
 
   const dirname = path.dirname(new URL(import.meta.url).pathname);
   await loadToMemFs('/__root__/test', path.join(dirname, '../test'));
-  const preopens = {
-    __root__: '/__root__',
-  };
 
-  const binaryPath = path.join(dirname, "../dist/ruby+stdlib.wasm");
+  const { binaryPath, preopens } = deriveRubySetup();
+  preopens["__root__"] = '/__root__';
+
   if (process.env.RUBY_ROOT) {
     console.error('For now, testing with RUBY_ROOT is not supported.');
   }

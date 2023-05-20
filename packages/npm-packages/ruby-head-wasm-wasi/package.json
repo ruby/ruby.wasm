@@ -11,7 +11,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "cd ../ruby-wasm-wasi && npm test",
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasi npm -C ../ruby-wasm-wasi test",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
     "build:static": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",

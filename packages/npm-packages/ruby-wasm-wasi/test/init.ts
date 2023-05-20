@@ -7,8 +7,13 @@ const rubyModule = (async () => {
   let binaryPath;
   if (process.env.RUBY_ROOT) {
     binaryPath = path.join(process.env.RUBY_ROOT, "./usr/local/bin/ruby");
+  } else if (process.env.RUBY_NPM_PACKAGE_ROOT) {
+    binaryPath = path.join(
+      process.env.RUBY_NPM_PACKAGE_ROOT,
+      "./dist/ruby.debug+stdlib.wasm"
+    );
   } else {
-    binaryPath = path.join(__dirname, "./../dist/ruby.debug+stdlib.wasm");
+    throw new Error("RUBY_ROOT or RUBY_NPM_PACKAGE_ROOT must be set");
   }
   const binary = await fs.readFile(binaryPath);
   return await WebAssembly.compile(binary.buffer);

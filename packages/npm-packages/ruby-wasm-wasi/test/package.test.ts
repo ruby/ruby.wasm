@@ -29,13 +29,18 @@ const initRubyVM = async (rubyModule: WebAssembly.Module, args: string[]) => {
 
 describe("Packaging validation", () => {
   jest.setTimeout(20 /*sec*/ * 1000);
+  if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
+    return;
+  }
 
   const moduleCache = new Map<string, WebAssembly.Module>();
   const loadWasmModule = async (file: string) => {
     if (moduleCache.has(file)) {
       return moduleCache.get(file)!;
     }
-    const binary = await fs.readFile(path.join(__dirname, `./../dist/${file}`));
+    const binary = await fs.readFile(
+      path.join(process.env.RUBY_NPM_PACKAGE_ROOT, `./dist/${file}`)
+    );
     const mod = await WebAssembly.compile(binary.buffer);
     moduleCache.set(file, mod);
     return mod;
