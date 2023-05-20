@@ -28,6 +28,8 @@
     "test": "npm run test:head",
     "test:jest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
     "test:unit": "./tools/run-test-unit.mjs",
+    "test:e2e:example": "playwright test -c test-e2e/playwright.examples.config.ts",
+    "serve:example": "ruby -run -e httpd ./example -p 8085",
     "format": "prettier --write .",
     "build:static": "./tools/pack-bindgen-src.sh ./dist",
     "build:rollup": "rollup -c rollup.config.mjs && tsc --build",
