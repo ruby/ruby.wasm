@@ -1,29 +1,15 @@
 import { test, expect, Page } from '@playwright/test';
-import fs from "fs"
 import path from "path"
+import { waitForRubyVM, setupDebugLog, setupProxy } from "../support"
 
 test.beforeEach(async ({ context }) => {
-  if (process.env.DEBUG) {
-    context.on('request', request => console.log('>>', request.method(), request.url()));
-    context.on('response', response => console.log('<<', response.status(), response.url()));
-    context.on("console", msg => console.log("LOG:", msg.text()))
-  }
+  setupDebugLog(context);
   if (process.env.RUBY_NPM_PACKAGE_ROOT) {
-    const cdnPattern = /cdn.jsdelivr.net\/npm\/ruby-head-wasm-wasi@.+\/dist\/(.+)/
-    context.route(cdnPattern, route => {
-      const request = route.request()
-      console.log(">> [MOCK]", request.method(), request.url())
-      const relativePath = request.url().match(cdnPattern)[1]
-      route.fulfill({ path: path.join(process.env.RUBY_NPM_PACKAGE_ROOT, "dist", relativePath) })
-    })
+    setupProxy(context);
   } else {
     console.info("Testing against CDN deployed files")
   }
 })
-
-const waitForRubyVM = async (page: Page) => {
-  await page.waitForFunction(() => window["rubyVM"])
-}
 
 test('hello.html is healthy', async ({ page }) => {
   const messages = []

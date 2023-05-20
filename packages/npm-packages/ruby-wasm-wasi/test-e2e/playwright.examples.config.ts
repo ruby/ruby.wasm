@@ -1,10 +1,9 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
+import base from "./playwright.base.config"
 
 export default defineConfig({
+  ...base,
   testDir: 'examples',
-  fullyParallel: true,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
   use: {
     baseURL: 'http://127.0.0.1:8085',
   },
