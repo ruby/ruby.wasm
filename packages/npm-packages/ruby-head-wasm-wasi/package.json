@@ -13,7 +13,9 @@
   "scripts": {
     "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasi npm -C ../ruby-wasm-wasi test",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
-    "build:static": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
+    "build:static:wasm": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
+    "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-head-wasm-wasi",
+    "build:static": "npm run build:static:wasm && npm run build:static:compat",
     "build:rollup": "rollup -c rollup.config.mjs",
     "build": "npm run build:deps && npm run build:static && npm run build:rollup"
   },
