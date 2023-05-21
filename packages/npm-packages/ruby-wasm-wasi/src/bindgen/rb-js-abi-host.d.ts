@@ -24,6 +24,11 @@ export interface RawIntegerBignum {
 }
 export function addRbJsAbiHostToImports(imports: any, obj: RbJsAbiHost, get_export: (name: string) => WebAssembly.ExportValue): void;
 export interface RbJsAbiHost {
+  /**
+  * Dispose of a JavaScript value. This should be called when a handle to a
+  * JavaScript value is no longer needed by the Ruby program.
+  */
+  dropJsValue(value: JsAbiValue): void;
   evalJs(code: string): JsAbiResult;
   isJs(value: JsAbiValue): boolean;
   instanceOf(value: JsAbiValue, klass: JsAbiValue): boolean;

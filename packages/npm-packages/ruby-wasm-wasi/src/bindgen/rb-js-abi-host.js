@@ -1,6 +1,9 @@
 import { data_view, to_uint32, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, throw_invalid_bool } from './intrinsics.js';
 export function addRbJsAbiHostToImports(imports, obj, get_export) {
   if (!("rb-js-abi-host" in imports)) imports["rb-js-abi-host"] = {};
+  imports["rb-js-abi-host"]["drop-js-value: func(value: u32) -> ()"] = function(arg0) {
+    obj.dropJsValue(arg0 >>> 0);
+  };
   imports["rb-js-abi-host"]["eval-js: func(code: string) -> variant { success(u32), failure(u32) }"] = function(arg0, arg1, arg2) {
     const memory = get_export("memory");
     const ptr0 = arg0;

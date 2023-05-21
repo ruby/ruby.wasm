@@ -44,6 +44,7 @@ extern "C"
     size_t len;
   } rb_js_abi_host_list_js_abi_value_t;
   void rb_js_abi_host_list_js_abi_value_free(rb_js_abi_host_list_js_abi_value_t *ptr);
+  void rb_js_abi_host_drop_js_value(rb_js_abi_host_js_abi_value_t value);
   void rb_js_abi_host_eval_js(rb_js_abi_host_string_t *code, rb_js_abi_host_js_abi_result_t *ret0);
   bool rb_js_abi_host_is_js(rb_js_abi_host_js_abi_value_t value);
   bool rb_js_abi_host_instance_of(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_js_abi_value_t klass);

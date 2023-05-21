@@ -46,6 +46,11 @@ void rb_js_abi_host_list_js_abi_value_free(rb_js_abi_host_list_js_abi_value_t *p
     free(ptr->ptr);
   }
 }
+__attribute__((import_module("rb-js-abi-host"), import_name("drop-js-value: func(value: u32) -> ()")))
+void __wasm_import_rb_js_abi_host_drop_js_value(int32_t);
+void rb_js_abi_host_drop_js_value(rb_js_abi_host_js_abi_value_t value) {
+  __wasm_import_rb_js_abi_host_drop_js_value((int32_t) (value));
+}
 __attribute__((import_module("rb-js-abi-host"), import_name("eval-js: func(code: string) -> variant { success(u32), failure(u32) }")))
 void __wasm_import_rb_js_abi_host_eval_js(int32_t, int32_t, int32_t);
 void rb_js_abi_host_eval_js(rb_js_abi_host_string_t *code, rb_js_abi_host_js_abi_result_t *ret0) {
