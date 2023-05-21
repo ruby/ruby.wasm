@@ -49,6 +49,10 @@ void rb_abi_guest_list_rb_abi_value_free(rb_abi_guest_list_rb_abi_value_t *ptr) 
 
 __attribute__((aligned(4)))
 static uint8_t RET_AREA[8];
+__attribute__((export_name("drop-rb-value: func(value: u32) -> ()")))
+void __wasm_export_rb_abi_guest_drop_rb_value(int32_t arg) {
+  rb_abi_guest_drop_rb_value((uint32_t) (arg));
+}
 __attribute__((export_name("ruby-show-version: func() -> ()")))
 void __wasm_export_rb_abi_guest_ruby_show_version(void) {
   rb_abi_guest_ruby_show_version();

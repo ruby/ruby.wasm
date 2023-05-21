@@ -199,8 +199,8 @@ static VALUE rb_abi_guest_rb_abi_value_dtor_internal(VALUE obj) {
   return Qundef;
 }
 
-void rb_abi_guest_rb_abi_value_dtor(void *data) {
-  RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: data = %p\n", data);
+void rb_abi_guest_drop_rb_value(rb_abi_guest_rb_abi_value_t data) {
+  RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: data = %p\n", (void *)data);
   int state;
   RB_WASM_LIB_RT(
       rb_protect(rb_abi_guest_rb_abi_value_dtor_internal, (VALUE)data, &state));

@@ -35,6 +35,7 @@ extern "C"
     size_t len;
   } rb_abi_guest_list_rb_abi_value_t;
   void rb_abi_guest_list_rb_abi_value_free(rb_abi_guest_list_rb_abi_value_t *ptr);
+  void rb_abi_guest_drop_rb_value(rb_abi_guest_rb_abi_value_t value);
   void rb_abi_guest_ruby_show_version(void);
   void rb_abi_guest_ruby_init(void);
   void rb_abi_guest_ruby_sysinit(rb_abi_guest_list_string_t *args);

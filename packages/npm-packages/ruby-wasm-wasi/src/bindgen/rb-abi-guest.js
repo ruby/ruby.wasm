@@ -20,6 +20,9 @@ export class RbAbiGuest {
     }
     this._exports = this.instance.exports;
   }
+  dropRbValue(arg0) {
+    this._exports['drop-rb-value: func(value: u32) -> ()'](to_uint32(arg0));
+  }
   rubyShowVersion() {
     this._exports['ruby-show-version: func() -> ()']();
   }

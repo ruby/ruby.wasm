@@ -2,6 +2,10 @@
 /// This represents a handle owned by the Ruby guest environment.
 type rb-abi-value = u32
 
+/// Dispose of a Ruby value. This should be called when a handle to a
+/// Ruby value is no longer needed by the host environment.
+drop-rb-value: func(value: rb-abi-value)
+
 type rb-errno = s32
 type rb-id = u32
 

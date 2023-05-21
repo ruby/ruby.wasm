@@ -72,6 +72,11 @@ export class RbAbiGuest {
   module: WebAssembly.Module | BufferSource | Promise<Response> | Response | WebAssembly.Instance,
   imports?: any,
   ): Promise<void>;
+  /**
+  * Dispose of a Ruby value. This should be called when a handle to a
+  * Ruby value is no longer needed by the host environment.
+  */
+  dropRbValue(value: RbAbiValue): void;
   rubyShowVersion(): void;
   rubyInit(): void;
   rubySysinit(args: string[]): void;
