@@ -30,6 +30,8 @@ export class RubyVM {
   private instance: WebAssembly.Instance | null = null;
   private transport: JsValueTransport;
   private exceptionFormatter: RbExceptionFormatter;
+  private guestObjectTracker: RbValueLifetimeTracker<RbAbi.RbAbiValue> | null = null;
+  private hostObjectTracker: JsValueLifetimeTracker<any> = new JsValueLifetimeTracker();
   private interfaceState: RbAbiInterfaceState = {
     hasJSFrameAfterRbFrame: false,
   };
@@ -105,6 +107,9 @@ export class RubyVM {
    */
   async setInstance(instance: WebAssembly.Instance) {
     this.instance = instance;
+    this.guestObjectTracker = new RbValueLifetimeTracker((rbAbiValue) => {
+      this.guest.dropRbValue(rbAbiValue);
+    });
     await this.guest.instantiate(instance);
   }
 
@@ -115,17 +120,17 @@ export class RubyVM {
    */
   addToImports(imports: WebAssembly.Imports) {
     this.guest.addToImports(imports);
-    function wrapTry(f: (...args: any[]) => JsAbiValue): () => JsAbiResult {
-      return (...args) => {
+    const wrapTry = (f: (...args: any[]) => any): (...args: any[]) => JsAbiResult => {
+      return (...args: any[]) => {
         try {
-          return { tag: "success", val: f(...args) };
+          return { tag: "success", val: this.hostObjectTracker.insert(f(...args)) };
         } catch (e) {
           if (e instanceof RbFatalError) {
             // RbFatalError should not be caught by Ruby because it Ruby VM
             // can be already in an inconsistent state.
             throw e;
           }
-          return { tag: "failure", val: e };
+          return { tag: "failure", val: this.hostObjectTracker.insert(e) };
         }
       };
     }
@@ -175,6 +180,9 @@ export class RubyVM {
     addRbJsAbiHostToImports(
       imports,
       proxyImports({
+        dropJsValue: (value) => {
+          this.hostObjectTracker.remove(value);
+        },
         evalJs: wrapTry((code) => {
           return Function(code)();
         }),
@@ -183,42 +191,46 @@ export class RubyVM {
           return true;
         },
         globalThis: () => {
+          let result: any;
           if (typeof globalThis !== "undefined") {
-            return globalThis;
+            result = globalThis;
           } else if (typeof global !== "undefined") {
-            return global;
+            result = global;
           } else if (typeof window !== "undefined") {
-            return window;
+            result = window;
+          } else {
+            throw new Error("unable to locate global object");
           }
-          throw new Error("unable to locate global object");
+          return this.hostObjectTracker.insert(result);
         },
         intToJsNumber: (value) => {
-          return value;
+          return this.hostObjectTracker.insert(value);
         },
         floatToJsNumber: (value) => {
-          return value;
+          return this.hostObjectTracker.insert(value);
         },
         stringToJsString: (value) => {
-          return value;
+          return this.hostObjectTracker.insert(value);
         },
         boolToJsBool: (value) => {
-          return value;
+          return this.hostObjectTracker.insert(value);
         },
         procToJsFunction: (rawRbAbiValue) => {
-          const rbValue = this.rbValueOfPointer(rawRbAbiValue);
-          return (...args) => {
-            rbValue.call("call", ...args.map((arg) => this.wrap(arg)));
-          };
+          const rbProcValue = this.rbValueOfPointer(rawRbAbiValue);
+          return this.hostObjectTracker.insert((...args: any[]) => {
+            rbProcValue.call("call", ...args.map((arg) => this.wrap(arg)));
+          });
         },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
-          return this.rbValueOfPointer(rawRbAbiValue);
+          return this.hostObjectTracker.insert(this.rbValueOfPointer(rawRbAbiValue));
         },
         jsValueToString: (value) => {
           // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
           // `String(value)` always returns a string.
-          return String(value);
+          return String(this.hostObjectTracker.get(value));
         },
-        jsValueToInteger(value) {
+        jsValueToInteger(v) {
+          const value = this.hostObjectTracker.get(v);
           if (typeof value === "number") {
             return { tag: "f64", val: value };
           } else if (typeof value === "bigint") {
@@ -231,30 +243,36 @@ export class RubyVM {
             return { tag: "f64", val: Number(value) };
           }
         },
-        exportJsValueToHost: (value) => {
+        exportJsValueToHost: (v) => {
           // See `JsValueExporter` for the reason why we need to do this
+          const value = this.hostObjectTracker.get(v);
           this.transport.takeJsValue(value);
         },
         importJsValueFromHost: () => {
           return this.transport.consumeJsValue();
         },
-        instanceOf: (value, klass) => {
+        instanceOf: (rawValue, rawKlass) => {
+          const value = this.hostObjectTracker.get(rawValue);
+          const klass = this.hostObjectTracker.get(rawKlass);
           if (typeof klass === "function") {
             return value instanceof klass;
           } else {
             return false;
           }
         },
-        jsValueTypeof(value) {
-          return typeof value;
+        jsValueTypeof: (value) => {
+          return typeof this.hostObjectTracker.get(value);
         },
-        jsValueEqual(lhs, rhs) {
-          return lhs == rhs;
+        jsValueEqual: (lhs, rhs) => {
+          return this.hostObjectTracker.get(lhs) == this.hostObjectTracker.get(rhs);
         },
-        jsValueStrictlyEqual(lhs, rhs) {
-          return lhs === rhs;
+        jsValueStrictlyEqual: (lhs, rhs) => {
+          return this.hostObjectTracker.get(lhs) === this.hostObjectTracker.get(rhs);
         },
-        reflectApply: wrapTry((target, thisArgument, args) => {
+        reflectApply: wrapTry((rawTarget, rawThisArgument, rawArgs: Uint32Array) => {
+          const target = this.hostObjectTracker.get(rawTarget);
+          const thisArgument = this.hostObjectTracker.get(rawThisArgument);
+          const args = rawArgs.map((arg) => this.hostObjectTracker.get(arg));
           return Reflect.apply(target as any, thisArgument, args);
         }),
         reflectConstruct: function (target, args) {
@@ -263,7 +281,8 @@ export class RubyVM {
         reflectDeleteProperty: function (target, propertyKey): boolean {
           throw new Error("Function not implemented.");
         },
-        reflectGet: wrapTry((target, propertyKey) => {
+        reflectGet: wrapTry((rawTarget, propertyKey) => {
+          const target = this.hostObjectTracker.get(rawTarget);
           return target[propertyKey];
         }),
         reflectGetOwnPropertyDescriptor: function (
@@ -287,7 +306,10 @@ export class RubyVM {
         reflectPreventExtensions: function (target): boolean {
           throw new Error("Function not implemented.");
         },
-        reflectSet: wrapTry((target, propertyKey, value) => {
+        reflectSet: wrapTry((rawTarget, rawPropertyKey, rawValue) => {
+          const target = this.hostObjectTracker.get(rawTarget);
+          const propertyKey = this.hostObjectTracker.get(rawPropertyKey);
+          const value = this.hostObjectTracker.get(rawValue);
           return Reflect.set(target, propertyKey, value);
         }),
         reflectSetPrototypeOf: function (target, prototype): boolean {
@@ -370,19 +392,20 @@ export class RubyVM {
    * hash.call("store", vm.eval(`"key1"`), vm.wrap(new Object()));
    */
   wrap(value: any): RbValue {
-    return this.transport.importJsValue(value, this);
+    return this.transport.importJsValue(this.hostObjectTracker.insert(value), this);
   }
 
   private privateObject(): RubyVMPrivate {
     return {
       transport: this.transport,
+      guestObjectTracker: this.guestObjectTracker,
+      hostObjectTracker: this.hostObjectTracker,
       exceptionFormatter: this.exceptionFormatter,
     };
   }
 
-  private rbValueOfPointer(pointer: number): RbValue {
-    const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
-    return new RbValue(abiValue, this, this.privateObject());
+  private rbValueOfPointer(pointer: RbAbi.RbAbiValue): RbValue {
+    return new RbValue(pointer, this, this.privateObject());
   }
 }
 
@@ -446,7 +469,9 @@ export class RbValue {
     private inner: RbAbi.RbAbiValue,
     private vm: RubyVM,
     private privateObject: RubyVMPrivate
-  ) {}
+  ) {
+    this.privateObject.guestObjectTracker.track(inner);
+  }
 
   /**
    * Call a given method with given arguments
@@ -462,11 +487,7 @@ export class RbValue {
    */
   call(callee: string, ...args: RbValue[]): RbValue {
     const innerArgs = args.map((arg) => arg.inner);
-    return new RbValue(
-      callRbMethod(this.vm, this.privateObject, this.inner, callee, innerArgs),
-      this.vm,
-      this.privateObject
-    );
+    return callRbMethod(this.vm, this.privateObject, this.inner, callee, innerArgs);
   }
 
   /**
@@ -493,7 +514,7 @@ export class RbValue {
       "to_s",
       []
     );
-    return this.vm.guest.rstringPtr(rbString);
+    return this.vm.guest.rstringPtr(rbString.inner);
   }
 
   /**
@@ -508,7 +529,8 @@ export class RbValue {
     if (jsValue.call("nil?").toString() === "true") {
       return null;
     }
-    return this.privateObject.transport.exportJsValue(jsValue);
+    const rawValue = this.privateObject.transport.exportJsValue(jsValue);
+    return this.privateObject.hostObjectTracker.get(rawValue);
   }
 }
 
@@ -527,6 +549,8 @@ enum ruby_tag_type {
 
 type RubyVMPrivate = {
   transport: JsValueTransport;
+  hostObjectTracker: JsValueLifetimeTracker<any>;
+  guestObjectTracker: RbValueLifetimeTracker<RbAbi.RbAbiValue>;
   exceptionFormatter: RbExceptionFormatter;
 };
 
@@ -643,9 +667,10 @@ const callRbMethod = (
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
   return wrapRbOperation(vm, () => {
-    const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, args);
+    const rawArgs = Uint32Array.from(args);
+    const [value, status] = vm.guest.rbFuncallvProtect(recv, mid, rawArgs);
     checkStatusTag(status, vm, privateObject);
-    return value;
+    return new RbValue(value, vm, privateObject);
   });
 };
 const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
@@ -655,6 +680,71 @@ const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
     return new RbValue(value, vm, privateObject);
   });
 };
+
+class LifetimeTracked<Value> {
+  constructor(public value: Value) {}
+}
+
+class RbValueLifetimeTracker<Value> {
+  private registry: FinalizationRegistry<Value>
+  constructor(drop: (value: Value) => void) {
+    this.registry = new FinalizationRegistry((value) => {
+      drop(value);
+    });
+  }
+
+  track(value: Value) {
+    this.registry.register(new LifetimeTracked(value), value);
+  }
+}
+
+type JsValueLifetimeSlot<Value> = {
+  next: number;
+  value: Value;
+}
+
+class JsValueLifetimeTracker<Value> {
+  private list: JsValueLifetimeSlot<Value>[];
+  private head: number;
+
+  constructor() {
+    this.list = [];
+    this.head = 0;
+  }
+
+  insert(value: Value): JsAbiValue {
+    if (this.head >= this.list.length) {
+      this.list.push({
+        next: this.list.length + 1,
+        value: undefined,
+      });
+    }
+    const ret = this.head;
+    const slot = this.list[ret];
+    this.head = slot.next;
+    slot.next = -1;
+    slot.value = value;
+    return ret;
+  }
+
+  get(idx: JsAbiValue) {
+    if (idx >= this.list.length)
+      throw new RangeError('handle index not valid');
+    const slot = this.list[idx];
+    if (slot.next === -1)
+      return slot.value;
+    throw new RangeError('handle index not valid');
+  }
+
+  remove(idx: JsAbiValue) {
+    const ret = this.get(idx); // validate the slot
+    const slot = this.list[idx];
+    slot.value = undefined;
+    slot.next = this.head;
+    this.head = idx;
+    return ret;
+  }
+}
 
 /**
  * Error class thrown by Ruby execution
