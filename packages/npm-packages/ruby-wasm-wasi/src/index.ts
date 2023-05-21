@@ -689,9 +689,9 @@ class LifetimeTracked<Value> {
 
 class RbValueLifetimeTracker<Value> {
   private registry: FinalizationRegistry<Value>
-  constructor(drop: (value: Value) => void) {
+  constructor(private drop: (value: Value) => void) {
     this.registry = new FinalizationRegistry((value) => {
-      drop(value);
+      this.drop(value);
     });
   }
 

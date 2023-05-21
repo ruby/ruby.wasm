@@ -28,7 +28,8 @@ describe("GC integration", () => {
 
   test("protect exported Ruby objects", async () => {
     function dropRbValue(value: RbValue) {
-      (value as any).inner.drop();
+      const internal = (value as any)
+      internal.privateObject.guestObjectTracker.drop(internal.inner);
     }
     const vm = await initRubyVM();
     const initialGCCount = Number(vm.eval("GC.count").toString());
