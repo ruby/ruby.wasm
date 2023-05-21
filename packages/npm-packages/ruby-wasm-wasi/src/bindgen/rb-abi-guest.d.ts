@@ -1,3 +1,8 @@
+/**
+* A Ruby value, which is as known as a VALUE in the Ruby C API.
+* This represents a handle owned by the Ruby guest environment.
+*/
+export type RbAbiValue = number;
 export type RbErrno = number;
 export type RbId = number;
 export class RbAbiGuest {
@@ -70,11 +75,11 @@ export class RbAbiGuest {
   rubyShowVersion(): void;
   rubyInit(): void;
   rubySysinit(args: string[]): void;
-  rubyOptions(args: string[]): RbIseq;
+  rubyOptions(args: string[]): RbAbiValue;
   rubyScript(name: string): void;
   rubyInitLoadpath(): void;
   rbEvalStringProtect(str: string): [RbAbiValue, number];
-  rbFuncallvProtect(recv: RbAbiValue, mid: RbId, args: RbAbiValue[]): [RbAbiValue, number];
+  rbFuncallvProtect(recv: RbAbiValue, mid: RbId, args: Uint32Array): [RbAbiValue, number];
   rbIntern(name: string): RbId;
   rbErrinfo(): RbAbiValue;
   rbClearErrinfo(): void;
@@ -83,58 +88,4 @@ export class RbAbiGuest {
   rbGcEnable(): boolean;
   rbGcDisable(): boolean;
   rbSetShouldProhibitRewind(newValue: boolean): boolean;
-}
-
-export class RbIseq {
-  // Creates a new strong reference count as a new
-  // object.  This is only required if you're also
-  // calling `drop` below and want to manually manage
-  // the reference count from JS.
-  //
-  // If you don't call `drop`, you don't need to call
-  // this and can simply use the object from JS.
-  clone(): RbIseq;
-  
-  // Explicitly indicate that this JS object will no
-  // longer be used. If the internal reference count
-  // reaches zero then this will deterministically
-  // destroy the underlying wasm object.
-  //
-  // This is not required to be called from JS. Wasm
-  // destructors will be automatically called for you
-  // if this is not called using the JS
-  // `FinalizationRegistry`.
-  //
-  // Calling this method does not guarantee that the
-  // underlying wasm object is deallocated. Something
-  // else (including wasm) may be holding onto a
-  // strong reference count.
-  drop(): void;
-}
-
-export class RbAbiValue {
-  // Creates a new strong reference count as a new
-  // object.  This is only required if you're also
-  // calling `drop` below and want to manually manage
-  // the reference count from JS.
-  //
-  // If you don't call `drop`, you don't need to call
-  // this and can simply use the object from JS.
-  clone(): RbAbiValue;
-  
-  // Explicitly indicate that this JS object will no
-  // longer be used. If the internal reference count
-  // reaches zero then this will deterministically
-  // destroy the underlying wasm object.
-  //
-  // This is not required to be called from JS. Wasm
-  // destructors will be automatically called for you
-  // if this is not called using the JS
-  // `FinalizationRegistry`.
-  //
-  // Calling this method does not guarantee that the
-  // underlying wasm object is deallocated. Something
-  // else (including wasm) may be holding onto a
-  // strong reference count.
-  drop(): void;
 }

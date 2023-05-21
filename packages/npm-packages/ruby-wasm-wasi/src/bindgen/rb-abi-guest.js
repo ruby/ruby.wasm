@@ -1,41 +1,6 @@
-import { data_view, to_uint32, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, Slab, throw_invalid_bool } from './intrinsics.js';
+import { data_view, to_uint32, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN, throw_invalid_bool } from './intrinsics.js';
 export class RbAbiGuest {
-  constructor() {
-    this._resource0_slab = new Slab();
-    this._resource1_slab = new Slab();
-  }
   addToImports(imports) {
-    if (!("canonical_abi" in imports)) imports["canonical_abi"] = {};
-    
-    imports.canonical_abi['resource_drop_rb-iseq'] = i => {
-      this._resource0_slab.remove(i).drop();
-    };
-    imports.canonical_abi['resource_clone_rb-iseq'] = i => {
-      const obj = this._resource0_slab.get(i);
-      return this._resource0_slab.insert(obj.clone())
-    };
-    imports.canonical_abi['resource_get_rb-iseq'] = i => {
-      return this._resource0_slab.get(i)._wasm_val;
-    };
-    imports.canonical_abi['resource_new_rb-iseq'] = i => {
-      const registry = this._registry0;
-      return this._resource0_slab.insert(new RbIseq(i, this));
-    };
-    
-    imports.canonical_abi['resource_drop_rb-abi-value'] = i => {
-      this._resource1_slab.remove(i).drop();
-    };
-    imports.canonical_abi['resource_clone_rb-abi-value'] = i => {
-      const obj = this._resource1_slab.get(i);
-      return this._resource1_slab.insert(obj.clone())
-    };
-    imports.canonical_abi['resource_get_rb-abi-value'] = i => {
-      return this._resource1_slab.get(i)._wasm_val;
-    };
-    imports.canonical_abi['resource_new_rb-abi-value'] = i => {
-      const registry = this._registry1;
-      return this._resource1_slab.insert(new RbAbiValue(i, this));
-    };
   }
   
   async instantiate(module, imports) {
@@ -54,8 +19,6 @@ export class RbAbiGuest {
       this.instance = instance;
     }
     this._exports = this.instance.exports;
-    this._registry0 = new FinalizationRegistry(this._exports['canonical_abi_drop_rb-iseq']);
-    this._registry1 = new FinalizationRegistry(this._exports['canonical_abi_drop_rb-abi-value']);
   }
   rubyShowVersion() {
     this._exports['ruby-show-version: func() -> ()']();
@@ -93,8 +56,8 @@ export class RbAbiGuest {
       data_view(memory).setInt32(base + 4, len0, true);
       data_view(memory).setInt32(base + 0, ptr0, true);
     }
-    const ret = this._exports['ruby-options: func(args: list<string>) -> handle<rb-iseq>'](result1, len1);
-    return this._resource0_slab.remove(ret);
+    const ret = this._exports['ruby-options: func(args: list<string>) -> u32'](result1, len1);
+    return ret >>> 0;
   }
   rubyScript(arg0) {
     const memory = this._exports.memory;
@@ -111,26 +74,18 @@ export class RbAbiGuest {
     const realloc = this._exports["cabi_realloc"];
     const ptr0 = utf8_encode(arg0, realloc, memory);
     const len0 = UTF8_ENCODED_LEN;
-    const ret = this._exports['rb-eval-string-protect: func(str: string) -> tuple<handle<rb-abi-value>, s32>'](ptr0, len0);
-    return [this._resource1_slab.remove(data_view(memory).getInt32(ret + 0, true)), data_view(memory).getInt32(ret + 4, true)];
+    const ret = this._exports['rb-eval-string-protect: func(str: string) -> tuple<u32, s32>'](ptr0, len0);
+    return [data_view(memory).getInt32(ret + 0, true) >>> 0, data_view(memory).getInt32(ret + 4, true)];
   }
   rbFuncallvProtect(arg0, arg1, arg2) {
     const memory = this._exports.memory;
     const realloc = this._exports["cabi_realloc"];
-    const obj0 = arg0;
-    if (!(obj0 instanceof RbAbiValue)) throw new TypeError('expected instance of RbAbiValue');
-    const vec2 = arg2;
-    const len2 = vec2.length;
-    const result2 = realloc(0, 0, 4, len2 * 4);
-    for (let i = 0; i < vec2.length; i++) {
-      const e = vec2[i];
-      const base = result2 + i * 4;
-      const obj1 = e;
-      if (!(obj1 instanceof RbAbiValue)) throw new TypeError('expected instance of RbAbiValue');
-      data_view(memory).setInt32(base + 0, this._resource1_slab.insert(obj1.clone()), true);
-    }
-    const ret = this._exports['rb-funcallv-protect: func(recv: handle<rb-abi-value>, mid: u32, args: list<handle<rb-abi-value>>) -> tuple<handle<rb-abi-value>, s32>'](this._resource1_slab.insert(obj0.clone()), to_uint32(arg1), result2, len2);
-    return [this._resource1_slab.remove(data_view(memory).getInt32(ret + 0, true)), data_view(memory).getInt32(ret + 4, true)];
+    const val0 = arg2;
+    const len0 = val0.length;
+    const ptr0 = realloc(0, 0, 4, len0 * 4);
+    (new Uint8Array(memory.buffer, ptr0, len0 * 4)).set(new Uint8Array(val0.buffer, val0.byteOffset, len0 * 4));
+    const ret = this._exports['rb-funcallv-protect: func(recv: u32, mid: u32, args: list<u32>) -> tuple<u32, s32>'](to_uint32(arg0), to_uint32(arg1), ptr0, len0);
+    return [data_view(memory).getInt32(ret + 0, true) >>> 0, data_view(memory).getInt32(ret + 4, true)];
   }
   rbIntern(arg0) {
     const memory = this._exports.memory;
@@ -141,22 +96,20 @@ export class RbAbiGuest {
     return ret >>> 0;
   }
   rbErrinfo() {
-    const ret = this._exports['rb-errinfo: func() -> handle<rb-abi-value>']();
-    return this._resource1_slab.remove(ret);
+    const ret = this._exports['rb-errinfo: func() -> u32']();
+    return ret >>> 0;
   }
   rbClearErrinfo() {
     this._exports['rb-clear-errinfo: func() -> ()']();
   }
   rstringPtr(arg0) {
     const memory = this._exports.memory;
-    const obj0 = arg0;
-    if (!(obj0 instanceof RbAbiValue)) throw new TypeError('expected instance of RbAbiValue');
-    const ret = this._exports['rstring-ptr: func(value: handle<rb-abi-value>) -> string'](this._resource1_slab.insert(obj0.clone()));
-    const ptr1 = data_view(memory).getInt32(ret + 0, true);
-    const len1 = data_view(memory).getInt32(ret + 4, true);
-    const result1 = UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr1, len1));
+    const ret = this._exports['rstring-ptr: func(value: u32) -> string'](to_uint32(arg0));
+    const ptr0 = data_view(memory).getInt32(ret + 0, true);
+    const len0 = data_view(memory).getInt32(ret + 4, true);
+    const result0 = UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr0, len0));
     this._exports["cabi_post_rstring-ptr"](ret);
-    return result1;
+    return result0;
   }
   rbVmBugreport() {
     this._exports['rb-vm-bugreport: func() -> ()']();
@@ -175,59 +128,5 @@ export class RbAbiGuest {
     const ret = this._exports['rb-set-should-prohibit-rewind: func(new-value: bool) -> bool'](arg0 ? 1 : 0);
     const bool0 = ret;
     return bool0 == 0 ? false : (bool0 == 1 ? true : throw_invalid_bool());
-  }
-}
-
-export class RbIseq {
-  constructor(wasm_val, obj) {
-    this._wasm_val = wasm_val;
-    this._obj = obj;
-    this._refcnt = 1;
-    obj._registry0.register(this, wasm_val, this);
-  }
-  
-  clone() {
-    this._refcnt += 1;
-    return this;
-  }
-  
-  drop() {
-    this._refcnt -= 1;
-    if (this._refcnt !== 0)
-    return;
-    this._obj._registry0.unregister(this);
-    const dtor = this._obj._exports['canonical_abi_drop_rb-iseq'];
-    const wasm_val = this._wasm_val;
-    delete this._obj;
-    delete this._refcnt;
-    delete this._wasm_val;
-    dtor(wasm_val);
-  }
-}
-
-export class RbAbiValue {
-  constructor(wasm_val, obj) {
-    this._wasm_val = wasm_val;
-    this._obj = obj;
-    this._refcnt = 1;
-    obj._registry1.register(this, wasm_val, this);
-  }
-  
-  clone() {
-    this._refcnt += 1;
-    return this;
-  }
-  
-  drop() {
-    this._refcnt -= 1;
-    if (this._refcnt !== 0)
-    return;
-    this._obj._registry1.unregister(this);
-    const dtor = this._obj._exports['canonical_abi_drop_rb-abi-value'];
-    const wasm_val = this._wasm_val;
-    delete this._obj;
-    delete this._refcnt;
-    delete this._wasm_val;
-    dtor(wasm_val);
   }
 }

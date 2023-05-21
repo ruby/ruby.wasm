@@ -172,6 +172,13 @@ void rb_abi_lend_object(VALUE obj) {
   assert(state == TAG_NONE && "rb_abi_lend_object_internal failed");
 }
 
+static inline rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_abi_value_new(VALUE obj) {
+  return (rb_abi_guest_rb_abi_value_t)(obj);
+}
+static inline VALUE rb_abi_guest_rb_abi_value_get(rb_abi_guest_rb_abi_value_t *self) {
+  return (VALUE)(*self);
+}
+
 static VALUE rb_abi_guest_rb_abi_value_dtor_internal(VALUE obj) {
   VALUE object_id = rb_obj_id(obj);
   VALUE ref_count = rb_hash_lookup(rb_abi_guest_refcount_hash, object_id);
@@ -223,20 +230,20 @@ void rb_abi_guest_ruby_sysinit(rb_abi_guest_list_string_t *args) {
   RB_WASM_LIB_RT(ruby_sysinit(&argc, &c_args))
 }
 
-rb_abi_guest_rb_iseq_t
+rb_abi_guest_rb_abi_value_t
 rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args) {
-  void *result;
+  VALUE result;
   char **c_args;
   c_strings_from_abi(args, c_args);
-  RB_WASM_LIB_RT(result = ruby_options(args->len, c_args))
-  return rb_abi_guest_rb_iseq_new(result);
+  RB_WASM_LIB_RT(result = (VALUE)ruby_options(args->len, c_args))
+  return rb_abi_guest_rb_abi_value_new(result);
 }
 
 rb_abi_guest_rb_errno_t
-rb_abi_guest_ruby_run_node(rb_abi_guest_rb_iseq_t node) {
+rb_abi_guest_ruby_run_node(rb_abi_guest_rb_abi_value_t node) {
   int result;
-  void *iseq = rb_abi_guest_rb_iseq_get(&node);
-  RB_WASM_LIB_RT(ruby_run_node(iseq))
+  VALUE iseq = rb_abi_guest_rb_abi_value_get(&node);
+  RB_WASM_LIB_RT(ruby_run_node((void *)iseq))
   return result;
 }
 
@@ -260,7 +267,7 @@ void rb_abi_guest_rb_eval_string_protect(
   if (ret0->f1 == TAG_NONE) {
     rb_abi_lend_object(retval);
   }
-  ret0->f0 = rb_abi_guest_rb_abi_value_new((void *)retval);
+  ret0->f0 = rb_abi_guest_rb_abi_value_new(retval);
 }
 
 struct rb_funcallv_thunk_ctx {
@@ -294,7 +301,7 @@ void rb_abi_guest_rb_funcallv_protect(
   if (ret0->f1 == TAG_NONE) {
     rb_abi_lend_object(retval);
   }
-  ret0->f0 = rb_abi_guest_rb_abi_value_new((void *)retval);
+  ret0->f0 = rb_abi_guest_rb_abi_value_new(retval);
 }
 
 rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
@@ -305,7 +312,7 @@ rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_errinfo());
   rb_abi_lend_object(retval);
-  return rb_abi_guest_rb_abi_value_new((void *)retval);
+  return rb_abi_guest_rb_abi_value_new(retval);
 }
 
 void rb_abi_guest_rb_clear_errinfo(void) { rb_set_errinfo(Qnil); }

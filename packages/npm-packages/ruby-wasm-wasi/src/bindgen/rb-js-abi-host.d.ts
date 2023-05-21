@@ -1,3 +1,9 @@
+/**
+* A JavaScript value. In the future, this will be replaced by handle types.
+* The underlying value should be owned by the JavaScript host environment
+* and should live at least until all handles to it are dropped.
+*/
+export type JsAbiValue = number;
 export type JsAbiResult = JsAbiResultSuccess | JsAbiResultFailure;
 export interface JsAbiResultSuccess {
   tag: "success",
@@ -35,19 +41,16 @@ export interface RbJsAbiHost {
   jsValueTypeof(value: JsAbiValue): string;
   jsValueEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
   jsValueStrictlyEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
-  reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: JsAbiValue[]): JsAbiResult;
-  reflectConstruct(target: JsAbiValue, arguments: JsAbiValue[]): JsAbiValue;
+  reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: Uint32Array): JsAbiResult;
+  reflectConstruct(target: JsAbiValue, arguments: Uint32Array): JsAbiValue;
   reflectDeleteProperty(target: JsAbiValue, propertyKey: string): boolean;
   reflectGet(target: JsAbiValue, propertyKey: string): JsAbiResult;
   reflectGetOwnPropertyDescriptor(target: JsAbiValue, propertyKey: string): JsAbiValue;
   reflectGetPrototypeOf(target: JsAbiValue): JsAbiValue;
   reflectHas(target: JsAbiValue, propertyKey: string): boolean;
   reflectIsExtensible(target: JsAbiValue): boolean;
-  reflectOwnKeys(target: JsAbiValue): JsAbiValue[];
+  reflectOwnKeys(target: JsAbiValue): Uint32Array;
   reflectPreventExtensions(target: JsAbiValue): boolean;
   reflectSet(target: JsAbiValue, propertyKey: string, value: JsAbiValue): JsAbiResult;
   reflectSetPrototypeOf(target: JsAbiValue, prototype: JsAbiValue): boolean;
-  dropJsAbiValue?: (val: JsAbiValue) => void;
-}
-export interface JsAbiValue {
 }

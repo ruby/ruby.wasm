@@ -9,28 +9,6 @@ extern "C"
   #include <stdbool.h>
   
   typedef struct {
-    uint32_t idx;
-  } rb_abi_guest_rb_iseq_t;
-  void rb_abi_guest_rb_iseq_free(rb_abi_guest_rb_iseq_t *ptr);
-  rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_clone(rb_abi_guest_rb_iseq_t *ptr);
-  rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_new(void *data);
-  void* rb_abi_guest_rb_iseq_get(rb_abi_guest_rb_iseq_t *ptr);
-  
-  __attribute__((weak))
-  void rb_abi_guest_rb_iseq_dtor(void *data);
-  
-  typedef struct {
-    uint32_t idx;
-  } rb_abi_guest_rb_abi_value_t;
-  void rb_abi_guest_rb_abi_value_free(rb_abi_guest_rb_abi_value_t *ptr);
-  rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_abi_value_clone(rb_abi_guest_rb_abi_value_t *ptr);
-  rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_abi_value_new(void *data);
-  void* rb_abi_guest_rb_abi_value_get(rb_abi_guest_rb_abi_value_t *ptr);
-  
-  __attribute__((weak))
-  void rb_abi_guest_rb_abi_value_dtor(void *data);
-  
-  typedef struct {
     char *ptr;
     size_t len;
   } rb_abi_guest_string_t;
@@ -38,6 +16,9 @@ extern "C"
   void rb_abi_guest_string_set(rb_abi_guest_string_t *ret, const char *s);
   void rb_abi_guest_string_dup(rb_abi_guest_string_t *ret, const char *s);
   void rb_abi_guest_string_free(rb_abi_guest_string_t *ret);
+  // A Ruby value, which is as known as a VALUE in the Ruby C API.
+  // This represents a handle owned by the Ruby guest environment.
+  typedef uint32_t rb_abi_guest_rb_abi_value_t;
   typedef int32_t rb_abi_guest_rb_errno_t;
   typedef uint32_t rb_abi_guest_rb_id_t;
   typedef struct {
@@ -49,7 +30,6 @@ extern "C"
     rb_abi_guest_rb_abi_value_t f0;
     int32_t f1;
   } rb_abi_guest_tuple2_rb_abi_value_s32_t;
-  void rb_abi_guest_tuple2_rb_abi_value_s32_free(rb_abi_guest_tuple2_rb_abi_value_s32_t *ptr);
   typedef struct {
     rb_abi_guest_rb_abi_value_t *ptr;
     size_t len;
@@ -58,7 +38,7 @@ extern "C"
   void rb_abi_guest_ruby_show_version(void);
   void rb_abi_guest_ruby_init(void);
   void rb_abi_guest_ruby_sysinit(rb_abi_guest_list_string_t *args);
-  rb_abi_guest_rb_iseq_t rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args);
+  rb_abi_guest_rb_abi_value_t rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args);
   void rb_abi_guest_ruby_script(rb_abi_guest_string_t *name);
   void rb_abi_guest_ruby_init_loadpath(void);
   void rb_abi_guest_rb_eval_string_protect(rb_abi_guest_string_t *str, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0);

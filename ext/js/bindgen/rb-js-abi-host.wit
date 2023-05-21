@@ -1,4 +1,7 @@
-resource js-abi-value
+/// A JavaScript value. In the future, this will be replaced by handle types.
+/// The underlying value should be owned by the JavaScript host environment
+/// and should live at least until all handles to it are dropped.
+type js-abi-value = u32
 
 variant js-abi-result {
     success(js-abi-value),

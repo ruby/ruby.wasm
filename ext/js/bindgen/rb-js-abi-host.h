@@ -9,12 +9,6 @@ extern "C"
   #include <stdbool.h>
   
   typedef struct {
-    uint32_t idx;
-  } rb_js_abi_host_js_abi_value_t;
-  void rb_js_abi_host_js_abi_value_free(rb_js_abi_host_js_abi_value_t *ptr);
-  rb_js_abi_host_js_abi_value_t rb_js_abi_host_js_abi_value_clone(rb_js_abi_host_js_abi_value_t *ptr);
-  
-  typedef struct {
     char *ptr;
     size_t len;
   } rb_js_abi_host_string_t;
@@ -22,6 +16,10 @@ extern "C"
   void rb_js_abi_host_string_set(rb_js_abi_host_string_t *ret, const char *s);
   void rb_js_abi_host_string_dup(rb_js_abi_host_string_t *ret, const char *s);
   void rb_js_abi_host_string_free(rb_js_abi_host_string_t *ret);
+  // A JavaScript value. In the future, this will be replaced by handle types.
+  // The underlying value should be owned by the JavaScript host environment
+  // and should live at least until all handles to it are dropped.
+  typedef uint32_t rb_js_abi_host_js_abi_value_t;
   typedef struct {
     uint8_t tag;
     union {
@@ -31,7 +29,6 @@ extern "C"
   } rb_js_abi_host_js_abi_result_t;
   #define RB_JS_ABI_HOST_JS_ABI_RESULT_SUCCESS 0
   #define RB_JS_ABI_HOST_JS_ABI_RESULT_FAILURE 1
-  void rb_js_abi_host_js_abi_result_free(rb_js_abi_host_js_abi_result_t *ptr);
   typedef struct {
     uint8_t tag;
     union {
