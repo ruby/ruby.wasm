@@ -243,9 +243,8 @@ export class RubyVM {
             return { tag: "f64", val: Number(value) };
           }
         },
-        exportJsValueToHost: (v) => {
+        exportJsValueToHost: (value) => {
           // See `JsValueExporter` for the reason why we need to do this
-          const value = this.hostObjectTracker.get(v);
           this.transport.takeJsValue(value);
         },
         importJsValueFromHost: () => {
@@ -272,7 +271,10 @@ export class RubyVM {
         reflectApply: wrapTry((rawTarget, rawThisArgument, rawArgs: Uint32Array) => {
           const target = this.hostObjectTracker.get(rawTarget);
           const thisArgument = this.hostObjectTracker.get(rawThisArgument);
-          const args = rawArgs.map((arg) => this.hostObjectTracker.get(arg));
+          const args: any[] = []
+          for (const arg of rawArgs) {
+            args.push(this.hostObjectTracker.get(arg));
+          }
           return Reflect.apply(target as any, thisArgument, args);
         }),
         reflectConstruct: function (target, args) {
