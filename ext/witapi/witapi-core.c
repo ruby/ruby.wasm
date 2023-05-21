@@ -243,7 +243,7 @@ rb_abi_guest_rb_errno_t
 rb_abi_guest_ruby_run_node(rb_abi_guest_rb_abi_value_t node) {
   int result;
   VALUE iseq = rb_abi_guest_rb_abi_value_get(&node);
-  RB_WASM_LIB_RT(ruby_run_node((void *)iseq))
+  RB_WASM_LIB_RT(result = ruby_run_node((void *)iseq))
   return result;
 }
 
