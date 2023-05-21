@@ -28,7 +28,7 @@ describe("GC integration", () => {
 
   test("protect exported Ruby objects", async () => {
     function dropRbValue(value: RbValue) {
-      const internal = (value as any)
+      const internal = value as any;
       internal.privateObject.guestObjectTracker.drop(internal.inner);
     }
     const vm = await initRubyVM();

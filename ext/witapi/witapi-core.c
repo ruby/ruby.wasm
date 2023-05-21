@@ -172,10 +172,12 @@ void rb_abi_lend_object(VALUE obj) {
   assert(state == TAG_NONE && "rb_abi_lend_object_internal failed");
 }
 
-static inline rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_abi_value_new(VALUE obj) {
+static inline rb_abi_guest_rb_abi_value_t
+rb_abi_guest_rb_abi_value_new(VALUE obj) {
   return (rb_abi_guest_rb_abi_value_t)(obj);
 }
-static inline VALUE rb_abi_guest_rb_abi_value_get(rb_abi_guest_rb_abi_value_t *self) {
+static inline VALUE
+rb_abi_guest_rb_abi_value_get(rb_abi_guest_rb_abi_value_t *self) {
   return (VALUE)(*self);
 }
 
@@ -200,7 +202,8 @@ static VALUE rb_abi_guest_rb_abi_value_dtor_internal(VALUE obj) {
 }
 
 void rb_abi_guest_drop_rb_value(rb_abi_guest_rb_abi_value_t data) {
-  RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: data = %p\n", (void *)data);
+  RB_WASM_DEBUG_LOG("rb_abi_guest_rb_abi_value_dtor: data = %p\n",
+                    (void *)data);
   int state;
   RB_WASM_LIB_RT(
       rb_protect(rb_abi_guest_rb_abi_value_dtor_internal, (VALUE)data, &state));

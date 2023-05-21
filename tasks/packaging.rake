@@ -52,7 +52,8 @@ namespace :npm do
       package = JSON.parse(File.read(pkg_json))
       (package["dependencies"] || []).each do |dep, _|
         next unless new_pkgs[dep]
-        sh *["npm", "pkg", "set", "dependencies.#{dep}=#{new_pkgs[dep]}"], chdir: pkg_dir
+        sh *["npm", "pkg", "set", "dependencies.#{dep}=#{new_pkgs[dep]}"],
+           chdir: pkg_dir
       end
     end
   end

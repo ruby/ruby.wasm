@@ -30,8 +30,10 @@ export class RubyVM {
   private instance: WebAssembly.Instance | null = null;
   private transport: JsValueTransport;
   private exceptionFormatter: RbExceptionFormatter;
-  private guestObjectTracker: RbValueLifetimeTracker<RbAbi.RbAbiValue> | null = null;
-  private hostObjectTracker: JsValueLifetimeTracker<any> = new JsValueLifetimeTracker();
+  private guestObjectTracker: RbValueLifetimeTracker<RbAbi.RbAbiValue> | null =
+    null;
+  private hostObjectTracker: JsValueLifetimeTracker<any> =
+    new JsValueLifetimeTracker();
   private interfaceState: RbAbiInterfaceState = {
     hasJSFrameAfterRbFrame: false,
   };
@@ -120,10 +122,15 @@ export class RubyVM {
    */
   addToImports(imports: WebAssembly.Imports) {
     this.guest.addToImports(imports);
-    const wrapTry = (f: (...args: any[]) => any): (...args: any[]) => JsAbiResult => {
+    const wrapTry = (
+      f: (...args: any[]) => any
+    ): ((...args: any[]) => JsAbiResult) => {
       return (...args: any[]) => {
         try {
-          return { tag: "success", val: this.hostObjectTracker.insert(f(...args)) };
+          return {
+            tag: "success",
+            val: this.hostObjectTracker.insert(f(...args)),
+          };
         } catch (e) {
           if (e instanceof RbFatalError) {
             // RbFatalError should not be caught by Ruby because it Ruby VM
@@ -133,7 +140,7 @@ export class RubyVM {
           return { tag: "failure", val: this.hostObjectTracker.insert(e) };
         }
       };
-    }
+    };
     imports["rb-js-abi-host"] = {
       rb_wasm_throw_prohibit_rewind_exception: (
         messagePtr: number,
@@ -222,7 +229,9 @@ export class RubyVM {
           });
         },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
-          return this.hostObjectTracker.insert(this.rbValueOfPointer(rawRbAbiValue));
+          return this.hostObjectTracker.insert(
+            this.rbValueOfPointer(rawRbAbiValue)
+          );
         },
         jsValueToString: (value) => {
           // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
@@ -263,20 +272,26 @@ export class RubyVM {
           return typeof this.hostObjectTracker.get(value);
         },
         jsValueEqual: (lhs, rhs) => {
-          return this.hostObjectTracker.get(lhs) == this.hostObjectTracker.get(rhs);
+          return (
+            this.hostObjectTracker.get(lhs) == this.hostObjectTracker.get(rhs)
+          );
         },
         jsValueStrictlyEqual: (lhs, rhs) => {
-          return this.hostObjectTracker.get(lhs) === this.hostObjectTracker.get(rhs);
+          return (
+            this.hostObjectTracker.get(lhs) === this.hostObjectTracker.get(rhs)
+          );
         },
-        reflectApply: wrapTry((rawTarget, rawThisArgument, rawArgs: Uint32Array) => {
-          const target = this.hostObjectTracker.get(rawTarget);
-          const thisArgument = this.hostObjectTracker.get(rawThisArgument);
-          const args: any[] = []
-          for (const arg of rawArgs) {
-            args.push(this.hostObjectTracker.get(arg));
+        reflectApply: wrapTry(
+          (rawTarget, rawThisArgument, rawArgs: Uint32Array) => {
+            const target = this.hostObjectTracker.get(rawTarget);
+            const thisArgument = this.hostObjectTracker.get(rawThisArgument);
+            const args: any[] = [];
+            for (const arg of rawArgs) {
+              args.push(this.hostObjectTracker.get(arg));
+            }
+            return Reflect.apply(target as any, thisArgument, args);
           }
-          return Reflect.apply(target as any, thisArgument, args);
-        }),
+        ),
         reflectConstruct: function (target, args) {
           throw new Error("Function not implemented.");
         },
@@ -394,7 +409,10 @@ export class RubyVM {
    * hash.call("store", vm.eval(`"key1"`), vm.wrap(new Object()));
    */
   wrap(value: any): RbValue {
-    return this.transport.importJsValue(this.hostObjectTracker.insert(value), this);
+    return this.transport.importJsValue(
+      this.hostObjectTracker.insert(value),
+      this
+    );
   }
 
   private privateObject(): RubyVMPrivate {
@@ -489,7 +507,13 @@ export class RbValue {
    */
   call(callee: string, ...args: RbValue[]): RbValue {
     const innerArgs = args.map((arg) => arg.inner);
-    return callRbMethod(this.vm, this.privateObject, this.inner, callee, innerArgs);
+    return callRbMethod(
+      this.vm,
+      this.privateObject,
+      this.inner,
+      callee,
+      innerArgs
+    );
   }
 
   /**
@@ -688,7 +712,7 @@ class LifetimeTracked<Value> {
 }
 
 class RbValueLifetimeTracker<Value> {
-  private registry: FinalizationRegistry<Value>
+  private registry: FinalizationRegistry<Value>;
   constructor(private drop: (value: Value) => void) {
     this.registry = new FinalizationRegistry((value) => {
       this.drop(value);
@@ -703,7 +727,7 @@ class RbValueLifetimeTracker<Value> {
 type JsValueLifetimeSlot<Value> = {
   next: number;
   value: Value;
-}
+};
 
 class JsValueLifetimeTracker<Value> {
   private list: JsValueLifetimeSlot<Value>[];
@@ -730,12 +754,10 @@ class JsValueLifetimeTracker<Value> {
   }
 
   get(idx: JsAbiValue) {
-    if (idx >= this.list.length)
-      throw new RangeError('handle index not valid');
+    if (idx >= this.list.length) throw new RangeError("handle index not valid");
     const slot = this.list[idx];
-    if (slot.next === -1)
-      return slot.value;
-    throw new RangeError('handle index not valid');
+    if (slot.next === -1) return slot.value;
+    throw new RangeError("handle index not valid");
   }
 
   remove(idx: JsAbiValue) {
