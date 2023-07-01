@@ -45,7 +45,7 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.1.0",
     "@types/jest": "^29.1.2",
-    "@types/node": "18.16.3",
+    "@types/node": "20.3.3",
     "@wasmer/wasi": "^1.2.2",
     "babel-jest": "^29.1.2",
     "jest": "^29.1.2",
