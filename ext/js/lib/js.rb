@@ -1,4 +1,5 @@
 require "js.so"
+require "json"
 
 # The JS module provides a way to interact with JavaScript from Ruby.
 #
@@ -90,7 +91,10 @@ end
 
 class JS::Object
   def method_missing(sym, *args, &block)
-    if self[sym].typeof == "function"
+    if sym == :new
+      # Call constructor at the JavaScript runtime when new method is called
+      JS.eval("return #{self.to_construct(args)}")
+    elsif self[sym].typeof == "function"
       self.call(sym, *args, &block)
     else
       super
@@ -99,7 +103,7 @@ class JS::Object
 
   def respond_to_missing?(sym, include_private)
     return true if super
-    self[sym].typeof == "function"
+    sym == :new || self[sym].typeof == "function"
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.
@@ -131,6 +135,54 @@ class JS::Object
     # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
     promise = JS.global[:Promise].resolve(self)
     JS.promise_scheduler.await(promise)
+  end
+
+  private
+
+  # Returns a JavaScript instance creation expression.
+  def to_construct(args)
+    "new #{constructor_name}(#{to_js_arguments_string(args)})"
+  end
+
+  # Calling new, received self will be 'function Array() { ... }' or 'class Array { ... }'
+  # And then convert it to 'Array'
+  def constructor_name
+    input_string = self.to_s
+
+    if input_string.match(/function\s+([^(]+)/) # For embeded object or named function
+      input_string.match(/function\s+([^(]+)/)[1].strip
+    elsif input_string.match(/class\s+(\w+)\s*{/) # For class
+      input_string.match(/class\s+(\w+)\s*{/)[1].strip
+    else
+      raise "Cannot get constructor name from: #{input_string}"
+    end
+  end
+
+  # Match argument format to JavaScript syntax.
+  def to_js_arguments_string(args)
+    "#{args.map { convert_for_js_statement _1 }.join(", ")}"
+  end
+
+  # Convert arngument for JavaScript statemet.
+  # Support Ruby String and JavaScript String both.
+  def convert_for_js_statement(argument)
+    case argument
+    when String
+      return "\"#{argument}\""
+    when Hash
+      return argument.to_json
+    when JS::Object
+      return convert_for_js_statement_from_js_object argument
+    else
+      argument.to_s
+    end
+  end
+
+  def convert_for_js_statement_from_js_object(argument)
+    return "\"#{argument}\"" if argument.typeof == "string"
+    return JS.global[:JSON].stringify(argument) if argument.typeof == "object"
+
+    argument.to_s
   end
 end
 
