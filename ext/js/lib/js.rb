@@ -90,11 +90,24 @@ module JS
 end
 
 class JS::Object
+  # Create a JavaScript object with the new method
+  #
+  # The below examples show typical usage in Ruby
+  #
+  #   JS.global[:Object].new
+  #   JS.global[:Number].new(1.23)
+  #   JS.global[:String].new("string")
+  #   JS.global[:Array].new(1, 2, 3)
+  #   JS.global[:Date].new(2020, 1, 1)
+  #   JS.global[:Error].new("error message")
+  #   JS.global[:URLSearchParams].new(JS.global[:location][:search])
+  #
+  def new(*args)
+    JS.eval("return #{self.to_construct(args)}")
+  end
+
   def method_missing(sym, *args, &block)
-    if sym == :new
-      # Call constructor at the JavaScript runtime when new method is called
-      JS.eval("return #{self.to_construct(args)}")
-    elsif self[sym].typeof == "function"
+    if self[sym].typeof == "function"
       self.call(sym, *args, &block)
     else
       super
@@ -103,7 +116,7 @@ class JS::Object
 
   def respond_to_missing?(sym, include_private)
     return true if super
-    sym == :new || self[sym].typeof == "function"
+    self[sym].typeof == "function"
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.
