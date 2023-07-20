@@ -182,23 +182,18 @@ class JS::TestObject < Test::Unit::TestCase
     GC.stress = false
   end
 
-  def test_method_missing
-    assert_equal "42", JS.eval("return 42;").toString.to_s
-    assert_equal "o", JS.eval("return 'hello';").charAt(4).to_s
-  end
-
-  def test_method_missing_with_new_embedded_object
+  def test_new_embedded_object
     assert_equal 1.2, JS.global[:Number].new(1.23).toFixed(1).to_f
     assert_equal "hello", JS.global[:String].new("hello").to_s
     assert_equal 3, JS.global[:Array].new(1, 2, 3).pop().to_i
     assert_equal 2023, JS.global[:Date].new(2023, 1, 1).getFullYear().to_i
   end
 
-  def test_method_missing_with_new_embedded_object_with_js_string
+  def test_new_embedded_object_with_js_string
     assert_equal "hello", JS.global[:String].new(JS.eval("return 'hello'")).to_s
   end
 
-  def test_method_missing_with_new_named_constructor
+  def test_new_named_constructor
     JS.eval(<<~JS)
       globalThis.Person = function Person(first, last) {
         this.firstName = first;
@@ -209,7 +204,7 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "John", JS.global[:Person].new("John", "Doe")[:firstName].to_s
   end
 
-  def test_method_missing_with_new_anonymous_constructor
+  def test_new_anonymous_constructor
     JS.eval(<<~JS)
       globalThis.Dog = function(name, breed) {
         this.name = name;
@@ -220,7 +215,7 @@ class JS::TestObject < Test::Unit::TestCase
     assert_raise(RuntimeError) { JS.global[:Dog].new("Fido", "Labrador") }
   end
 
-  def test_method_missing_with_new_custom_class
+  def test_new_custom_class
     JS.eval(<<~JS)
       globalThis.CustomClass = class CustomClass {
         constructor(options) {
@@ -234,7 +229,7 @@ class JS::TestObject < Test::Unit::TestCase
                  JS.global[:CustomClass].new(option1: "hello")[:option1].to_s
   end
 
-  def test_method_missing_with_new_custom_class_with_js_object
+  def test_new_custom_class_with_js_object
     JS.eval(<<~JS)
       class CustomClass {
         constructor(options) {
@@ -247,6 +242,11 @@ class JS::TestObject < Test::Unit::TestCase
 
     js_object = JS.eval('return { option1: "hello" }')
     assert_equal "hello", JS.global[:CustomClass].new(js_object)[:option1].to_s
+  end
+
+  def test_method_missing
+    assert_equal "42", JS.eval("return 42;").toString.to_s
+    assert_equal "o", JS.eval("return 'hello';").charAt(4).to_s
   end
 
   def test_method_missing_with_block
