@@ -319,15 +319,4 @@ class JS::TestObject < Test::Unit::TestCase
     JS.global[:tmp] = "1"
     GC.stress = false
   end
-
-  def test_to_js_string
-    assert_equal '"hello"', JS.eval('return "hello"').to_js_string
-    assert_equal "42", JS.eval("return 42").to_js_string
-    assert_equal "true", JS.eval("return true").to_js_string
-    assert_equal "false", JS.eval("return false").to_js_string
-    assert_equal "null", JS::Null.to_js_string
-    assert_equal "undefined", JS::Undefined.to_js_string
-    assert_equal '{"name":"John Doe","age":24}',
-                 JS.eval('return {name: "John Doe", age: 24}').to_js_string
-  end
 end

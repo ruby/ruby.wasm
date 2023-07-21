@@ -1,5 +1,7 @@
 require "js.so"
 require "json"
+require_relative "./hash.rb"
+require_relative "./array.rb"
 
 # The JS module provides a way to interact with JavaScript from Ruby.
 #
@@ -103,7 +105,7 @@ class JS::Object
   #   JS.global[:URLSearchParams].new(JS.global[:location][:search])
   #
   def new(*args)
-    JS.global[:Reflect].construct(self, JS::Array.new(args).to_a)
+    JS.global[:Reflect].construct(self, args.to_js)
   end
 
   def method_missing(sym, *args, &block)
@@ -148,55 +150,6 @@ class JS::Object
     # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
     promise = JS.global[:Promise].resolve(self)
     JS.promise_scheduler.await(promise)
-  end
-
-  # Return string that can be embedded in a JavaScript statement
-  def to_js_string
-    case self.typeof
-    when "string"
-      return "\"#{self}\""
-    when "object"
-      return JS.global[:JSON].stringify(self).to_s
-    else
-      self.to_s
-    end
-  end
-end
-
-# A wrapper class for creating JavaScript Arrays in Ruby.
-class JS::Array
-  @array
-
-  # Create a JavaScript array from Ruby array
-  def initialize(rb_array)
-    @array = JS.eval("return #{to_js_array_string(rb_array)}")
-  end
-
-  # Get a raw JavaScript array
-  def to_a
-    @array
-  end
-
-  private
-
-  # Match format to JavaScript syntax.
-  def to_js_array_string(rb_array)
-    "[#{rb_array.map { convert_to_js_string_from _1 }.join(", ")}]"
-  end
-
-  # Convert ruby value to JavaScript string.
-  # Support JS::Object.
-  def convert_to_js_string_from(rb_value)
-    case rb_value
-    when String
-      return "\"#{rb_value}\""
-    when Hash
-      return rb_value.to_json
-    when JS::Object
-      return rb_value.to_js_string
-    else
-      rb_value.to_s
-    end
   end
 end
 
