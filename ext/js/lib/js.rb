@@ -103,7 +103,7 @@ class JS::Object
   #   JS.global[:URLSearchParams].new(JS.global[:location][:search])
   #
   def new(*args)
-    JS.eval("return #{self.to_construct(args)}")
+    JS.global[:Reflect].construct(self, JS::Array.new(args).to_a)
   end
 
   def method_missing(sym, *args, &block)
@@ -150,52 +150,53 @@ class JS::Object
     JS.promise_scheduler.await(promise)
   end
 
+  # Return string that can be embedded in a JavaScript statement
+  def to_js_string
+    case self.typeof
+    when "string"
+      return "\"#{self}\""
+    when "object"
+      return JS.global[:JSON].stringify(self).to_s
+    else
+      self.to_s
+    end
+  end
+end
+
+# A wrapper class for creating JavaScript Arrays in Ruby.
+class JS::Array
+  @array
+
+  # Create a JavaScript array from Ruby array
+  def initialize(rb_array)
+    @array = JS.eval("return #{to_js_array_string(rb_array)}")
+  end
+
+  # Get a raw JavaScript array
+  def to_a
+    @array
+  end
+
   private
 
-  # Returns a JavaScript instance creation expression.
-  def to_construct(args)
-    "new #{constructor_name}(#{to_js_arguments_string(args)})"
+  # Match format to JavaScript syntax.
+  def to_js_array_string(rb_array)
+    "[#{rb_array.map { convert_to_js_string_from _1 }.join(", ")}]"
   end
 
-  # Calling new, received self will be 'function Array() { ... }' or 'class Array { ... }'
-  # And then convert it to 'Array'
-  def constructor_name
-    input_string = self.to_s
-
-    if input_string.match(/function\s+([^(]+)/) # For embeded object or named function
-      input_string.match(/function\s+([^(]+)/)[1].strip
-    elsif input_string.match(/class\s+(\w+)\s*{/) # For class
-      input_string.match(/class\s+(\w+)\s*{/)[1].strip
-    else
-      raise "Cannot get constructor name from: #{input_string}"
-    end
-  end
-
-  # Match argument format to JavaScript syntax.
-  def to_js_arguments_string(args)
-    "#{args.map { convert_for_js_statement _1 }.join(", ")}"
-  end
-
-  # Convert arngument for JavaScript statemet.
-  # Support Ruby String and JavaScript String both.
-  def convert_for_js_statement(argument)
-    case argument
+  # Convert ruby value to JavaScript string.
+  # Support JS::Object.
+  def convert_to_js_string_from(rb_value)
+    case rb_value
     when String
-      return "\"#{argument}\""
+      return "\"#{rb_value}\""
     when Hash
-      return argument.to_json
+      return rb_value.to_json
     when JS::Object
-      return convert_for_js_statement_from_js_object argument
+      return rb_value.to_js_string
     else
-      argument.to_s
+      rb_value.to_s
     end
-  end
-
-  def convert_for_js_statement_from_js_object(argument)
-    return "\"#{argument}\"" if argument.typeof == "string"
-    return JS.global[:JSON].stringify(argument) if argument.typeof == "object"
-
-    argument.to_s
   end
 end
 
