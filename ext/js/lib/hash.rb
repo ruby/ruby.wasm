@@ -1,3 +1,5 @@
+require "json"
+
 class Hash
   # Convert a hash to a JavaScript object
   def to_js
