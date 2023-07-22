@@ -182,14 +182,14 @@ class JS::TestObject < Test::Unit::TestCase
     GC.stress = false
   end
 
-  def test_new_embedded_object
+  def test_new_standard_built_in_object
     assert_equal 1.2, JS.global[:Number].new(1.23).toFixed(1).to_f
     assert_equal "hello", JS.global[:String].new("hello").to_s
     assert_equal 3, JS.global[:Array].new(1, 2, 3).pop().to_i
     assert_equal 2023, JS.global[:Date].new(2023, 1, 1).getFullYear().to_i
   end
 
-  def test_new_embedded_object_with_js_string
+  def test_new_standard_built_in_object_with_js_string
     assert_equal "hello", JS.global[:String].new(JS.eval("return 'hello'")).to_s
   end
 
