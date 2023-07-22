@@ -3,7 +3,9 @@ require "js"
 
 class TestArray < Test::Unit::TestCase
   def test_to_js
-    assert_true [1, "b", { name: "Alice" }].to_js.is_a?(JS::Object)
+    assert_true [true, false, nil, 1, "b", { name: "Alice" }].to_js.is_a?(
+                  JS::Object
+                )
     assert_equal 3, [1, "b", 3].to_js[:length].to_i
   end
 
