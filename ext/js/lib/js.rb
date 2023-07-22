@@ -1,5 +1,4 @@
 require "js.so"
-require "json"
 require_relative "./hash.rb"
 require_relative "./array.rb"
 require_relative "./nil_class.rb"
