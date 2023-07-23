@@ -27,4 +27,11 @@ class JS::TestJS < Test::Unit::TestCase
   def test_try_convert
     assert_nil JS.try_convert(Object.new)
   end
+
+  def test_constasts
+    assert_equal 'null', JS::Null.to_s
+    assert_equal 'undefined', JS::Undefined.to_s
+    assert_equal 'true', JS::True.to_s
+    assert_equal 'false', JS::False.to_s
+  end
 end

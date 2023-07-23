@@ -41,6 +41,30 @@ module JS
   Undefined = JS.eval("return undefined")
   Null = JS.eval("return null")
 
+  # A boolean value in JavaScript is always a JS::Object instance from Ruby's point of view.
+  # If we use the boolean value returned by a JavaScript function as the condition for an if expression in Ruby,
+  # the if expression will always be true.
+  #
+  # == Bad Example
+  #
+  #   searchParams = JS.global[:URLSearchParams].new(JS.global[:location][:search])
+  #   if searchParams.has('phrase')
+  #     # Always pass through here.
+  #     ...
+  #   else
+  #     ...
+  #   end
+  #
+  # Therefore, the JS::True constant is used to determine if the JavaScript function return value is true or false.
+  #
+  # == Good Example
+  #
+  #   if searchParams.has('phrase') == JS::True
+  #     ...
+  #   end
+  True = JS.eval("return true;")
+  False = JS.eval("return false;")
+
   class PromiseScheduler
     def initialize(loop)
       @loop = loop
