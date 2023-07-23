@@ -326,6 +326,17 @@ static VALUE _rb_js_obj_typeof(VALUE obj) {
 
 /*
  * call-seq:
+ *   to_b -> boolean
+ *
+ */
+static VALUE _rb_js_obj_to_b(VALUE obj) {
+  struct jsvalue *p = check_jsvalue(obj);
+  bool ret0 = rb_js_abi_host_js_value_to_bool(p->abi);
+  return RBOOL(ret0);
+}
+
+/*
+ * call-seq:
  *   to_s -> string
  *
  *  Returns a printable version of +self+:
@@ -560,6 +571,7 @@ void Init_js() {
                            0);
   rb_define_private_method(rb_cJS_singleton, "__import_from_js",
                            _rb_js_import_from_js, 0);
+  rb_define_method(rb_cJS_Object, "to_b", _rb_js_obj_to_b, 0);
   rb_define_method(rb_cJS_Object, "to_s", _rb_js_obj_to_s, 0);
   rb_define_alias(rb_cJS_Object, "inspect", "to_s");
   rb_define_method(rb_cJS_Object, "to_i", _rb_js_obj_to_i, 0);

@@ -56,6 +56,16 @@ class JS::TestObject < Test::Unit::TestCase
                                 JS.eval("return undefined;")
   end
 
+  def test_to_b
+    assert_true JS.eval("return true;").to_b
+    assert_false JS.eval("return false;").to_b
+    assert_false JS.eval("return 0;").to_b
+    assert_false JS.eval("return -0;").to_b
+    assert_false JS.eval("return NaN;").to_b
+    assert_false JS.eval("return null;").to_b
+    assert_false JS.eval("return undefined;").to_b
+  end
+
   def test_to_s
     assert_equal "str", JS.eval("return 'str';").to_s
     assert_equal "24", JS.eval("return 24;").to_s

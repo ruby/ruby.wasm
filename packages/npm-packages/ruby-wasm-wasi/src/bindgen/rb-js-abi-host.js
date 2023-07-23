@@ -66,6 +66,10 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
     const ret0 = obj.rbObjectToJsRbValue(arg0 >>> 0);
     return resources0.insert(ret0);
   };
+  imports["rb-js-abi-host"]["js-value-to-bool: func(value: handle<js-abi-value>) -> bool"] = function(arg0) {
+    const ret0 = obj.jsValueToBool(resources0.get(arg0));
+    return ret0 ? 1 : 0;
+  };
   imports["rb-js-abi-host"]["js-value-to-string: func(value: handle<js-abi-value>) -> string"] = function(arg0, arg1) {
     const memory = get_export("memory");
     const realloc = get_export("cabi_realloc");

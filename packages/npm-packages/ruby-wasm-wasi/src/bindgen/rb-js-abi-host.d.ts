@@ -28,6 +28,7 @@ export interface RbJsAbiHost {
   boolToJsBool(value: boolean): JsAbiValue;
   procToJsFunction(value: number): JsAbiValue;
   rbObjectToJsRbValue(rawRbAbiValue: number): JsAbiValue;
+  jsValueToBool(value: JsAbiValue): boolean;
   jsValueToString(value: JsAbiValue): string;
   jsValueToInteger(value: JsAbiValue): RawInteger;
   exportJsValueToHost(value: JsAbiValue): void;

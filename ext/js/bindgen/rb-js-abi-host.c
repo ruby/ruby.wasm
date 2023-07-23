@@ -151,6 +151,12 @@ rb_js_abi_host_js_abi_value_t rb_js_abi_host_rb_object_to_js_rb_value(uint32_t r
   int32_t ret = __wasm_import_rb_js_abi_host_rb_object_to_js_rb_value((int32_t) (raw_rb_abi_value));
   return (rb_js_abi_host_js_abi_value_t){ ret };
 }
+__attribute__((import_module("rb-js-abi-host"), import_name("js-value-to-bool: func(value: handle<js-abi-value>) -> bool")))
+int32_t __wasm_import_rb_js_abi_host_js_value_to_bool(int32_t);
+bool rb_js_abi_host_js_value_to_bool(rb_js_abi_host_js_abi_value_t value) {
+  int32_t ret = __wasm_import_rb_js_abi_host_js_value_to_bool((value).idx);
+  return ret;
+}
 __attribute__((import_module("rb-js-abi-host"), import_name("js-value-to-string: func(value: handle<js-abi-value>) -> string")))
 void __wasm_import_rb_js_abi_host_js_value_to_string(int32_t, int32_t);
 void rb_js_abi_host_js_value_to_string(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_string_t *ret0) {

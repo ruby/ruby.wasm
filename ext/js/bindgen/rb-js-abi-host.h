@@ -57,6 +57,7 @@ extern "C"
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_bool_to_js_bool(bool value);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_proc_to_js_function(uint32_t value);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_rb_object_to_js_rb_value(uint32_t raw_rb_abi_value);
+  bool rb_js_abi_host_js_value_to_bool(rb_js_abi_host_js_abi_value_t value);
   void rb_js_abi_host_js_value_to_string(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_string_t *ret0);
   void rb_js_abi_host_js_value_to_integer(rb_js_abi_host_js_abi_value_t value, rb_js_abi_host_raw_integer_t *ret0);
   void rb_js_abi_host_export_js_value_to_host(rb_js_abi_host_js_abi_value_t value);

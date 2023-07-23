@@ -16,6 +16,8 @@ bool-to-js-bool: func(value: bool) -> js-abi-value
 proc-to-js-function: func(value: u32) -> js-abi-value
 rb-object-to-js-rb-value: func(raw-rb-abi-value: u32) -> js-abi-value
 
+js-value-to-bool: func(value: js-abi-value) -> bool
+
 js-value-to-string: func(value: js-abi-value) -> string
 
 variant raw-integer {
