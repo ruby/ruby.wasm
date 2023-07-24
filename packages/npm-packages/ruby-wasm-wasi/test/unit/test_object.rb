@@ -277,6 +277,27 @@ class JS::TestObject < Test::Unit::TestCase
     assert_raise(NoMethodError) { object.bar }
   end
 
+  def test_method_missing_with_?
+    object = JS.eval(<<~JS)
+      return {
+        return_true() { return true; },
+        return_false() { return false; },
+        return_object() { return {}; }
+      };
+    JS
+
+    # Normally return JS::Object when without ?
+    assert_true object.return_true == JS::True
+    assert_true object.return_false == JS::False
+
+    # Return Ruby boolean value when with ?
+    assert_true object.return_true?
+    assert_false object.return_false?
+
+    # Return Ruby false when the return value is not JS::True
+    assert_false object.return_object?
+  end
+
   def test_respond_to_missing?
     object = JS.eval(<<~JS)
       return { foo() { return true; } };
