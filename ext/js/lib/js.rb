@@ -137,6 +137,21 @@ class JS::Object
     JS.global[:Reflect].construct(self, args.to_js)
   end
 
+  # Provide a shorthand form for JS::Object#call
+  #
+  # This method basically calls the JavaScript method with the same
+  # name as the Ruby method name as is using JS::Object#call.
+  #
+  # Exceptions are the following cases:
+  # * If the method name ends with a question mark (?), the question mark is removed
+  #   and the method is called as a predicate method. The return value is converted to
+  #   a Ruby boolean value automatically.
+  #
+  # This shorthand is unavailable for the following cases and you need to use
+  # JS::Object#call instead:
+  # * If the method name is invalid as a Ruby method name (e.g. contains a hyphen, reserved word, etc.)
+  # * If the method name is already defined as a Ruby method under JS::Object
+  # * If the JavaScript method name ends with a question mark (?)
   def method_missing(sym, *args, &block)
     sym_str = sym.to_s
     if sym_str.end_with?("?")
@@ -150,6 +165,9 @@ class JS::Object
     end
   end
 
+  # Check if a JavaScript method exists
+  #
+  # See JS::Object#method_missing for details.
   def respond_to_missing?(sym, include_private)
     return true if super
     sym_str = sym.to_s
