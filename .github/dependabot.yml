@@ -6,21 +6,6 @@ updates:
       interval: monthly
 
   - package-ecosystem: npm
-    directory: /packages/npm-packages/ruby-head-wasm-emscripten
-    schedule:
-      interval: monthly
-
-  - package-ecosystem: npm
-    directory: /packages/npm-packages/ruby-head-wasm-wasi
-    schedule:
-      interval: monthly
-
-  - package-ecosystem: npm
-    directory: /packages/npm-packages/ruby-wasm-wasi
-    schedule:
-      interval: monthly
-
-  - package-ecosystem: npm
-    directory: /packages/npm-packages/ruby-wasm-emscripten
+    directory: /
     schedule:
       interval: monthly
