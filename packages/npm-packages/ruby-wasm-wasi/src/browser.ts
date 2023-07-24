@@ -76,8 +76,8 @@ export const DefaultRubyVM = async (
       // default Fiber stack size as well as main stack size allocated
       // by wasm-ld's --stack-size. The ideal solution is to reduce
       // stack consumption in setjmp.
-      "RUBY_FIBER_MACHINE_STACK_SIZE": "16777216"
-    }
+      RUBY_FIBER_MACHINE_STACK_SIZE: "16777216",
+    },
   });
   const vm = new RubyVM();
 

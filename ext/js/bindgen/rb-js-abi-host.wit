@@ -1,4 +1,11 @@
-resource js-abi-value
+/// A JavaScript value. In the future, this will be replaced by handle types.
+/// The underlying value should be owned by the JavaScript host environment
+/// and should live at least until all handles to it are dropped.
+type js-abi-value = u32
+
+/// Dispose of a JavaScript value. This should be called when a handle to a
+/// JavaScript value is no longer needed by the Ruby program.
+drop-js-value: func(value: js-abi-value)
 
 variant js-abi-result {
     success(js-abi-value),

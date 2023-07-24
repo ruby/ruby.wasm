@@ -35,7 +35,7 @@ static void jsvalue_mark(void *p) {}
 
 static void jsvalue_free(void *p) {
   struct jsvalue *ptr = p;
-  rb_js_abi_host_js_abi_value_free(&ptr->abi);
+  rb_js_abi_host_drop_js_value(ptr->abi);
   ruby_xfree(ptr);
 }
 
@@ -207,7 +207,7 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   rb_js_abi_host_js_abi_result_t ret;
   rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi, &ret);
   raise_js_error_if_failure(&ret);
-  rb_js_abi_host_js_abi_value_free(&ret.val.success);
+  rb_js_abi_host_drop_js_value(ret.val.success);
   RB_GC_GUARD(rv);
   return val;
 }

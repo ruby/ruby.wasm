@@ -1,12 +1,18 @@
-resource rb-iseq
-resource rb-abi-value
+/// A Ruby value, which is as known as a VALUE in the Ruby C API.
+/// This represents a handle owned by the Ruby guest environment.
+type rb-abi-value = u32
+
+/// Dispose of a Ruby value. This should be called when a handle to a
+/// Ruby value is no longer needed by the host environment.
+drop-rb-value: func(value: rb-abi-value)
+
 type rb-errno = s32
 type rb-id = u32
 
 ruby-show-version: func()
 ruby-init: func()
 ruby-sysinit: func(args: list<string>)
-ruby-options: func(args: list<string>) -> rb-iseq
+ruby-options: func(args: list<string>) -> rb-abi-value
 ruby-script: func(name: string)
 ruby-init-loadpath: func()
 rb-eval-string-protect: func(str: string) -> tuple<rb-abi-value, s32>

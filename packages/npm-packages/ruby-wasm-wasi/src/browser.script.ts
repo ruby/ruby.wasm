@@ -51,13 +51,17 @@ const runRubyScriptsInHtml = async (vm) => {
 const deriveEvalStyle = (tag: Element): "async" | "sync" => {
   const rawEvalStyle = tag.getAttribute("data-eval") || "sync";
   if (rawEvalStyle !== "async" && rawEvalStyle !== "sync") {
-    console.warn(`data-eval attribute of script tag must be "async" or "sync". ${rawEvalStyle} is ignored and "sync" is used instead.`);
+    console.warn(
+      `data-eval attribute of script tag must be "async" or "sync". ${rawEvalStyle} is ignored and "sync" is used instead.`
+    );
     return "sync";
   }
   return rawEvalStyle;
 };
 
-const loadScriptAsync = async (tag: Element): Promise<{ scriptContent: string, evalStyle: "async" | "sync" } | null> => {
+const loadScriptAsync = async (
+  tag: Element
+): Promise<{ scriptContent: string; evalStyle: "async" | "sync" } | null> => {
   const evalStyle = deriveEvalStyle(tag);
   // Inline comments can be written with the src attribute of the script tag.
   // The presence of the src attribute is checked before the presence of the inline.

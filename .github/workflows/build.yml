@@ -30,9 +30,11 @@ jobs:
         with:
           fetch-depth: 0
       - run: sudo apt-get install clang-format
+      - uses: ruby/setup-ruby@v1
+      - run: ./bin/setup
       - run: ./tools/clang-format-diff.sh
       - run: rake check:bindgen
-      - run: git diff --exit-code
+      - run: git diff --exit-code || (echo "Please run \`rake format\` and commit the changes" && exit 1)
 
   build-builder-image:
     strategy:

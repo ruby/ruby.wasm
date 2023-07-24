@@ -6,6 +6,7 @@
     "module": "ES2015",
     "outDir": "./dist",
     "target": "es2017",
+    "lib": ["DOM", "ESNext.WeakRef"],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true
