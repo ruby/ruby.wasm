@@ -12,7 +12,10 @@ require_relative "js/nil_class.rb"
 #   JS.global[:document].write("Hello, world!")
 #   div = JS.global[:document].createElement("div")
 #   div[:innerText] = "click me"
-#   JS.global[:document][:body].appendChild(div)
+#   body = JS.global[:document][:body]
+#   if body[:classList].contains?("main")
+#     body.appendChild(div)
+#   end
 #   div.addEventListener("click") do |event|
 #     puts event          # => # [object MouseEvent]
 #     puts event[:detail] # => 1
@@ -30,7 +33,9 @@ require_relative "js/nil_class.rb"
 #   JS.global[:document].call(:write, "Hello, world!")
 #   div = JS.global[:document].call(:createElement, "div")
 #   div[:innerText] = "click me"
-#   JS.global[:document][:body].call(:appendChild, div)
+#   if body[:classList].call(:contains, "main") == JS::True
+#     body.appendChild(div)
+#   end
 #   div.call(:addEventListener, "click") do |event|
 #     puts event          # => # [object MouseEvent]
 #     puts event[:detail] # => 1
@@ -133,7 +138,12 @@ class JS::Object
   end
 
   def method_missing(sym, *args, &block)
-    if self[sym].typeof == "function"
+    sym_str = sym.to_s
+    if sym_str.end_with?("?")
+      # When a JS method is called with a ? suffix, it is treated as a predicate method,
+      # and the return value is converted to a Ruby boolean value automatically.
+      self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
+    elsif self[sym].typeof == "function"
       self.call(sym, *args, &block)
     else
       super
@@ -142,6 +152,8 @@ class JS::Object
 
   def respond_to_missing?(sym, include_private)
     return true if super
+    sym_str = sym.to_s
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?")
     self[sym].typeof == "function"
   end
 
