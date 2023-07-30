@@ -1,25 +1,25 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from "@playwright/test";
 
-import { setupDebugLog, setupProxy, waitForRubyVM } from "../support"
+import { setupDebugLog, setupProxy, waitForRubyVM } from "../support";
 
 if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
-  test.skip('skip', () => {})
+  test.skip("skip", () => {});
 } else {
   test.beforeEach(async ({ context }) => {
     setupDebugLog(context);
     setupProxy(context);
-  })
+  });
 
   const resolveBinding = async (page: Page, name: string) => {
     let checkResolved;
     const resolvedValue = new Promise((resolve) => {
       checkResolved = resolve;
-    })
+    });
     await page.exposeBinding(name, async (source, v) => {
       checkResolved(v);
     });
-    return async () => await resolvedValue
-  }
+    return async () => await resolvedValue;
+  };
 
   test.describe('data-eval="async"', () => {
     test("JS::Object#await returns value", async ({ page }) => {
@@ -30,9 +30,9 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
       require "js"
       JS.global.checkResolved JS.global[:Promise].resolve(42).await
       </script>
-    `)
+    `);
       expect(await resolve()).toBe(42);
-    })
+    });
 
     test("JS::Object#await throws error on default attr", async ({ page }) => {
       await page.setContent(`
@@ -41,10 +41,12 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
       require "js"
       JS.global[:Promise].resolve(42).await
       </script>
-     `)
-      const error = await page.waitForEvent("pageerror")
-      expect(error.message).toMatch(/please ensure that you specify `data-eval="async"`/)
-    })
+     `);
+      const error = await page.waitForEvent("pageerror");
+      expect(error.message).toMatch(
+        /please ensure that you specify `data-eval="async"`/
+      );
+    });
 
     test("default stack size is enough to require 'json'", async ({ page }) => {
       const resolve = await resolveBinding(page, "checkResolved");
@@ -54,8 +56,8 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
       require 'json'
       JS.global.checkResolved "ok"
       </script>
-     `)
+     `);
       expect(await resolve()).toBe("ok");
-    })
-  })
+    });
+  });
 }
