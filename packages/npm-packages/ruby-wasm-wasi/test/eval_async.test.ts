@@ -35,7 +35,7 @@ describe("Async Ruby code evaluation", () => {
     expect(() => {
       vm.eval(`require "js"; JS.global[:Promise].resolve(42).await`);
     }).toThrowError(
-      "JS::Object#await can be called only from RubyVM#evalAsync JS API"
+      "JS::Object#await can be called only from RubyVM#evalAsync JS API",
     );
   });
 });

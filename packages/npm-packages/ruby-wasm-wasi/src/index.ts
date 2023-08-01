@@ -48,7 +48,7 @@ export class RubyVM {
       const excluded = ["constructor"].concat(excludedMethods);
       // wrap all methods in RbAbi.RbAbiGuest class
       for (const key of Object.getOwnPropertyNames(
-        RbAbi.RbAbiGuest.prototype
+        RbAbi.RbAbiGuest.prototype,
       )) {
         if (excluded.includes(key)) {
           continue;
@@ -86,7 +86,7 @@ export class RubyVM {
    * an array of strings starting with the Ruby program name.
    */
   initialize(
-    args: string[] = ["ruby.wasm", "--disable-gems", "-EUTF-8", "-e_=0"]
+    args: string[] = ["ruby.wasm", "--disable-gems", "-EUTF-8", "-e_=0"],
   ) {
     const c_args = args.map((arg) => arg + "\0");
     this.guest.rubyInit();
@@ -132,11 +132,11 @@ export class RubyVM {
     imports["rb-js-abi-host"] = {
       rb_wasm_throw_prohibit_rewind_exception: (
         messagePtr: number,
-        messageLen: number
+        messageLen: number,
       ) => {
         const memory = this.instance.exports.memory as WebAssembly.Memory;
         const str = new TextDecoder().decode(
-          new Uint8Array(memory.buffer, messagePtr, messageLen)
+          new Uint8Array(memory.buffer, messagePtr, messageLen),
         );
         throw new RbFatalError(
           "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
@@ -149,7 +149,7 @@ export class RubyVM {
             "     Note that `evalAsync` JS API switches fibers internally\n" +
             "  2. Raising uncaught exceptions\n" +
             "     Please catch all exceptions inside the nested operation\n" +
-            "  3. Calling Continuation APIs\n"
+            "  3. Calling Continuation APIs\n",
         );
       },
     };
@@ -268,7 +268,7 @@ export class RubyVM {
         }),
         reflectGetOwnPropertyDescriptor: function (
           target,
-          propertyKey: string
+          propertyKey: string,
         ) {
           throw new Error("Function not implemented.");
         },
@@ -296,7 +296,7 @@ export class RubyVM {
       }),
       (name) => {
         return this.instance.exports[name];
-      }
+      },
     );
   }
 
@@ -350,12 +350,12 @@ export class RubyVM {
                 this.exceptionFormatter.format(
                   error,
                   this,
-                  this.privateObject()
-                )
-              )
+                  this.privateObject(),
+                ),
+              ),
             );
           },
-        })
+        }),
       );
     });
   }
@@ -445,7 +445,7 @@ export class RbValue {
   constructor(
     private inner: RbAbi.RbAbiValue,
     private vm: RubyVM,
-    private privateObject: RubyVMPrivate
+    private privateObject: RubyVMPrivate,
   ) {}
 
   /**
@@ -465,7 +465,7 @@ export class RbValue {
     return new RbValue(
       callRbMethod(this.vm, this.privateObject, this.inner, callee, innerArgs),
       this.vm,
-      this.privateObject
+      this.privateObject,
     );
   }
 
@@ -491,7 +491,7 @@ export class RbValue {
       this.privateObject,
       this.inner,
       "to_s",
-      []
+      [],
     );
     return this.vm.guest.rstringPtr(rbString);
   }
@@ -552,7 +552,7 @@ class RbExceptionFormatter {
     if (backtrace.call("nil?").toString() === "true") {
       return this.formatString(
         error.call("class").toString(),
-        error.toString()
+        error.toString(),
       );
     }
     const firstLine = backtrace.call("at", zeroLiteral);
@@ -568,7 +568,7 @@ class RbExceptionFormatter {
   formatString(
     klass: string,
     message: string,
-    backtrace?: [string, string]
+    backtrace?: [string, string],
   ): string {
     if (backtrace) {
       return `${backtrace[0]}: ${message} (${klass})\n${backtrace[1]}`;
@@ -581,7 +581,7 @@ class RbExceptionFormatter {
 const checkStatusTag = (
   rawTag: number,
   vm: RubyVM,
-  privateObject: RubyVMPrivate
+  privateObject: RubyVMPrivate,
 ) => {
   switch (rawTag & ruby_tag_type.Mask) {
     case ruby_tag_type.None:
@@ -607,7 +607,7 @@ const checkStatusTag = (
       // clear errinfo if got exception due to no rb_jump_tag
       vm.guest.rbClearErrinfo();
       throw new RbError(
-        privateObject.exceptionFormatter.format(error, vm, privateObject)
+        privateObject.exceptionFormatter.format(error, vm, privateObject),
       );
     default:
       throw new RbError(`unknown error tag: ${rawTag}`);
@@ -639,7 +639,7 @@ const callRbMethod = (
   privateObject: RubyVMPrivate,
   recv: RbAbi.RbAbiValue,
   callee: string,
-  args: RbAbi.RbAbiValue[]
+  args: RbAbi.RbAbiValue[],
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
   return wrapRbOperation(vm, () => {

@@ -10,7 +10,7 @@ const rubyModule = (async () => {
   } else if (process.env.RUBY_NPM_PACKAGE_ROOT) {
     binaryPath = path.join(
       process.env.RUBY_NPM_PACKAGE_ROOT,
-      "./dist/ruby.debug+stdlib.wasm"
+      "./dist/ruby.debug+stdlib.wasm",
     );
   } else {
     throw new Error("RUBY_ROOT or RUBY_NPM_PACKAGE_ROOT must be set");
@@ -20,7 +20,7 @@ const rubyModule = (async () => {
 })();
 
 export const initRubyVM = async (
-  { suppressStderr } = { suppressStderr: false }
+  { suppressStderr } = { suppressStderr: false },
 ) => {
   let preopens = {};
   if (process.env.RUBY_ROOT) {

@@ -45,7 +45,7 @@ const shimContent = (target, pkg) => {
   const dirname = path.dirname(new URL(import.meta.url).pathname);
   const content = fs.readFileSync(
     path.join(dirname, "..", "dist", target),
-    "utf-8"
+    "utf-8",
   );
   if (suffix === "d.ts") {
     return content;

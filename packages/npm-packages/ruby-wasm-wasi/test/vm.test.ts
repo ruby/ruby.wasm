@@ -83,10 +83,10 @@ describe("RubyVM", () => {
     `);
     expect(X.call("identical", vm.eval("1")).toString()).toEqual("1");
     expect(X.call("take_two", vm.eval("1"), vm.eval("1")).toString()).toEqual(
-      "2"
+      "2",
     );
     expect(
-      X.call("take_two", vm.eval(`"x"`), vm.eval(`"y"`)).toString()
+      X.call("take_two", vm.eval(`"x"`), vm.eval(`"y"`)).toString(),
     ).toEqual("xy");
   });
 
@@ -170,9 +170,9 @@ eval:11:in \`<main>'`);
       spy.mockReset();
 
       expect(rejections[0].message).toMatch(
-        "Ruby APIs that may rewind the VM stack are prohibited"
+        "Ruby APIs that may rewind the VM stack are prohibited",
       );
-    }
+    },
   );
 
   test("caught raise in nested eval is ok", async () => {
@@ -181,7 +181,7 @@ eval:11:in \`<main>'`);
     setVM.call("call", vm.wrap(vm));
     expect(() => {
       vm.eval(
-        `JS::RubyVM.eval("begin; raise 'Exception from nested eval'; rescue; end")`
+        `JS::RubyVM.eval("begin; raise 'Exception from nested eval'; rescue; end")`,
       );
     }).not.toThrowError();
   });

@@ -40,7 +40,7 @@ describe("Packaging validation", () => {
       return moduleCache.get(file)!;
     }
     const binary = await fs.readFile(
-      path.join(process.env.RUBY_NPM_PACKAGE_ROOT, `./dist/${file}`)
+      path.join(process.env.RUBY_NPM_PACKAGE_ROOT, `./dist/${file}`),
     );
     const mod = await WebAssembly.compile(binary.buffer);
     moduleCache.set(file, mod);

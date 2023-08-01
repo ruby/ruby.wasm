@@ -18,11 +18,11 @@ test.beforeEach(async ({ context }) => {
     const response = await new Promise<http.IncomingMessage>(
       (resolve, reject) => {
         https.get(url, resolve).on("error", reject);
-      }
+      },
     );
     if (response.statusCode == 404) {
       console.log(
-        `ruby-head-wasm-wasi@${version} is not published yet, so skipping CDN tests`
+        `ruby-head-wasm-wasi@${version} is not published yet, so skipping CDN tests`,
       );
       test.skip();
     }

@@ -44,7 +44,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
      `);
       const error = await page.waitForEvent("pageerror");
       expect(error.message).toMatch(
-        /please ensure that you specify `data-eval="async"`/
+        /please ensure that you specify `data-eval="async"`/,
       );
     });
 

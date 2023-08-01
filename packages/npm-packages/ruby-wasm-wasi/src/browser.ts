@@ -13,13 +13,13 @@ const consolePrinter = () => {
         fd: number,
         iovs: number,
         iovsLen: number,
-        nwritten: number
+        nwritten: number,
       ) => number;
       imports.wasi_snapshot_preview1.fd_write = (
         fd: number,
         iovs: number,
         iovsLen: number,
-        nwritten: number
+        nwritten: number,
       ): number => {
         if (fd !== 1 && fd !== 2) {
           return original(fd, iovs, iovsLen, nwritten);
@@ -62,7 +62,7 @@ const consolePrinter = () => {
 
 export const DefaultRubyVM = async (
   rubyModule: WebAssembly.Module,
-  options: { consolePrint: boolean } = { consolePrint: true }
+  options: { consolePrint: boolean } = { consolePrint: true },
 ): Promise<{
   vm: RubyVM;
   wasi: WASI;

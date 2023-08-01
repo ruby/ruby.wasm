@@ -2,7 +2,7 @@ import { DefaultRubyVM } from "./browser";
 
 export const main = async (pkg: { name: string; version: string }) => {
   const response = await fetch(
-    `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`
+    `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`,
   );
   const buffer = await response.arrayBuffer();
   const module = await WebAssembly.compile(buffer);
@@ -17,7 +17,7 @@ export const main = async (pkg: { name: string; version: string }) => {
   // and DOMContentLoaded has already been fired.
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () =>
-      runRubyScriptsInHtml(vm)
+      runRubyScriptsInHtml(vm),
     );
   } else {
     runRubyScriptsInHtml(vm);
@@ -29,7 +29,7 @@ const runRubyScriptsInHtml = async (vm) => {
 
   // Get Ruby scripts in parallel.
   const promisingRubyScripts = Array.from(tags).map((tag) =>
-    loadScriptAsync(tag)
+    loadScriptAsync(tag),
   );
 
   // Run Ruby scripts sequentially.
@@ -52,7 +52,7 @@ const deriveEvalStyle = (tag: Element): "async" | "sync" => {
   const rawEvalStyle = tag.getAttribute("data-eval") || "sync";
   if (rawEvalStyle !== "async" && rawEvalStyle !== "sync") {
     console.warn(
-      `data-eval attribute of script tag must be "async" or "sync". ${rawEvalStyle} is ignored and "sync" is used instead.`
+      `data-eval attribute of script tag must be "async" or "sync". ${rawEvalStyle} is ignored and "sync" is used instead.`,
     );
     return "sync";
   }
@@ -60,7 +60,7 @@ const deriveEvalStyle = (tag: Element): "async" | "sync" => {
 };
 
 const loadScriptAsync = async (
-  tag: Element
+  tag: Element,
 ): Promise<{ scriptContent: string; evalStyle: "async" | "sync" } | null> => {
   const evalStyle = deriveEvalStyle(tag);
   // Inline comments can be written with the src attribute of the script tag.

@@ -8,10 +8,10 @@ export const waitForRubyVM = async (page: Page) => {
 export const setupDebugLog = (context: BrowserContext) => {
   if (process.env.DEBUG) {
     context.on("request", (request) =>
-      console.log(">>", request.method(), request.url())
+      console.log(">>", request.method(), request.url()),
     );
     context.on("response", (response) =>
-      console.log("<<", response.status(), response.url())
+      console.log("<<", response.status(), response.url()),
     );
     context.on("console", (msg) => console.log("LOG:", msg.text()));
   }

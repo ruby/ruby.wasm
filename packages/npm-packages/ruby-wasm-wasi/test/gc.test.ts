@@ -17,7 +17,7 @@ describe("GC integration", () => {
         mark_js_object_live: (object: RbValue) => {
           livingObjects.add(object);
         },
-      })
+      }),
     );
     vm.eval("GC.start");
     for (const object of livingObjects) {
