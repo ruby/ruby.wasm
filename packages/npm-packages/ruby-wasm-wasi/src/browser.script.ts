@@ -1,11 +1,10 @@
 import { DefaultRubyVM } from "./browser";
 
 export const main = async (pkg: { name: string; version: string }) => {
-  const response = await fetch(
+  const response = fetch(
     `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`,
   );
-  const buffer = await response.arrayBuffer();
-  const module = await WebAssembly.compile(buffer);
+  const module = await WebAssembly.compileStreaming(response);
   const { vm } = await DefaultRubyVM(module);
 
   vm.printVersion();
