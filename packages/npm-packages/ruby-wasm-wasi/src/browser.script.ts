@@ -4,7 +4,7 @@ export const main = async (pkg: { name: string; version: string }) => {
   const response = fetch(
     `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`,
   );
-  const module = await WebAssembly.compileStreaming(response);
+  const module = await compileWebAssemblyModule(response);
   const { vm } = await DefaultRubyVM(module);
 
   vm.printVersion();
@@ -77,4 +77,19 @@ const loadScriptAsync = async (
   }
 
   return Promise.resolve({ scriptContent: tag.innerHTML, evalStyle });
+};
+
+// WebAssembly.compileStreaming is a relatively new API.
+// For example, it is not available in iOS Safari 14,
+// so check whether WebAssembly.compileStreaming is available and
+// fall back to the existing implementation using WebAssembly.compile if not.
+const compileWebAssemblyModule = async function (
+  response: Promise<Response>,
+): Promise<WebAssembly.Module> {
+  if (!WebAssembly.compileStreaming) {
+    const buffer = await (await response).arrayBuffer();
+    return WebAssembly.compile(buffer);
+  } else {
+    return WebAssembly.compileStreaming(response);
+  }
 };
