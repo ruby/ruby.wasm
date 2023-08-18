@@ -245,6 +245,17 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "hello", JS.global[:CustomClass].new(js_object)[:option1].to_s
   end
 
+  def test_to_a
+    assert_equal [1, 2, 3], JS.eval("return [1, 2, 3];").to_a.map(&:to_i)
+    assert_equal %w[f o o], JS.eval("return 'foo';").to_a.map(&:to_s)
+
+    set = JS.eval("return new Set(['foo', 'bar', 'baz', 'foo']);").to_a
+    assert_equal %w[foo bar baz], set.map(&:to_s)
+
+    map = JS.eval("return new Map([[1, 2], [2, 4], [4, 8]]);").to_a
+    assert_equal ({ 1 => 2, 2 => 4, 4 => 8 }), map.to_h { _1.to_a.map(&:to_i) }
+  end
+
   def test_method_missing
     assert_equal "42", JS.eval("return 42;").toString.to_s
     assert_equal "o", JS.eval("return 'hello';").charAt(4).to_s

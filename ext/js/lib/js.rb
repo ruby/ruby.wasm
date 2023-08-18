@@ -138,6 +138,15 @@ class JS::Object
     JS.global[:Reflect].construct(self, args.to_js)
   end
 
+  # Converts +self+ to an Array:
+  #
+  #   JS.eval("return [1, 2, 3]").to_a.map(&:to_i)    # => [1, 2, 3]
+  #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
+  def to_a
+    as_array = JS.global[:Array].from(self)
+    Array.new(as_array[:length].to_i) { as_array[_1] }
+  end
+
   # Provide a shorthand form for JS::Object#call
   #
   # This method basically calls the JavaScript method with the same
