@@ -4,7 +4,7 @@ module RubyWasm
   class ZlibProduct < AutoconfProduct
     attr_reader :target
 
-    ZLIB_VERSION = "1.2.13"
+    ZLIB_VERSION = "1.3"
 
     def initialize(build_dir, target, toolchain)
       @build_dir = build_dir
@@ -35,7 +35,8 @@ module RubyWasm
       FileUtils.rm_rf product_build_dir
 
       system "curl -L https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz | tar xz",
-             chdir: File.dirname(product_build_dir)
+             chdir: File.dirname(product_build_dir),
+             exception: true
 
       system "#{tools_args.join(" ")} ./configure --static",
              chdir: product_build_dir
