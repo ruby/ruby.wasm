@@ -35,7 +35,8 @@ module RubyWasm
       FileUtils.rm_rf product_build_dir
 
       system "curl -L https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz | tar xz",
-             chdir: File.dirname(product_build_dir)
+             chdir: File.dirname(product_build_dir),
+             exception: true
 
       system "#{tools_args.join(" ")} ./configure --static",
              chdir: product_build_dir
