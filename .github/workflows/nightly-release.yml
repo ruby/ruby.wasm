@@ -15,7 +15,7 @@ jobs:
     outputs:
       tag-name: ${{ steps.generate-tag.outputs.TAG_NAME }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: git config
         run: |
           git config --local user.email "action@github.com"

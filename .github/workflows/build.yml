@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ github.event_name == 'pull_request' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - run: sudo apt-get install clang-format
@@ -43,7 +43,7 @@ jobs:
           - { target: wasm32-unknown-emscripten }
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v2
       - uses: docker/login-action@v2
         with:
@@ -68,7 +68,7 @@ jobs:
     outputs:
       entries: ${{ steps.set-matrix.outputs.entries }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: rake ci:pin_build_manifest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
     needs: [build-rake-task-matrix]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
         with:
           name: build-manifest
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
         with:
           name: build-manifest
