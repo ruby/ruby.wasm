@@ -520,7 +520,7 @@ static VALUE _rb_js_proc_to_js(VALUE obj) {
  *     return {
  *       method1: function(str, num) {
  *         // str is a JavaScript string and num is a JavaScript number.
- *         str.length + num
+ *         return str.length + num
  *      },
  *       method2: function(rbObject) {
  *         // Call String#upcase method for the given Ruby object (RbValue).
@@ -529,8 +529,8 @@ static VALUE _rb_js_proc_to_js(VALUE obj) {
  *     }
  *   JS
  *   # Non JS::Object args are automatically converted to JS::Object by `to_js`.
- *   js_obj[:method1].call("Hello", 5) # => 10
- *   js_obj[:method2].call(JS::Object.wrap("Hello, Ruby"))
+ *   js_obj.method1("Hello", 5) # => 10
+ *   js_obj.method2(JS::Object.wrap("Hello, Ruby"))
  *   # => "HELLO, RUBY" (JS::Object)
  */
 
