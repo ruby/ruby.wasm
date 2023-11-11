@@ -31,6 +31,7 @@ module RubyWasm
 
     def configure_args
       args = %w[
+        gcc
         -static
         -no-asm
         -no-threads
