@@ -28,6 +28,14 @@ module RubyWasm
       product_build_dir
     end
 
+    def configure_args
+      args = %w[
+        CHOST=linux
+      ]
+
+      args + tools_args
+    end
+
     def build
       return if Dir.exist?(install_root)
 
@@ -38,9 +46,9 @@ module RubyWasm
              chdir: File.dirname(product_build_dir),
              exception: true
 
-      system "#{tools_args.join(" ")} ./configure --static",
+      system "#{configure_args.join(" ")} ./configure --static",
              chdir: product_build_dir
-      system "make install DESTDIR=#{destdir} AR='#{@toolchain.ar}' ARFLAGS='rcD'",
+      system "make install DESTDIR=#{destdir}",
              chdir: product_build_dir
     end
   end
