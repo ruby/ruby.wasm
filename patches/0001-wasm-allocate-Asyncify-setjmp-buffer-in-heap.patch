@@ -1,0 +1,154 @@
+From 253a1835b07a291a84348ae812e61c8fde222962 Mon Sep 17 00:00:00 2001
+From: Yuta Saito <kateinoigakukun@gmail.com>
+Date: Sun, 12 Nov 2023 07:18:01 +0900
+Subject: [PATCH] [wasm] allocate Asyncify setjmp buffer in heap
+
+`rb_jmpbuf_t` type is considerably large due to inline-allocated
+Asyncify buffer, and it leads to stack overflow even with small number
+of C-method call frames. This commit allocates the Asyncify buffer used
+by `rb_wasm_setjmp` in heap to mitigate the issue.
+
+This patch introduces a new type `rb_vm_tag_jmpbuf_t` to abstract the
+representation of a jump buffer, and init/deinit hook points to manage
+lifetime of the buffer. These changes are effectively NFC for non-wasm
+platforms.
+---
+ eval_intern.h |  6 ++++--
+ vm.c          |  2 +-
+ vm_core.h     | 59 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 62 insertions(+), 5 deletions(-)
+
+diff --git a/eval_intern.h b/eval_intern.h
+index 778b63e0ea..d008b17ca1 100644
+--- a/eval_intern.h
++++ b/eval_intern.h
+@@ -110,9 +110,11 @@ extern int select_large_fdset(int, fd_set *, fd_set *, fd_set *, struct timeval
+   _tag.tag = Qundef; \
+   _tag.prev = _ec->tag; \
+   _tag.lock_rec = rb_ec_vm_lock_rec(_ec); \
++  rb_vm_tag_jmpbuf_init(&_tag.buf); \
+ 
+ #define EC_POP_TAG() \
+   _ec->tag = _tag.prev; \
++  rb_vm_tag_jmpbuf_deinit(&_tag.buf); \
+ } while (0)
+ 
+ #define EC_TMPPOP_TAG() \
+@@ -161,7 +163,7 @@ rb_ec_tag_jump(const rb_execution_context_t *ec, enum ruby_tag_type st)
+ {
+     RUBY_ASSERT(st != TAG_NONE);
+     ec->tag->state = st;
+-    ruby_longjmp(ec->tag->buf, 1);
++    ruby_longjmp(RB_VM_TAG_JMPBUF_GET(ec->tag->buf), 1);
+ }
+ 
+ /*
+@@ -169,7 +171,7 @@ rb_ec_tag_jump(const rb_execution_context_t *ec, enum ruby_tag_type st)
+   [ISO/IEC 9899:1999] 7.13.1.1
+ */
+ #define EC_EXEC_TAG() \
+-    (UNLIKELY(ruby_setjmp(_tag.buf)) ? rb_ec_tag_state(VAR_FROM_MEMORY(_ec)) : (EC_REPUSH_TAG(), 0))
++    (UNLIKELY(ruby_setjmp(RB_VM_TAG_JMPBUF_GET(_tag.buf))) ? rb_ec_tag_state(VAR_FROM_MEMORY(_ec)) : (EC_REPUSH_TAG(), 0))
+ 
+ #define EC_JUMP_TAG(ec, st) rb_ec_tag_jump(ec, st)
+ 
+diff --git a/vm.c b/vm.c
+index 7f43484905..789e0956be 100644
+--- a/vm.c
++++ b/vm.c
+@@ -2462,7 +2462,7 @@ vm_exec(rb_execution_context_t *ec)
+ 
+     rb_wasm_try_catch_init(&try_catch, vm_exec_bottom_main, vm_exec_bottom_rescue, &ctx);
+ 
+-    rb_wasm_try_catch_loop_run(&try_catch, &_tag.buf);
++    rb_wasm_try_catch_loop_run(&try_catch, &RB_VM_TAG_JMPBUF_GET(_tag.buf));
+ 
+     result = ctx.result;
+ #else
+diff --git a/vm_core.h b/vm_core.h
+index acad6280be..45290c21f7 100644
+--- a/vm_core.h
++++ b/vm_core.h
+@@ -884,6 +884,61 @@ typedef RUBY_JMP_BUF rb_jmpbuf_t;
+ typedef void *rb_jmpbuf_t[5];
+ #endif
+ 
++/*
++  `rb_vm_tag_jmpbuf_t` type represents a buffer used to
++  long jump to a C frame associated with `rb_vm_tag`.
++
++  Use-site of `rb_vm_tag_jmpbuf_t` is responsible for calling the
++  following functions:
++  - `rb_vm_tag_jmpbuf_init` once `rb_vm_tag_jmpbuf_t` is allocated.
++  - `rb_vm_tag_jmpbuf_deinit` once `rb_vm_tag_jmpbuf_t` is no longer necessary.
++
++  `RB_VM_TAG_JMPBUF_GET` transforms a `rb_vm_tag_jmpbuf_t` into a
++  `rb_jmpbuf_t` to be passed to `rb_setjmp/rb_longjmp`.
++*/
++#if defined(__wasm__) && !defined(__EMSCRIPTEN__)
++/*
++  WebAssembly target with Asyncify-based SJLJ needs
++  to capture the execution context by unwind/rewind-ing
++  call frames into a jump buffer. The buffer space tends
++  to be considerably large unlike other architectures'
++  register-based buffers.
++  Therefore, we allocates the buffer on the heap on such
++  environments.
++*/
++typedef rb_jmpbuf_t *rb_vm_tag_jmpbuf_t;
++
++#define RB_VM_TAG_JMPBUF_GET(buf) (*buf)
++
++inline void
++rb_vm_tag_jmpbuf_init(rb_vm_tag_jmpbuf_t *jmpbuf)
++{
++  *jmpbuf = malloc(sizeof(rb_jmpbuf_t));
++}
++
++inline void
++rb_vm_tag_jmpbuf_deinit(const rb_vm_tag_jmpbuf_t *jmpbuf)
++{
++  free(*jmpbuf);
++}
++#else
++typedef rb_jmpbuf_t rb_vm_tag_jmpbuf_t;
++
++#define RB_VM_TAG_JMPBUF_GET(buf) (buf)
++
++inline void
++rb_vm_tag_jmpbuf_init(rb_vm_tag_jmpbuf_t *jmpbuf)
++{
++  // no-op
++}
++
++inline void
++rb_vm_tag_jmpbuf_deinit(const rb_vm_tag_jmpbuf_t *jmpbuf)
++{
++  // no-op
++}
++#endif
++
+ /*
+   the members which are written in EC_PUSH_TAG() should be placed at
+   the beginning and the end, so that entire region is accessible.
+@@ -891,7 +946,7 @@ typedef void *rb_jmpbuf_t[5];
+ struct rb_vm_tag {
+     VALUE tag;
+     VALUE retval;
+-    rb_jmpbuf_t buf;
++    rb_vm_tag_jmpbuf_t buf;
+     struct rb_vm_tag *prev;
+     enum ruby_tag_type state;
+     unsigned int lock_rec;
+@@ -899,7 +954,7 @@ struct rb_vm_tag {
+ 
+ STATIC_ASSERT(rb_vm_tag_buf_offset, offsetof(struct rb_vm_tag, buf) > 0);
+ STATIC_ASSERT(rb_vm_tag_buf_end,
+-              offsetof(struct rb_vm_tag, buf) + sizeof(rb_jmpbuf_t) <
++              offsetof(struct rb_vm_tag, buf) + sizeof(rb_vm_tag_jmpbuf_t) <
+               sizeof(struct rb_vm_tag));
+ 
+ struct rb_unblock_callback {
+-- 
+2.39.3 (Apple Git-145)
+
