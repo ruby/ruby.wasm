@@ -31,6 +31,7 @@ module RubyWasm
 
     def configure_args
       args = %w[
+        gcc
         -static
         -no-asm
         -no-threads
@@ -64,7 +65,7 @@ module RubyWasm
       system "./Configure #{configure_args.join(" ")}", chdir: product_build_dir
       # Use "install_sw" instead of "install" because it tries to install docs and it's very slow.
       # OpenSSL build system doesn't have well support for parallel build, so force -j1.
-      system "make -j1 install_sw DESTDIR=#{destdir} CNF_CFLAGS='' CNF_LDFLAGS=''", chdir: product_build_dir
+      system "make -j1 install_sw DESTDIR=#{destdir}", chdir: product_build_dir
     end
   end
 end
