@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "ruby.h"
+#include "ruby/version.h"
 
 // ========= Private Ruby API =========
 // from eval_intern.h
@@ -323,9 +324,18 @@ uint32_t rb_abi_guest_rb_abi_value_data_ptr(rb_abi_guest_rb_abi_value_t self) {
   return (uint32_t)DATA_PTR(obj);
 }
 
+_Static_assert(RUBY_API_VERSION_MAJOR == 3, "unsupported Ruby version");
+#if RUBY_API_VERSION_MINOR == 2
 void rb_vm_bugreport(const void *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
+#elif RUBY_API_VERSION_MINOR == 3
+bool rb_vm_bugreport(const void *, FILE *);
+
+void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL, stderr); }
+#else
+#  error "unsupported Ruby version"
+#endif
 
 bool rb_abi_guest_rb_gc_enable(void) { return rb_gc_enable() == Qtrue; }
 
