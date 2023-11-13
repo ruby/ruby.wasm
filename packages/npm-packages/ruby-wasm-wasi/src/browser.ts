@@ -62,7 +62,10 @@ const consolePrinter = () => {
 
 export const DefaultRubyVM = async (
   rubyModule: WebAssembly.Module,
-  options: { consolePrint: boolean } = { consolePrint: true },
+  options: {
+    consolePrint?: boolean;
+    env?: Record<string, string> | undefined;
+  } = {},
 ): Promise<{
   vm: RubyVM;
   wasi: WASI;
@@ -70,20 +73,12 @@ export const DefaultRubyVM = async (
 }> => {
   await init();
 
-  const wasi = new WASI({
-    env: {
-      // FIXME(katei): setjmp consumes a LOT of stack now, so we extend
-      // default Fiber stack size as well as main stack size allocated
-      // by wasm-ld's --stack-size. The ideal solution is to reduce
-      // stack consumption in setjmp.
-      RUBY_FIBER_MACHINE_STACK_SIZE: "16777216",
-    },
-  });
+  const wasi = new WASI({ env: options.env });
   const vm = new RubyVM();
 
   const imports = wasi.getImports(rubyModule) as WebAssembly.Imports;
   vm.addToImports(imports);
-  const printer = options.consolePrint ? consolePrinter() : undefined;
+  const printer = (options.consolePrint ?? true) ? consolePrinter() : undefined;
   printer?.addToImports(imports);
 
   const instance = await WebAssembly.instantiate(rubyModule, imports);
