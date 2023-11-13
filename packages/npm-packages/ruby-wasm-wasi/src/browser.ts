@@ -62,7 +62,10 @@ const consolePrinter = () => {
 
 export const DefaultRubyVM = async (
   rubyModule: WebAssembly.Module,
-  options: { consolePrint: boolean } = { consolePrint: true },
+  options: {
+    consolePrint?: boolean;
+    env?: Record<string, string> | undefined;
+  } = {},
 ): Promise<{
   vm: RubyVM;
   wasi: WASI;
@@ -70,12 +73,12 @@ export const DefaultRubyVM = async (
 }> => {
   await init();
 
-  const wasi = new WASI({});
+  const wasi = new WASI({ env: options.env });
   const vm = new RubyVM();
 
   const imports = wasi.getImports(rubyModule) as WebAssembly.Imports;
   vm.addToImports(imports);
-  const printer = options.consolePrint ? consolePrinter() : undefined;
+  const printer = (options.consolePrint ?? true) ? consolePrinter() : undefined;
   printer?.addToImports(imports);
 
   const instance = await WebAssembly.instantiate(rubyModule, imports);
