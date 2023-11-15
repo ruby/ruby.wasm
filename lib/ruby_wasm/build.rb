@@ -41,10 +41,11 @@ module RubyWasm
     end
 
     def begin_section(klass, name, note)
+      message = "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- #{note}\e[0m"
       if ENV["GITHUB_ACTIONS"]
-        puts "::group::#{klass}(#{name}) -- #{note}"
+        puts "::group::#{message}"
       else
-        puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- #{note}\e[0m"
+        puts message
       end
 
       # Record the start time
@@ -56,10 +57,10 @@ module RubyWasm
 
     def end_section(klass, name)
       took = Time.now - @start_times[[klass, name]]
-      puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- done in #{took.round(2)}s\e[0m"
       if ENV["GITHUB_ACTIONS"]
         puts "::endgroup::"
       end
+      puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- done in #{took.round(2)}s\e[0m"
     end
 
     def rm_rf(list)
