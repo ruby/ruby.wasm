@@ -33,16 +33,35 @@ module RubyWasm
 
       executor.mkdir_p File.dirname(product_build_dir)
       executor.rm_rf product_build_dir
-      executor.system "curl -L https://github.com/yaml/libyaml/releases/download/#{LIBYAML_VERSION}/yaml-#{LIBYAML_VERSION}.tar.gz | tar xz",
-                      chdir: File.dirname(product_build_dir)
+      executor.mkdir_p product_build_dir
+      tarball_path =
+        File.join(product_build_dir, "libyaml-#{LIBYAML_VERSION}.tar.gz")
+      executor.system "curl",
+                      "-o",
+                      tarball_path,
+                      "-L",
+                      "https://github.com/yaml/libyaml/releases/download/#{LIBYAML_VERSION}/yaml-#{LIBYAML_VERSION}.tar.gz"
+      executor.system "tar",
+                      "xzf",
+                      tarball_path,
+                      "-C",
+                      product_build_dir,
+                      "--strip-components=1"
 
       # obtain the latest config.guess and config.sub for Emscripten and WASI triple support
-      executor.system "curl -o #{product_build_dir}/config/config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'"
-      executor.system "curl -o #{product_build_dir}/config/config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'"
+      executor.system "curl",
+                      "-o",
+                      "#{product_build_dir}/config/config.guess",
+                      "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD"
+      executor.system "curl",
+                      "-o",
+                      "#{product_build_dir}/config/config.sub",
+                      "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD"
 
-      executor.system "./configure #{configure_args.join(" ")}",
-                      chdir: product_build_dir
-      executor.system "make install DESTDIR=#{destdir}",
+      executor.system "./configure", *configure_args, chdir: product_build_dir
+      executor.system "make",
+                      "install",
+                      "DESTDIR=#{destdir}",
                       chdir: product_build_dir
     end
   end

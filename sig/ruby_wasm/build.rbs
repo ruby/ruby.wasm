@@ -145,8 +145,8 @@ module RubyWasm
     attr_accessor xldflags: Array[String]
     def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Toolchain toolchain, ?user_exts: Array[CrossRubyExtProduct]) -> void
     def configure: (BuildExecutor executor, ?reconfigure: bool) -> void
-    def build_exts: (BuildExecutor executor) -> bool?
-    def build: (BuildExecutor executor, ?remake: bool, ?reconfigure: bool) -> bool?
+    def build_exts: (BuildExecutor executor) -> void
+    def build: (BuildExecutor executor, ?remake: bool, ?reconfigure: bool) -> void
     def clean: (BuildExecutor executor) -> void
     def name: -> String
     def cache_key: (Digest::SHA256 digest) -> void
@@ -180,15 +180,15 @@ module RubyWasm
 
     attr_reader name: String
     def initialize: -> void
-    def find_tool: (Symbol name) -> bot
-    def check_envvar: (untyped name) -> nil
+    def find_tool: (Symbol name) -> String
+    def check_envvar: (untyped name) -> void
     def self.get: (String target, ?String? build_dir) -> (Toolchain)
     def self.find_path: (String command) -> String?
     def self.check_executable: (String command) -> String
-    def cc: -> nil
-    def ranlib: -> nil
-    def ld: -> nil
-    def ar: -> nil
+    def cc: -> String
+    def ranlib: -> String
+    def ld: -> String
+    def ar: -> String
 
     def install: -> void
   end
@@ -225,13 +225,15 @@ module RubyWasm
     @verbose: bool
 
     def initialize: (?verbose: bool) -> void
-    def system: (*untyped, **untyped) -> bool?
+    def system: (*_ToS args, ?chdir: String?, ?out: Kernel::redirect_fd?, ?env: Hash[String, String]?) -> void
     def rm_rf: (FileUtils::pathlist list) -> void
     def rm_f: (FileUtils::pathlist list) -> void
     def cp_r: (FileUtils::pathlist src, path dest) -> void
     def mv: (FileUtils::pathlist src, path dest) -> void
     def mkdir_p: (FileUtils::pathlist list) -> void
     def write: (String path, _ToS data) -> void
+
+    private def _print_command: (Array[_ToS] command, Hash[String, String]? env) -> void
   end
 
   class Downloader

@@ -32,7 +32,11 @@ module RubyWasm
       objdir = product_build_dir crossruby
       executor.mkdir_p objdir
       do_extconf executor, crossruby
-      executor.system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} #{lib}.a)
+      executor.system "make",
+                      "-C",
+                      "#{objdir}",
+                      *make_args(crossruby),
+                      "#{lib}.a"
       # A ext can provide link args by link.filelist. It contains only built archive file by default.
       unless File.exist?(linklist(crossruby))
         executor.write(
@@ -66,14 +70,17 @@ module RubyWasm
         "-I#{crossruby.build_dir}"
       ]
       # Clear RUBYOPT to avoid loading unrelated bundle setup
-      executor.system ({ "RUBYOPT" => "" }),
-                      "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
-                      chdir: objdir
+      executor.system crossruby.baseruby_path,
+                      *extconf_args,
+                      chdir: objdir,
+                      env: {
+                        "RUBYOPT" => ""
+                      }
     end
 
     def do_install_rb(executor, crossruby)
       objdir = product_build_dir crossruby
-      executor.system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} install-rb)
+      executor.system "make", "-C", objdir, *make_args(crossruby), "install-rb"
     end
 
     def cache_key(digest)
@@ -129,17 +136,22 @@ module RubyWasm
     def configure(executor, reconfigure: false)
       if !File.exist?("#{build_dir}/Makefile") || reconfigure
         args = configure_args(RbConfig::CONFIG["host"], toolchain)
-        executor.system "#{source.configure_file} #{args.join(" ")}",
-                        chdir: build_dir
+        executor.system source.configure_file, *args, chdir: build_dir
       end
       # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
-      executor.system "make rbconfig.rb", chdir: build_dir
+      executor.system "make", "rbconfig.rb", chdir: build_dir
     end
 
     def build_exts(executor)
       @user_exts.each { |prod| prod.build(executor, self) }
       executor.mkdir_p File.dirname(extinit_obj)
-      executor.system %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+      executor.system "ruby",
+                      extinit_c_erb,
+                      *@user_exts.map(&:name),
+                      "--cc",
+                      toolchain.cc,
+                      "--output",
+                      extinit_obj
     end
 
     def build(executor, remake: false, reconfigure: false)
@@ -154,13 +166,16 @@ module RubyWasm
 
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
-        executor.system "make install DESTDIR=#{install_dir}", chdir: build_dir
+        executor.system "make",
+                        "install",
+                        "DESTDIR=#{install_dir}",
+                        chdir: build_dir
       end
 
       executor.rm_rf dest_dir
       executor.cp_r install_dir, dest_dir
       @user_exts.each { |ext| ext.do_install_rb(executor, self) }
-      executor.system "tar cfz #{artifact} -C rubies #{name}"
+      executor.system "tar", "cfz", artifact, "-C", "rubies", name
     end
 
     def clean(executor)
@@ -241,11 +256,11 @@ module RubyWasm
 
       args = self.system_triplet_args + ["--build", build_triple]
       args << "--with-static-linked-ext"
-      args << %Q(--with-ext="#{default_exts}")
-      args << %Q(--with-libyaml-dir="#{@libyaml.install_root}")
-      args << %Q(--with-zlib-dir="#{@zlib.install_root}")
-      args << %Q(--with-openssl-dir="#{@openssl.install_root}") if @openssl
-      args << %Q(--with-baseruby="#{baseruby_path}")
+      args << %Q(--with-ext=#{default_exts})
+      args << %Q(--with-libyaml-dir=#{@libyaml.install_root})
+      args << %Q(--with-zlib-dir=#{@zlib.install_root})
+      args << %Q(--with-openssl-dir=#{@openssl.install_root}) if @openssl
+      args << %Q(--with-baseruby=#{baseruby_path})
 
       case target
       when "wasm32-unknown-wasi"
@@ -270,13 +285,13 @@ module RubyWasm
       xcflags << "-DWASM_FIBER_STACK_BUFFER_SIZE=24576"
       xcflags << "-DWASM_SCAN_STACK_BUFFER_SIZE=24576"
 
-      args << %Q(LDFLAGS="#{ldflags.join(" ")}")
-      args << %Q(XLDFLAGS="#{xldflags.join(" ")}")
-      args << %Q(XCFLAGS="#{xcflags.join(" ")}")
-      args << %Q(debugflags="#{@debugflags.join(" ")}")
-      args << %Q(cppflags="#{@cppflags.join(" ")}")
+      args << %Q(LDFLAGS=#{ldflags.join(" ")})
+      args << %Q(XLDFLAGS=#{xldflags.join(" ")})
+      args << %Q(XCFLAGS=#{xcflags.join(" ")})
+      args << %Q(debugflags=#{@debugflags.join(" ")})
+      args << %Q(cppflags=#{@cppflags.join(" ")})
       unless wasmoptflags.empty?
-        args << %Q(wasmoptflags="#{@wasmoptflags.join(" ")}")
+        args << %Q(wasmoptflags=#{@wasmoptflags.join(" ")})
       end
       args << "--disable-install-doc"
       args

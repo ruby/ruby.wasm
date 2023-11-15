@@ -41,8 +41,7 @@ module RubyWasm
       executor.rm_rf product_build_dir
 
       executor.system "curl -L https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz | tar xz",
-                      chdir: File.dirname(product_build_dir),
-                      exception: true
+                      chdir: File.dirname(product_build_dir)
 
       executor.system "#{configure_args.join(" ")} ./configure --static",
                       chdir: product_build_dir

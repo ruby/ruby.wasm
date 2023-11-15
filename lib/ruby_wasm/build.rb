@@ -9,14 +9,35 @@ module RubyWasm
       @verbose = verbose
     end
 
-    def system(*args, **kwargs)
-      puts args.join(" ")
+    def system(*args, chdir: nil, out: nil, env: nil)
+      _print_command(args, env)
+
       if @verbose
-        out = kwargs[:out] || $stdout
+        out ||= $stdout
       else
-        out = IO.pipe[1]
+        # Capture stdout by default
+        out_pipe = IO.pipe
+        out = out_pipe[1]
       end
-      Kernel.system(*args, **kwargs, out: out)
+      # @type var kwargs: Hash[Symbol, untyped]
+      kwargs = { exception: true, out: out }
+      kwargs[:chdir] = chdir if chdir
+      begin
+        if env
+          Kernel.system(env, *args.to_a.map(&:to_s), **kwargs)
+        else
+          Kernel.system(*args.to_a.map(&:to_s), **kwargs)
+        end
+      ensure
+        out.close if out_pipe
+      end
+    rescue => e
+      if out_pipe
+        # Print the output of the failed command
+        puts out_pipe[0].read
+      end
+      $stdout.flush
+      raise e
     end
 
     def rm_rf(list)
@@ -41,6 +62,16 @@ module RubyWasm
 
     def write(path, data)
       File.write(path, data)
+    end
+
+    private
+
+    def _print_command(args, env)
+      require "shellwords"
+      # Bold cyan
+      print "\e[1;36m ==>\e[0m "
+      print "env " + env.map { |k, v| "#{k}=#{v}" }.join(" ") + " " if env
+      print args.map { |arg| Shellwords.escape(arg.to_s) }.join(" ") + "\n"
     end
   end
 end
