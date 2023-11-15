@@ -7,10 +7,11 @@ module RubyWasm
     def initialize(build_dir)
       @build_dir = build_dir
       @need_fetch_lib = ENV["LIB_WASI_VFS_A"].nil?
+      installed_cli_path =
+        ENV["WASI_VFS_CLI"] || Toolchain.find_path("wasi-vfs")
+      @need_fetch_cli = installed_cli_path.nil?
       @cli_path =
-        ENV["WASI_VFS_CLI"] || Toolchain.find_path("wasi-vfs") ||
-          File.join(cli_product_build_dir, "wasi-vfs")
-      @need_fetch_cli = @cli_path.nil?
+        installed_cli_path || File.join(cli_product_build_dir, "wasi-vfs")
     end
 
     def lib_product_build_dir
