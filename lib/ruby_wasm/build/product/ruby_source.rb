@@ -72,18 +72,18 @@ module RubyWasm
     def build(executor)
       fetch(executor) unless File.exist?(src_dir)
       unless File.exist?(configure_file)
-        Dir.chdir(src_dir) do
-          executor.system "ruby",
-                          "tool/downloader.rb",
-                          "-d",
-                          "tool",
-                          "-e",
-                          "gnu",
-                          "config.guess",
-                          "config.sub" or
-            raise "failed to download config.guess and config.sub"
-          executor.system "./autogen.sh" or raise "failed to run autogen.sh"
-        end
+        executor.system "ruby",
+                        "tool/downloader.rb",
+                        "-d",
+                        "tool",
+                        "-e",
+                        "gnu",
+                        "config.guess",
+                        "config.sub",
+                        chdir: src_dir or
+          raise "failed to download config.guess and config.sub"
+        executor.system "./autogen.sh", chdir: src_dir or
+          raise "failed to run autogen.sh"
       end
     end
   end
