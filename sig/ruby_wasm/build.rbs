@@ -13,9 +13,9 @@ module RubyWasm
 
   class AutoconfProduct < BuildProduct
     @target: String
-    @toolchain: Emscripten | WASISDK
+    @toolchain: Toolchain
 
-    def initialize: (String target, Emscripten | WASISDK toolchain) -> void
+    def initialize: (String target, Toolchain toolchain) -> void
     def system_triplet_args: -> Array[String]
                            | -> Array[String]
     def tools_args: -> Array[String]
@@ -54,7 +54,7 @@ module RubyWasm
     @build_dir: String
 
     attr_reader target: String
-    def initialize: (String build_dir, String target, Emscripten | WASISDK toolchain) -> void
+    def initialize: (String build_dir, String target, Toolchain toolchain) -> void
     def product_build_dir: -> String
     def destdir: -> String
     def install_root: -> String
@@ -68,7 +68,7 @@ module RubyWasm
     @build_dir: String
 
     attr_reader target: String
-    def initialize: (String build_dir, String target, Emscripten | WASISDK toolchain) -> void
+    def initialize: (String build_dir, String target, Toolchain toolchain) -> void
     def product_build_dir: -> String
     def destdir: -> String
     def install_root: -> String
@@ -81,7 +81,7 @@ module RubyWasm
     @build_dir: String
 
     attr_reader target: String
-    def initialize: (String build_dir, String target, Emscripten | WASISDK toolchain) -> void
+    def initialize: (String build_dir, String target, Toolchain toolchain) -> void
     def product_build_dir: -> String
     def destdir: -> String
     def install_root: -> String
@@ -134,7 +134,7 @@ module RubyWasm
     @wasi_vfs: WasiVfsProduct
 
     attr_reader source: BuildSource
-    attr_reader toolchain: Emscripten | WASISDK
+    attr_reader toolchain: Toolchain
     attr_accessor user_exts: Array[CrossRubyExtProduct]
     attr_accessor wasmoptflags: Array[String]
     attr_accessor cppflags: Array[String]
@@ -143,7 +143,7 @@ module RubyWasm
     attr_accessor debugflags: Array[String]
     attr_accessor xcflags: Array[String]
     attr_accessor xldflags: Array[String]
-    def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Emscripten | WASISDK toolchain, ?user_exts: Array[CrossRubyExtProduct]) -> void
+    def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Toolchain toolchain, ?user_exts: Array[CrossRubyExtProduct]) -> void
     def configure: (BuildExecutor executor, ?reconfigure: bool) -> void
     def build_exts: (BuildExecutor executor) -> bool?
     def build: (BuildExecutor executor, ?remake: bool, ?reconfigure: bool) -> bool?
@@ -161,7 +161,7 @@ module RubyWasm
     def extinit_obj: -> String
     def extinit_c_erb: -> String
     def baseruby_path: -> String
-    def configure_args: (String build_triple, Emscripten | WASISDK toolchain) -> Array[String]
+    def configure_args: (String build_triple, Toolchain toolchain) -> Array[String]
   end
 
   class WitBindgen
@@ -182,13 +182,15 @@ module RubyWasm
     def initialize: -> void
     def find_tool: (Symbol name) -> bot
     def check_envvar: (untyped name) -> nil
-    def self.get: (String target, ?String? build_dir) -> (Emscripten | WASISDK)
+    def self.get: (String target, ?String? build_dir) -> (Toolchain)
     def self.find_path: (String command) -> String?
     def self.check_executable: (String command) -> String
     def cc: -> nil
     def ranlib: -> nil
     def ld: -> nil
     def ar: -> nil
+
+    def install: -> void
   end
 
   class WASISDK < Toolchain
@@ -210,14 +212,12 @@ module RubyWasm
     def binaryen_download_url: (Integer? version) -> String
     def install_wasi_sdk: ->  void
     def install_binaryen: ->  void
-    def install: -> void
   end
 
   class Emscripten < Toolchain
     @tools: Hash[Symbol, String]
 
     def initialize: -> void
-    def install: -> nil
     def find_tool: (Symbol name) -> String
   end
 
@@ -245,7 +245,7 @@ module RubyWasm
     attr_accessor name: String
     attr_reader source: BuildSource
     attr_reader target: String
-    attr_reader toolchain: Emscripten | WASISDK
+    attr_reader toolchain: Toolchain
     attr_reader libyaml: LibYAMLProduct
     attr_reader zlib: ZlibProduct
     attr_reader wasi_vfs: WasiVfsProduct
