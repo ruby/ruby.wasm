@@ -34,19 +34,20 @@ module RubyWasm
       args + tools_args
     end
 
-    def build
+    def build(executor)
       return if Dir.exist?(install_root)
 
-      FileUtils.mkdir_p File.dirname(product_build_dir)
-      FileUtils.rm_rf product_build_dir
+      executor.mkdir_p File.dirname(product_build_dir)
+      executor.rm_rf product_build_dir
 
-      system "curl -L https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz | tar xz",
-             chdir: File.dirname(product_build_dir),
-             exception: true
+      executor.system "curl -L https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz | tar xz",
+                      chdir: File.dirname(product_build_dir),
+                      exception: true
 
-      system "#{configure_args.join(" ")} ./configure --static",
-             chdir: product_build_dir
-      system "make install DESTDIR=#{destdir}", chdir: product_build_dir
+      executor.system "#{configure_args.join(" ")} ./configure --static",
+                      chdir: product_build_dir
+      executor.system "make install DESTDIR=#{destdir}",
+                      chdir: product_build_dir
     end
   end
 end

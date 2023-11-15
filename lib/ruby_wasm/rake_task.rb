@@ -71,20 +71,22 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @crossruby.with_wasi_vfs @wasi_vfs
     @crossruby.with_openssl @openssl
 
+    executor = RubyWasm::BuildExecutor.new
+
     desc "Cross-build Ruby for #{@target}"
     task name do
       next if File.exist? @crossruby.artifact
-      @crossruby.build
+      @crossruby.build(executor)
     end
     namespace name do
       task :remake do
-        @crossruby.build(remake: true)
+        @crossruby.build(executor, remake: true)
       end
       task :reconfigure do
-        @crossruby.build(reconfigure: true)
+        @crossruby.build(executor, reconfigure: true)
       end
       task :clean do
-        @crossruby.clean
+        @crossruby.clean(executor)
       end
     end
   end

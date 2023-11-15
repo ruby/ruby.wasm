@@ -54,18 +54,20 @@ module RubyWasm
       args + tools_args
     end
 
-    def build
+    def build(executor)
       return if Dir.exist?(install_root)
 
-      FileUtils.mkdir_p File.dirname(product_build_dir)
-      FileUtils.rm_rf product_build_dir
-      system "curl -L https://www.openssl.org/source/openssl-#{OPENSSL_VERSION}.tar.gz | tar xz",
-             chdir: File.dirname(product_build_dir)
+      executor.mkdir_p File.dirname(product_build_dir)
+      executor.rm_rf product_build_dir
+      executor.system "curl -L https://www.openssl.org/source/openssl-#{OPENSSL_VERSION}.tar.gz | tar xz",
+                      chdir: File.dirname(product_build_dir)
 
-      system "./Configure #{configure_args.join(" ")}", chdir: product_build_dir
+      executor.system "./Configure #{configure_args.join(" ")}",
+                      chdir: product_build_dir
       # Use "install_sw" instead of "install" because it tries to install docs and it's very slow.
       # OpenSSL build system doesn't have well support for parallel build, so force -j1.
-      system "make -j1 install_sw DESTDIR=#{destdir}", chdir: product_build_dir
+      executor.system "make -j1 install_sw DESTDIR=#{destdir}",
+                      chdir: product_build_dir
     end
   end
 end

@@ -28,20 +28,22 @@ module RubyWasm
       product_build_dir
     end
 
-    def build
+    def build(executor)
       return if Dir.exist?(install_root)
 
-      FileUtils.mkdir_p File.dirname(product_build_dir)
-      FileUtils.rm_rf product_build_dir
-      system "curl -L https://github.com/yaml/libyaml/releases/download/#{LIBYAML_VERSION}/yaml-#{LIBYAML_VERSION}.tar.gz | tar xz",
-             chdir: File.dirname(product_build_dir)
+      executor.mkdir_p File.dirname(product_build_dir)
+      executor.rm_rf product_build_dir
+      executor.system "curl -L https://github.com/yaml/libyaml/releases/download/#{LIBYAML_VERSION}/yaml-#{LIBYAML_VERSION}.tar.gz | tar xz",
+                      chdir: File.dirname(product_build_dir)
 
       # obtain the latest config.guess and config.sub for Emscripten and WASI triple support
-      system "curl -o #{product_build_dir}/config/config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'"
-      system "curl -o #{product_build_dir}/config/config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'"
+      executor.system "curl -o #{product_build_dir}/config/config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'"
+      executor.system "curl -o #{product_build_dir}/config/config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'"
 
-      system "./configure #{configure_args.join(" ")}", chdir: product_build_dir
-      system "make install DESTDIR=#{destdir}", chdir: product_build_dir
+      executor.system "./configure #{configure_args.join(" ")}",
+                      chdir: product_build_dir
+      executor.system "make install DESTDIR=#{destdir}",
+                      chdir: product_build_dir
     end
   end
 end
