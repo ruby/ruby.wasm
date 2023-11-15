@@ -25,7 +25,7 @@ module RubyWasm
     end
 
     def name
-      product_build_dir
+      "zlib-#{ZLIB_VERSION}-#{target}"
     end
 
     def configure_args

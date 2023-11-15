@@ -26,7 +26,7 @@ module RubyWasm
     end
 
     def name
-      product_build_dir
+      "openssl-#{OPENSSL_VERSION}-#{target}"
     end
 
     def configure_args

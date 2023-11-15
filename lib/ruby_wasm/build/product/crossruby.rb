@@ -143,7 +143,29 @@ module RubyWasm
     end
 
     def build_exts(executor)
-      @user_exts.each { |prod| prod.build(executor, self) }
+      @user_exts.each do |prod|
+        executor.begin_section prod.class, prod.name, "Building"
+        prod.build(executor, self)
+        executor.end_section prod.class, prod.name
+      end
+    end
+
+    def build(executor, remake: false, reconfigure: false)
+      executor.mkdir_p dest_dir
+      executor.mkdir_p build_dir
+      @toolchain.install
+      [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each do |prod|
+        executor.begin_section prod.class, prod.name, "Building"
+        prod.build(executor)
+        executor.end_section prod.class, prod.name
+      end
+      executor.begin_section self.class, name, "Configuring"
+      configure(executor, reconfigure: reconfigure)
+      executor.end_section self.class, name
+
+      build_exts(executor)
+
+      executor.begin_section self.class, name, "Building"
       executor.mkdir_p File.dirname(extinit_obj)
       executor.system "ruby",
                       extinit_c_erb,
@@ -152,18 +174,6 @@ module RubyWasm
                       toolchain.cc,
                       "--output",
                       extinit_obj
-    end
-
-    def build(executor, remake: false, reconfigure: false)
-      executor.mkdir_p dest_dir
-      executor.mkdir_p build_dir
-      @toolchain.install
-      [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each do |prod|
-        prod.build(executor)
-      end
-      configure(executor, reconfigure: reconfigure)
-      build_exts(executor)
-
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
         executor.system "make",
@@ -176,6 +186,8 @@ module RubyWasm
       executor.cp_r install_dir, dest_dir
       @user_exts.each { |ext| ext.do_install_rb(executor, self) }
       executor.system "tar", "cfz", artifact, "-C", "rubies", name
+
+      executor.end_section self.class, name
     end
 
     def clean(executor)

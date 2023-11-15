@@ -223,6 +223,7 @@ module RubyWasm
 
   class BuildExecutor
     @verbose: bool
+    @start_times: Hash[[Class, String], Time]
 
     def initialize: (?verbose: bool) -> void
     def system: (*_ToS args, ?chdir: String?, ?out: Kernel::redirect_fd?, ?env: Hash[String, String]?) -> void
@@ -232,6 +233,9 @@ module RubyWasm
     def mv: (FileUtils::pathlist src, path dest) -> void
     def mkdir_p: (FileUtils::pathlist list) -> void
     def write: (String path, _ToS data) -> void
+
+    def begin_section: (Class klass, String name, String note) -> void
+    def end_section: (Class klass, String name) -> void
 
     private def _print_command: (Array[_ToS] command, Hash[String, String]? env) -> void
   end

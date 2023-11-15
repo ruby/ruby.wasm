@@ -40,6 +40,28 @@ module RubyWasm
       raise e
     end
 
+    def begin_section(klass, name, note)
+      if ENV["GITHUB_ACTIONS"]
+        puts "::group::#{klass}(#{name}) -- #{note}"
+      else
+        puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- #{note}\e[0m"
+      end
+
+      # Record the start time
+      @start_times ||= Hash.new
+      @start_times[[klass, name]] = Time.now
+
+      $stdout.flush
+    end
+
+    def end_section(klass, name)
+      took = Time.now - @start_times[[klass, name]]
+      puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- done in #{took.round(2)}s\e[0m"
+      if ENV["GITHUB_ACTIONS"]
+        puts "::endgroup::"
+      end
+    end
+
     def rm_rf(list)
       FileUtils.rm_rf(list)
     end
@@ -69,7 +91,7 @@ module RubyWasm
     def _print_command(args, env)
       require "shellwords"
       # Bold cyan
-      print "\e[1;36m ==>\e[0m "
+      print "\e[1;36m  ==>\e[0m "
       print "env " + env.map { |k, v| "#{k}=#{v}" }.join(" ") + " " if env
       print args.map { |arg| Shellwords.escape(arg.to_s) }.join(" ") + "\n"
     end

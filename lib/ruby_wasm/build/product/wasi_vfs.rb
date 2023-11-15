@@ -39,7 +39,7 @@ module RubyWasm
     end
 
     def name
-      lib_product_build_dir
+      "wasi-vfs-#{WASI_VFS_VERSION}-#{RbConfig::CONFIG["host"]}}"
     end
 
     def build(executor)

@@ -25,7 +25,7 @@ module RubyWasm
     end
 
     def name
-      product_build_dir
+      "libyaml-#{LIBYAML_VERSION}-#{target}"
     end
 
     def build(executor)
