@@ -182,7 +182,7 @@ namespace :build do
 
   desc "Download prebuilt Ruby"
   task :download_prebuilt, :tag do |t, args|
-    require "ruby_wasm/build_system/downloader"
+    require "ruby_wasm/build/downloader"
 
     release =
       if args[:tag]
