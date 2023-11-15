@@ -30,4 +30,8 @@ namespace :check do
 
   desc "Check wit-bindgen'ed sources are up-to-date"
   task bindgen: %i[bindgen_c bindgen_js]
+
+  task :type do
+    sh "bundle exec steep check"
+  end
 end
