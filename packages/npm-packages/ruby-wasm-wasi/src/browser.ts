@@ -78,7 +78,7 @@ export const DefaultRubyVM = async (
 
   const imports = wasi.getImports(rubyModule) as WebAssembly.Imports;
   vm.addToImports(imports);
-  const printer = (options.consolePrint ?? true) ? consolePrinter() : undefined;
+  const printer = options.consolePrint ?? true ? consolePrinter() : undefined;
   printer?.addToImports(imports);
 
   const instance = await WebAssembly.instantiate(rubyModule, imports);

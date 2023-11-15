@@ -60,7 +60,7 @@ const shimContent = (target, pkg) => {
 const main = () => {
   const targets = [
     { file: "bindgen/rb-abi-guest.d.ts" },
-    { file: "bindgen/rb-js-abi-host.d.ts" } ,
+    { file: "bindgen/rb-js-abi-host.d.ts" },
     { file: "browser.cjs.js" },
     { file: "browser.d.ts" },
     // They can be used by dynamic-import or <script> tag in browser
@@ -73,13 +73,13 @@ const main = () => {
     { file: "browser.script.d.ts" },
     { file: "browser.script.esm.js" },
     { file: "browser.script.umd.js" },
-    { file: "index.cjs.js"} ,
-    { file: "index.d.ts" } ,
+    { file: "index.cjs.js" },
+    { file: "index.d.ts" },
     { file: "index.esm.js" },
     { file: "index.umd.js" },
     { file: "node.cjs.js" },
     { file: "node.d.ts" },
-    { file: "node.esm.js" }
+    { file: "node.esm.js" },
   ];
 
   const options = parseArgs();

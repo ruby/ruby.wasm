@@ -29,9 +29,7 @@ module RubyWasm
     end
 
     def configure_args
-      args = %w[
-        CHOST=linux
-      ]
+      args = %w[CHOST=linux]
 
       args + tools_args
     end
@@ -48,8 +46,7 @@ module RubyWasm
 
       system "#{configure_args.join(" ")} ./configure --static",
              chdir: product_build_dir
-      system "make install DESTDIR=#{destdir}",
-             chdir: product_build_dir
+      system "make install DESTDIR=#{destdir}", chdir: product_build_dir
     end
   end
 end
