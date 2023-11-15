@@ -39,7 +39,7 @@ module RubyWasm
     end
 
     def name
-      lib_product_build_dir
+      "wasi-vfs-#{WASI_VFS_VERSION}-#{RbConfig::CONFIG["host"]}}"
     end
 
     def build(executor)
@@ -48,8 +48,8 @@ module RubyWasm
       lib_wasi_vfs_url =
         "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
       Dir.mktmpdir do |tmpdir|
-        executor.system "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
-        executor.system "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
+        executor.system "curl", "-L", lib_wasi_vfs_url, "-o", "#{tmpdir}/libwasi_vfs.zip"
+        executor.system "unzip", "#{tmpdir}/libwasi_vfs.zip", "-d", tmpdir
         executor.mkdir_p File.dirname(lib_wasi_vfs_a)
         executor.mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
       end
@@ -59,8 +59,8 @@ module RubyWasm
       return if !@need_fetch_cli || File.exist?(cli_bin_path)
       FileUtils.mkdir_p cli_product_build_dir
       zipfile = File.join(cli_product_build_dir, "wasi-vfs-cli.zip")
-      system "curl -L -o #{zipfile} #{self.cli_download_url}"
-      system "unzip #{zipfile} -d #{cli_product_build_dir}"
+      system "curl", "-L", "-o", zipfile, self.cli_download_url
+      system "unzip", zipfile, "-d", cli_product_build_dir
     end
 
     def cli_download_url

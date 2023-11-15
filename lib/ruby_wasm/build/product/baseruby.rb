@@ -24,10 +24,11 @@ module RubyWasm
       executor.mkdir_p product_build_dir
       @source.build(executor)
       return if Dir.exist?(install_dir)
-      Dir.chdir(product_build_dir) do
-        executor.system "#{@source.configure_file} --prefix=#{install_dir} --disable-install-doc"
-        executor.system "make install"
-      end
+      executor.system @source.configure_file,
+                      "--prefix=#{install_dir}",
+                      "--disable-install-doc",
+                      chdir: product_build_dir
+      executor.system "make", "install", chdir: product_build_dir
     end
   end
 end

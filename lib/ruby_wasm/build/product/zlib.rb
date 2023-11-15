@@ -25,7 +25,7 @@ module RubyWasm
     end
 
     def name
-      product_build_dir
+      "zlib-#{ZLIB_VERSION}-#{target}"
     end
 
     def configure_args
@@ -39,14 +39,29 @@ module RubyWasm
 
       executor.mkdir_p File.dirname(product_build_dir)
       executor.rm_rf product_build_dir
+      executor.mkdir_p product_build_dir
 
-      executor.system "curl -L https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz | tar xz",
-                      chdir: File.dirname(product_build_dir),
-                      exception: true
+      tarball_path = File.join(product_build_dir, "zlib-#{ZLIB_VERSION}.tar.gz")
+      executor.system "curl",
+                      "-o",
+                      tarball_path,
+                      "-L",
+                      "https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz"
+      executor.system "tar",
+                      "xzf",
+                      tarball_path,
+                      "-C",
+                      product_build_dir,
+                      "--strip-components=1"
 
-      executor.system "#{configure_args.join(" ")} ./configure --static",
+      executor.system "env",
+                      *configure_args,
+                      "./configure",
+                      "--static",
                       chdir: product_build_dir
-      executor.system "make install DESTDIR=#{destdir}",
+      executor.system "make",
+                      "install",
+                      "DESTDIR=#{destdir}",
                       chdir: product_build_dir
     end
   end

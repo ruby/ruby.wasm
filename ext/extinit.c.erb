@@ -1,7 +1,20 @@
 require "erb"
+require "optparse"
+
+opts = OptionParser.new
+opts.on("--cc CC") {|cc| @cc = cc }
+opts.on("--output FILE") {|o| @o = o }
+
+opts.parse!(ARGV)
+if @cc.nil? || @o.nil?
+  puts opts.help
+  exit 1
+end
 
 exts = ARGV
-puts ERB.new(DATA.read).run
+
+c_src = ERB.new(DATA.read).result
+IO.popen("#{@cc} -c -xc - -o #{@o}", "w") {|f| f << c_src }
 
 __END__
 #define init(func, name) { \
