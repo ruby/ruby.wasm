@@ -6,4 +6,5 @@ group :development do
   gem "rake"
   gem "syntax_tree", "~> 3.5"
   gem "webrick"
+  gem "steep"
 end
