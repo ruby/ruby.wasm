@@ -250,8 +250,11 @@ module RubyWasm
       case target
       when "wasm32-unknown-wasi"
         xldflags << @wasi_vfs.lib_wasi_vfs_a if @wasi_vfs
-        args << %Q(WASMOPT=#{@toolchain.wasm_opt})
-        args << %Q(WASI_SDK_PATH=#{@toolchain.wasi_sdk_path})
+        # TODO: Find a way to force cast or update API
+        # @type var wasi_sdk_path: untyped
+        wasi_sdk_path = @toolchain
+        args << %Q(WASMOPT=#{wasi_sdk_path.wasm_opt})
+        args << %Q(WASI_SDK_PATH=#{wasi_sdk_path.wasi_sdk_path})
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
       else

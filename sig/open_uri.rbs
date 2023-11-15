@@ -1,0 +1,4 @@
+# TODO: Upstream OpenURI sigs to rbs/stdlib
+module OpenURI
+  def self.open_uri: [T] (*untyped, **untyped) { (untyped) -> T } -> T
+end

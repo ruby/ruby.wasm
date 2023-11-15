@@ -1,0 +1,258 @@
+module RubyWasm
+  VERSION: String
+
+  class BuildParams < Struct[untyped]
+    attr_accessor name(): String
+    attr_accessor target(): String
+    attr_accessor default_exts(): String
+  end
+
+  class BuildProduct
+    def name: -> String
+  end
+
+  class AutoconfProduct < BuildProduct
+    @target: String
+    @toolchain: Emscripten | WASISDK
+
+    def initialize: (String target, Emscripten | WASISDK toolchain) -> void
+    def system_triplet_args: -> Array[String]
+                           | -> Array[String]
+    def tools_args: -> Array[String]
+                  | -> Array[String]
+    def configure_args: -> Array[String]
+                      | -> Array[String]
+  end
+
+  class BuildSource < BuildProduct
+    @params: Hash[untyped, untyped]
+    @build_dir: String
+
+    def initialize: (untyped params, String build_dir) -> void
+    def name: -> String
+    def cache_key: (Digest::SHA256 digest) -> Digest::SHA256
+    def src_dir: -> String
+    def configure_file: -> String
+    def fetch: (BuildExecutor executor) -> Array[untyped]
+    def build: (BuildExecutor executor) -> void
+  end
+
+  class BaseRubyProduct < BuildProduct
+    @build_dir: String
+    @source: BuildSource
+    @channel: untyped
+
+    def initialize: (String build_dir, BuildSource source) -> void
+    def product_build_dir: -> String
+    def install_dir: -> String
+    def name: -> String
+    def build: (BuildExecutor executor) -> void
+  end
+
+  class ZlibProduct < AutoconfProduct
+    ZLIB_VERSION: String
+    @build_dir: String
+
+    attr_reader target: String
+    def initialize: (String build_dir, untyped target, Emscripten | WASISDK toolchain) -> void
+    def product_build_dir: -> String
+    def destdir: -> String
+    def install_root: -> String
+    def name: -> String
+    def configure_args: -> Array[String]
+    def build: (BuildExecutor executor) -> void
+  end
+
+  class LibYAMLProduct < AutoconfProduct
+    LIBYAML_VERSION: String
+    @build_dir: String
+
+    attr_reader target: String
+    def initialize: (String build_dir, untyped target, Emscripten | WASISDK toolchain) -> void
+    def product_build_dir: -> String
+    def destdir: -> String
+    def install_root: -> String
+    def name: -> String
+    def build: (BuildExecutor executor) -> void
+  end
+
+  class OpenSSLProduct < AutoconfProduct
+    OPENSSL_VERSION: String
+    @build_dir: String
+
+    attr_reader target: String
+    attr_reader install_task: untyped
+    def initialize: (String build_dir, untyped target, Emscripten | WASISDK toolchain) -> void
+    def product_build_dir: -> String
+    def destdir: -> String
+    def install_root: -> String
+    def name: -> String
+    def configure_args: -> Array[String]
+    def build: (BuildExecutor executor) -> void
+  end
+
+  class WasiVfsProduct < BuildProduct
+    WASI_VFS_VERSION: String
+    @build_dir: String
+    @need_fetch_lib: bool
+    @cli_path: String
+    @need_fetch_cli: bool
+
+    def initialize: (String build_dir) -> void
+    def lib_product_build_dir: -> String
+    def lib_wasi_vfs_a: -> String
+    def cli_product_build_dir: -> String
+    def cli_bin_path: -> String
+    def name: -> String
+    def build: (BuildExecutor executor) -> void
+    def install_cli: -> bool?
+    def cli_download_url: -> String
+  end
+
+  class CrossRubyExtProduct < BuildProduct
+    @toolchain: untyped
+    @srcdir: untyped
+
+    attr_reader name: String
+    def initialize: (untyped srcdir, untyped toolchain, ?name: nil) -> void
+    def product_build_dir: (untyped crossruby) -> String
+    def linklist: (untyped crossruby) -> String
+    def make_args: (untyped crossruby) -> Array[String]
+    def build: (BuildExecutor executor, untyped crossruby) -> void
+    def do_extconf: (BuildExecutor executor, untyped crossruby) -> untyped
+    def do_install_rb: (BuildExecutor executor, untyped crossruby) -> untyped
+    def cache_key: (untyped digest) -> Array[String]
+  end
+
+  class CrossRubyProduct < AutoconfProduct
+    @params: BuildParams
+    @rubies_dir: String
+    @build_dir: String
+    @baseruby: BaseRubyProduct
+    @libyaml: LibYAMLProduct
+    @zlib: ZlibProduct
+    @openssl: OpenSSLProduct
+    @wasi_vfs: WasiVfsProduct
+
+    attr_reader source: BuildSource
+    attr_reader toolchain: Emscripten | WASISDK
+    attr_accessor user_exts: Array[CrossRubyExtProduct]
+    attr_accessor wasmoptflags: Array[String]
+    attr_accessor cppflags: Array[String]
+    attr_accessor cflags: Array[String]
+    attr_accessor ldflags: Array[String]
+    attr_accessor debugflags: Array[String]
+    attr_accessor xcflags: Array[String]
+    attr_accessor xldflags: Array[String]
+    def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Emscripten | WASISDK toolchain, ?user_exts: Array[untyped]) -> void
+    def configure: (BuildExecutor executor, ?reconfigure: bool) -> untyped
+    def build_exts: (BuildExecutor executor) -> bool?
+    def build: (BuildExecutor executor, ?remake: bool, ?reconfigure: bool) -> bool?
+    def clean: (BuildExecutor executor) -> void
+    def name: -> String
+    def cache_key: (Digest::SHA256 digest) -> Array[untyped]
+    def build_dir: -> String
+    def ext_build_dir: -> String
+    def with_libyaml: (LibYAMLProduct libyaml) -> LibYAMLProduct
+    def with_zlib: (ZlibProduct zlib) -> ZlibProduct
+    def with_wasi_vfs: (WasiVfsProduct wasi_vfs) -> WasiVfsProduct
+    def with_openssl: (OpenSSLProduct openssl) -> OpenSSLProduct
+    def dest_dir: -> String
+    def artifact: -> String
+    def extinit_obj: -> String
+    def extinit_c_erb: -> String
+    def baseruby_path: -> String
+    def configure_args: (String build_triple, Emscripten | WASISDK toolchain) -> Array[String]
+  end
+
+  class WitBindgen
+    @build_dir: untyped
+    @tool_dir: String
+    @revision: String
+
+    attr_reader bin_path: String
+    def initialize: (build_dir: untyped, ?revision: String) -> void
+    def install: -> void
+  end
+
+  class Toolchain
+    @tools: Hash[untyped, untyped]
+    @tools_cache: Hash[untyped, untyped]
+
+    attr_reader name: String
+    def initialize: -> void
+    def find_tool: (Symbol name) -> bot
+    def check_envvar: (untyped name) -> nil
+    def self.get: (untyped target, ?String? build_dir) -> (Emscripten | WASISDK)
+    def self.find_path: (String command) -> String?
+    def self.check_executable: (String command) -> String
+    def cc: -> nil
+    def ranlib: -> nil
+    def ld: -> nil
+    def ar: -> nil
+  end
+
+  class WASISDK < Toolchain
+    @wasm_opt_path: String
+    @need_fetch_wasi_sdk: bool
+    @need_fetch_binaryen: bool
+    @tools: Hash[Symbol, String]
+    @wasi_sdk_path: String
+    @binaryen_version: Integer
+    @version_major: Integer
+    @version_minor: Integer
+    @binaryen_path: String
+
+    def initialize: (?String? wasi_sdk_path, ?build_dir: String?, ?version_major: Integer, ?version_minor: Integer, ?binaryen_version: Integer) -> void
+    def find_tool: (Symbol name) -> String
+    def wasm_opt: -> String
+    def wasi_sdk_path: -> String
+    def download_url: (Integer? version_major, Integer? version_minor) -> String
+    def binaryen_download_url: (Integer? version) -> String
+    def install_wasi_sdk: ->  void
+    def install_binaryen: ->  void
+    def install: -> void
+  end
+
+  class Emscripten < Toolchain
+    @tools: Hash[Symbol, String]
+
+    def initialize: -> void
+    def install: -> nil
+    def find_tool: (Symbol name) -> String
+  end
+
+  class BuildExecutor
+    def system: (*untyped, **untyped) -> bool?
+    def rm_rf: (FileUtils::pathlist list) -> void
+    def rm_f: (FileUtils::pathlist list) -> void
+    def cp_r: (FileUtils::pathlist src, path dest) -> void
+    def mv: (FileUtils::pathlist src, path dest) -> void
+    def mkdir_p: (FileUtils::pathlist list) -> void
+    def write: (String path, _ToS data) -> void
+  end
+
+  class Downloader
+    def format_size: (untyped size) -> untyped
+
+    def download: (untyped url, untyped dest, untyped message) -> untyped
+  end
+
+  class BuildTask
+    @build_dir: String
+    @rubies_dir: String
+    @openssl: OpenSSLProduct
+
+    attr_accessor name: untyped
+    attr_reader source: BuildSource
+    attr_reader target: untyped
+    attr_reader toolchain: Emscripten | WASISDK
+    attr_reader libyaml: LibYAMLProduct
+    attr_reader zlib: ZlibProduct
+    attr_reader wasi_vfs: WasiVfsProduct
+    attr_reader baseruby: BaseRubyProduct
+    attr_reader crossruby: CrossRubyProduct
+    def initialize: (untyped name, target: untyped, src: untyped, ?toolchain: nil, ?build_dir: nil, ?rubies_dir: nil, **untyped) -> void
+    def hexdigest: -> String
+  end
+end

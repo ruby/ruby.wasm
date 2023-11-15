@@ -1,5 +1,5 @@
 module RubyWasm
-  class WitBindgen < ::Rake::TaskLib
+  class WitBindgen
     attr_reader :bin_path
 
     def initialize(
@@ -15,17 +15,17 @@ module RubyWasm
     def install
       return if File.exist?(@bin_path)
       RubyWasm::Toolchain.check_executable("cargo")
-      system *[
-               "cargo",
-               "install",
-               "--git",
-               "https://github.com/bytecodealliance/wit-bindgen",
-               "--rev",
-               @revision,
-               "--root",
-               @tool_dir,
-               "wit-bindgen-cli"
-             ]
+      Kernel.system(
+        "cargo",
+        "install",
+        "--git",
+        "https://github.com/bytecodealliance/wit-bindgen",
+        "--rev",
+        @revision,
+        "--root",
+        @tool_dir,
+        "wit-bindgen-cli"
+      )
     end
   end
 end
