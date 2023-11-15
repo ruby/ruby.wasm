@@ -40,16 +40,16 @@ module RubyWasm
       lib_product_build_dir
     end
 
-    def build
+    def build(executor)
       return if !@need_fetch_lib || File.exist?(lib_wasi_vfs_a)
       require "tmpdir"
       lib_wasi_vfs_url =
         "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
       Dir.mktmpdir do |tmpdir|
-        system "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
-        system "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
-        FileUtils.mkdir_p File.dirname(lib_wasi_vfs_a)
-        FileUtils.mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
+        executor.system "curl -L #{lib_wasi_vfs_url} -o #{tmpdir}/libwasi_vfs.zip"
+        executor.system "unzip #{tmpdir}/libwasi_vfs.zip -d #{tmpdir}"
+        executor.mkdir_p File.dirname(lib_wasi_vfs_a)
+        executor.mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
       end
     end
 

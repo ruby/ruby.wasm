@@ -27,19 +27,22 @@ module RubyWasm
       make_args
     end
 
-    def build(crossruby)
+    def build(executor, crossruby)
       lib = @name
       objdir = product_build_dir crossruby
-      FileUtils.mkdir_p objdir
-      do_extconf crossruby
-      system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} #{lib}.a)
+      executor.mkdir_p objdir
+      do_extconf executor, crossruby
+      executor.system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} #{lib}.a)
       # A ext can provide link args by link.filelist. It contains only built archive file by default.
       unless File.exist?(linklist(crossruby))
-        File.write(linklist(crossruby), Dir.glob("#{objdir}/*.a").join("\n"))
+        executor.write(
+          linklist(crossruby),
+          Dir.glob("#{objdir}/*.a").join("\n")
+        )
       end
     end
 
-    def do_extconf(crossruby)
+    def do_extconf(executor, crossruby)
       objdir = product_build_dir crossruby
       source = crossruby.source
       extconf_args = [
@@ -63,14 +66,14 @@ module RubyWasm
         "-I#{crossruby.build_dir}"
       ]
       # Clear RUBYOPT to avoid loading unrelated bundle setup
-      system ({ "RUBYOPT" => "" }),
-             "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
-             chdir: objdir
+      executor.system ({ "RUBYOPT" => "" }),
+                      "#{crossruby.baseruby_path} #{extconf_args.join(" ")}",
+                      chdir: objdir
     end
 
-    def do_install_rb(crossruby)
+    def do_install_rb(executor, crossruby)
       objdir = product_build_dir crossruby
-      system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} install-rb)
+      executor.system %Q(make -C "#{objdir}" #{make_args(crossruby).join(" ")} install-rb)
     end
 
     def cache_key(digest)
@@ -123,45 +126,48 @@ module RubyWasm
       super(@params.target, @toolchain)
     end
 
-    def configure(reconfigure: false)
+    def configure(executor, reconfigure: false)
       if !File.exist?("#{build_dir}/Makefile") || reconfigure
         args = configure_args(RbConfig::CONFIG["host"], toolchain)
-        system "#{source.configure_file} #{args.join(" ")}", chdir: build_dir
+        executor.system "#{source.configure_file} #{args.join(" ")}",
+                        chdir: build_dir
       end
       # NOTE: we need rbconfig.rb at configuration time to build user given extensions with mkmf
-      system "make rbconfig.rb", chdir: build_dir
+      executor.system "make rbconfig.rb", chdir: build_dir
     end
 
-    def build_exts
-      @user_exts.each { |prod| prod.build(self) }
-      FileUtils.mkdir_p File.dirname(extinit_obj)
-      system %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
+    def build_exts(executor)
+      @user_exts.each { |prod| prod.build(executor, self) }
+      executor.mkdir_p File.dirname(extinit_obj)
+      executor.system %Q(ruby #{extinit_c_erb} #{@user_exts.map(&:name).join(" ")} | #{toolchain.cc} -c -x c - -o #{extinit_obj})
     end
 
-    def build(remake: false, reconfigure: false)
-      FileUtils.mkdir_p dest_dir
-      FileUtils.mkdir_p build_dir
+    def build(executor, remake: false, reconfigure: false)
+      executor.mkdir_p dest_dir
+      executor.mkdir_p build_dir
       @toolchain.install
-      [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each(&:build)
-      configure(reconfigure: reconfigure)
-      build_exts
+      [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each do |prod|
+        prod.build(executor)
+      end
+      configure(executor, reconfigure: reconfigure)
+      build_exts(executor)
 
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
-        system "make install DESTDIR=#{install_dir}", chdir: build_dir
+        executor.system "make install DESTDIR=#{install_dir}", chdir: build_dir
       end
 
-      FileUtils.rm_rf dest_dir
-      FileUtils.cp_r install_dir, dest_dir
-      @user_exts.each { |ext| ext.do_install_rb(self) }
-      system "tar cfz #{artifact} -C rubies #{name}"
+      executor.rm_rf dest_dir
+      executor.cp_r install_dir, dest_dir
+      @user_exts.each { |ext| ext.do_install_rb(executor, self) }
+      executor.system "tar cfz #{artifact} -C rubies #{name}"
     end
 
-    def clean
-      FileUtils.rm_rf dest_dir
-      FileUtils.rm_rf build_dir
-      FileUtils.rm_rf ext_build_dir
-      FileUtils.rm_f artifact
+    def clean(executor)
+      executor.rm_rf dest_dir
+      executor.rm_rf build_dir
+      executor.rm_rf ext_build_dir
+      executor.rm_f artifact
     end
 
     def name

@@ -20,13 +20,13 @@ module RubyWasm
       "baseruby-#{@channel}"
     end
 
-    def build
-      FileUtils.mkdir_p product_build_dir
-      @source.build
+    def build(executor)
+      executor.mkdir_p product_build_dir
+      @source.build(executor)
       return if Dir.exist?(install_dir)
       Dir.chdir(product_build_dir) do
-        system "#{@source.configure_file} --prefix=#{install_dir} --disable-install-doc"
-        system "make install"
+        executor.system "#{@source.configure_file} --prefix=#{install_dir} --disable-install-doc"
+        executor.system "make install"
       end
     end
   end
