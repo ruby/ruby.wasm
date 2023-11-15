@@ -7,6 +7,7 @@ module RubyWasm
   class BuildExecutor
     def initialize(verbose: false)
       @verbose = verbose
+      @github_actions_markup = ENV["ENABLE_GITHUB_ACTIONS_MARKUP"] != nil
     end
 
     def system(*args, chdir: nil, out: nil, env: nil)
@@ -42,7 +43,7 @@ module RubyWasm
 
     def begin_section(klass, name, note)
       message = "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- #{note}\e[0m"
-      if ENV["GITHUB_ACTIONS"]
+      if @github_actions_markup
         puts "::group::#{message}"
       else
         puts message
@@ -57,7 +58,7 @@ module RubyWasm
 
     def end_section(klass, name)
       took = Time.now - @start_times[[klass, name]]
-      if ENV["GITHUB_ACTIONS"]
+      if @github_actions_markup
         puts "::endgroup::"
       end
       puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- done in #{took.round(2)}s\e[0m"

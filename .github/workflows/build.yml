@@ -121,7 +121,7 @@ jobs:
         run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
-        run: docker run -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build -e "GITHUB_ACTIONS=$GITHUB_ACTIONS" -e "RUBYWASM_UID=$(id -u)" -e "RUBYWASM_GID=$(id -g)" -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" ${{ steps.builder-image.outputs.imageid }} rake --verbose ${{ matrix.entry.task }}
+        run: docker run -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build -e "ENABLE_GITHUB_ACTIONS_MARKUP=true" -e "RUBYWASM_UID=$(id -u)" -e "RUBYWASM_GID=$(id -g)" -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" ${{ steps.builder-image.outputs.imageid }} rake --verbose ${{ matrix.entry.task }}
       - name: rake ${{ matrix.entry.test }}
         run: rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}

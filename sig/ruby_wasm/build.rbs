@@ -223,6 +223,7 @@ module RubyWasm
 
   class BuildExecutor
     @verbose: bool
+    @github_actions_markup: bool
     @start_times: Hash[[Class, String], Time]
 
     def initialize: (?verbose: bool) -> void
