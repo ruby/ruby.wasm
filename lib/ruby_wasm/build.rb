@@ -5,8 +5,18 @@ require_relative "build/toolchain"
 module RubyWasm
   # Build executor to run the actual build commands.
   class BuildExecutor
+    def initialize(verbose: false)
+      @verbose = verbose
+    end
+
     def system(*args, **kwargs)
-      Kernel.system(*args, **kwargs)
+      puts args.join(" ")
+      if @verbose
+        out = kwargs[:out] || $stdout
+      else
+        out = IO.pipe[1]
+      end
+      Kernel.system(*args, **kwargs, out: out)
     end
 
     def rm_rf(list)

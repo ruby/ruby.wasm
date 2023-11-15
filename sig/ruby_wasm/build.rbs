@@ -222,6 +222,9 @@ module RubyWasm
   end
 
   class BuildExecutor
+    @verbose: bool
+
+    def initialize: (?verbose: bool) -> void
     def system: (*untyped, **untyped) -> bool?
     def rm_rf: (FileUtils::pathlist list) -> void
     def rm_f: (FileUtils::pathlist list) -> void

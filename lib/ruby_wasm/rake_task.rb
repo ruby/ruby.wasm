@@ -71,7 +71,8 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     @crossruby.with_wasi_vfs @wasi_vfs
     @crossruby.with_openssl @openssl
 
-    executor = RubyWasm::BuildExecutor.new
+    # Rake.verbose can be Object.new by default, so compare with true explicitly.
+    executor = RubyWasm::BuildExecutor.new(verbose: Rake.verbose == true)
 
     desc "Cross-build Ruby for #{@target}"
     task name do
