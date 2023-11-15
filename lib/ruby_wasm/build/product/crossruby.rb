@@ -53,20 +53,20 @@ module RubyWasm
         "--disable=gems",
         # HACK: top_srcdir is required to find ruby headers
         "-e",
-        %Q('$top_srcdir="#{source.src_dir}"'),
+        %Q($top_srcdir="#{source.src_dir}"),
         # HACK: extout is required to find config.h
         "-e",
-        %Q('$extout="#{crossruby.build_dir}/.ext"'),
+        %Q($extout="#{crossruby.build_dir}/.ext"),
         # HACK: force static ext build by imitating extmk
         "-e",
-        "'$static = true; trace_var(:$static) {|v| $static = true }'",
+        "$static = true; trace_var(:$static) {|v| $static = true }",
         # HACK: $0 should be extconf.rb path due to mkmf source file detection
         # and we want to insert some hacks before it. But -e and $0 cannot be
         # used together, so we rewrite $0 in -e.
         "-e",
-        %Q('$0="#{@srcdir}/extconf.rb"'),
+        %Q($0="#{@srcdir}/extconf.rb"),
         "-e",
-        %Q('require_relative "#{@srcdir}/extconf.rb"'),
+        %Q(require_relative "#{@srcdir}/extconf.rb"),
         "-I#{crossruby.build_dir}"
       ]
       # Clear RUBYOPT to avoid loading unrelated bundle setup
