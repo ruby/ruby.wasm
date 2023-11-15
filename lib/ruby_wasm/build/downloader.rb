@@ -12,7 +12,7 @@ module RubyWasm
 
     def download(url, dest, message)
       require "open-uri"
-      content_length = nil
+      content_length = 0
       uri = URI.parse(url)
       OpenURI.open_uri(
         uri,

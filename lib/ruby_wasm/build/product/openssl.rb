@@ -3,7 +3,7 @@ require_relative "./product"
 
 module RubyWasm
   class OpenSSLProduct < AutoconfProduct
-    attr_reader :target, :install_task
+    attr_reader :target
 
     OPENSSL_VERSION = "3.0.5"
 
