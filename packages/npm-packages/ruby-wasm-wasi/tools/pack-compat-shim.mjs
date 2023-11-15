@@ -14,10 +14,12 @@ const parseArgs = () => {
 };
 
 const shimContent = (target, pkg) => {
-  const suffix = target.split(".").slice(-2).join(".");
+  const deprecated = target.deprecated ?? true;
+  const file = target.file;
+  const suffix = file.split(".").slice(-2).join(".");
   const deprecationMessage = (original, replacement) => {
     return (
-      `DEPRECATED(${pkg}): "${target}" will be moved to "@ruby/wasm-wasi" in the next major release.\n` +
+      `DEPRECATED(${pkg}): "${file}" will be moved to "@ruby/wasm-wasi" in the next major release.\n` +
       `Please replace your \\\`${original}\\\` with \\\`${replacement}\\\``
     );
   };
@@ -26,28 +28,28 @@ const shimContent = (target, pkg) => {
   let newImport = "";
   switch (suffix) {
     case "cjs.js":
-      originalImport = `require('${pkg}/dist/${target}');`;
-      newImport = `require('@ruby/wasm-wasi/dist/${target}');`;
+      originalImport = `require('${pkg}/dist/${file}');`;
+      newImport = `require('@ruby/wasm-wasi/dist/${file}');`;
       break;
     case "umd.js":
-      originalImport = `require('${pkg}/dist/${target}');`;
-      newImport = `require('@ruby/wasm-wasi/dist/${target}');`;
+      originalImport = `require('${pkg}/dist/${file}');`;
+      newImport = `require('@ruby/wasm-wasi/dist/${file}');`;
       break;
     case "d.ts":
     case "esm.js":
-      originalImport = `import * from '${pkg}/dist/${target}';`;
-      newImport = `import * from '@ruby/wasm-wasi/dist/${target}';`;
+      originalImport = `import * from '${pkg}/dist/${file}';`;
+      newImport = `import * from '@ruby/wasm-wasi/dist/${file}';`;
       break;
     default:
-      throw new Error(`Unknown suffix: ${suffix} for target ${target}`);
+      throw new Error(`Unknown suffix: ${suffix} for target ${file}`);
   }
 
   const dirname = path.dirname(new URL(import.meta.url).pathname);
   const content = fs.readFileSync(
-    path.join(dirname, "..", "dist", target),
+    path.join(dirname, "..", "dist", file),
     "utf-8",
   );
-  if (suffix === "d.ts") {
+  if (suffix === "d.ts" || !deprecated) {
     return content;
   }
   const deprecation =
@@ -57,23 +59,27 @@ const shimContent = (target, pkg) => {
 
 const main = () => {
   const targets = [
-    "bindgen/rb-abi-guest.d.ts",
-    "bindgen/rb-js-abi-host.d.ts",
-    "browser.cjs.js",
-    "browser.d.ts",
-    "browser.esm.js",
-    "browser.script.cjs.js",
-    "browser.script.d.ts",
-    "browser.script.esm.js",
-    "browser.script.umd.js",
-    "browser.umd.js",
-    "index.cjs.js",
-    "index.d.ts",
-    "index.esm.js",
-    "index.umd.js",
-    "node.cjs.js",
-    "node.d.ts",
-    "node.esm.js",
+    { file: "bindgen/rb-abi-guest.d.ts" },
+    { file: "bindgen/rb-js-abi-host.d.ts" } ,
+    { file: "browser.cjs.js" },
+    { file: "browser.d.ts" },
+    // They can be used by dynamic-import or <script> tag in browser
+    // and there is no easy way to replace them with `@ruby/wasm-wasi`
+    // so we don't deprecate them at this moment.
+    { file: "browser.esm.js", deprecated: false },
+    { file: "browser.umd.js", deprecated: false },
+
+    { file: "browser.script.cjs.js" },
+    { file: "browser.script.d.ts" },
+    { file: "browser.script.esm.js" },
+    { file: "browser.script.umd.js" },
+    { file: "index.cjs.js"} ,
+    { file: "index.d.ts" } ,
+    { file: "index.esm.js" },
+    { file: "index.umd.js" },
+    { file: "node.cjs.js" },
+    { file: "node.d.ts" },
+    { file: "node.esm.js" }
   ];
 
   const options = parseArgs();
@@ -84,7 +90,7 @@ const main = () => {
 
   for (const target of targets) {
     const shimmed = shimContent(target, pkg);
-    const distPath = path.join(dist, target);
+    const distPath = path.join(dist, target.file);
     fs.mkdirSync(path.dirname(distPath), { recursive: true });
     fs.writeFileSync(distPath, shimmed);
   }
