@@ -247,14 +247,6 @@ rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args) {
   return rb_abi_guest_rb_iseq_new(result);
 }
 
-rb_abi_guest_rb_errno_t
-rb_abi_guest_ruby_run_node(rb_abi_guest_rb_iseq_t node) {
-  int result;
-  void *iseq = rb_abi_guest_rb_iseq_get(&node);
-  RB_WASM_LIB_RT(ruby_run_node(iseq))
-  return result;
-}
-
 void rb_abi_guest_ruby_script(rb_abi_guest_string_t *name) {
   RB_WASM_LIB_RT(ruby_script(name->ptr))
 }
