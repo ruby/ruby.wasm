@@ -10,34 +10,53 @@ module RubyWasm
       @github_actions_markup = ENV["ENABLE_GITHUB_ACTIONS_MARKUP"] != nil
     end
 
-    def system(*args, chdir: nil, out: nil, env: nil)
+    def system(*args, chdir: nil, env: nil)
+      require "open3"
+
       _print_command(args, env)
 
-      if @verbose
-        out ||= $stdout
-      else
-        # Capture stdout by default
-        out_pipe = IO.pipe
-        out = out_pipe[1]
-      end
       # @type var kwargs: Hash[Symbol, untyped]
-      kwargs = { exception: true, out: out }
+      kwargs = {}
       kwargs[:chdir] = chdir if chdir
-      begin
-        if env
-          Kernel.system(env, *args.to_a.map(&:to_s), **kwargs)
-        else
-          Kernel.system(*args.to_a.map(&:to_s), **kwargs)
+
+      args = args.to_a.map(&:to_s)
+      # TODO: Remove __skip__ once we have open3 RBS definitions.
+      __skip__ = if @verbose || !$stdout.tty?
+        kwargs[:exception] = true
+        env ? Kernel.system(env, *args, **kwargs) : Kernel.system(*args, **kwargs)
+      else
+        printer = StatusPrinter.new
+        block = proc do |stdin, stdout, stderr, wait_thr|
+          mux = Mutex.new
+          out = String.new
+          err = String.new
+          readers = [[stdout, :stdout, out], [stderr, :stderr, err]].map do |io, name, str|
+            reader = Thread.new {
+              while (line = io.gets)
+                mux.synchronize {
+                  printer.send(name, line)
+                  str << line
+                }
+              end
+            }
+            reader.report_on_exception = false
+            reader
+          end
+
+          readers.each(&:join)
+
+          [out, err, wait_thr.value]
         end
-      ensure
-        out.close if out_pipe
+        begin
+          env ? Open3.popen3(env, *args, **kwargs, &block) : Open3.popen3(*args, **kwargs, &block)
+        ensure
+          printer.done
+        end
       end
+
     rescue => e
-      if out_pipe
-        # Print the output of the failed command
-        puts out_pipe[0].read
-      end
       $stdout.flush
+      $stderr.puts "Try running with `rake --verbose` for more complete output."
       raise e
     end
 
@@ -58,9 +77,7 @@ module RubyWasm
 
     def end_section(klass, name)
       took = Time.now - @start_times[[klass, name]]
-      if @github_actions_markup
-        puts "::endgroup::"
-      end
+      puts "::endgroup::" if @github_actions_markup
       puts "\e[1;36m==>\e[0m \e[1m#{klass}(#{name}) -- done in #{took.round(2)}s\e[0m"
     end
 
@@ -96,6 +113,50 @@ module RubyWasm
       print "\e[1;36m  ==>\e[0m "
       print "env " + env.map { |k, v| "#{k}=#{v}" }.join(" ") + " " if env
       print args.map { |arg| Shellwords.escape(arg.to_s) }.join(" ") + "\n"
+    end
+  end
+
+  # Human readable status printer for the build.
+  class StatusPrinter
+    def initialize
+      @mutex = Mutex.new
+      @counter = 0
+      @indicators = "|/-\\"
+    end
+
+    def stdout(message)
+      require "io/console"
+      @mutex.synchronize {
+        $stdout.print "\e[K"
+        first_line = message.lines(chomp: true).first || ""
+
+        # Make sure we don't line-wrap the output
+        size = __skip__ = IO.respond_to?(:console_size) ? IO.console_size : IO.console.winsize
+        terminal_width = size[1].to_i.nonzero? || 80
+        width_limit = terminal_width / 2 - 3
+
+        if first_line.length > width_limit
+          first_line = (first_line[0..width_limit - 5] || "") + "..."
+        end
+        indicator = @indicators[@counter] || " "
+        to_print = "  " + indicator + " " + first_line
+        $stdout.print to_print
+        $stdout.print "\e[1A\n"
+        @counter += 1
+        @counter = 0 if @counter >= @indicators.length
+      }
+    end
+
+    def stderr(message)
+      @mutex.synchronize {
+        $stdout.print message
+      }
+    end
+
+    def done
+      @mutex.synchronize {
+        $stdout.print "\e[K"
+      }
     end
   end
 end

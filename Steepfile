@@ -13,6 +13,7 @@ target :lib do
   library "open-uri"
   library "uri"
   library "shellwords"
+  library "io-console"
 
   configure_code_diagnostics(D::Ruby.default)
 end
