@@ -21,39 +21,53 @@ module RubyWasm
 
       args = args.to_a.map(&:to_s)
       # TODO: Remove __skip__ once we have open3 RBS definitions.
-      __skip__ = if @verbose || !$stdout.tty?
-        kwargs[:exception] = true
-        env ? Kernel.system(env, *args, **kwargs) : Kernel.system(*args, **kwargs)
-      else
-        printer = StatusPrinter.new
-        block = proc do |stdin, stdout, stderr, wait_thr|
-          mux = Mutex.new
-          out = String.new
-          err = String.new
-          readers = [[stdout, :stdout, out], [stderr, :stderr, err]].map do |io, name, str|
-            reader = Thread.new {
-              while (line = io.gets)
-                mux.synchronize {
-                  printer.send(name, line)
-                  str << line
-                }
-              end
-            }
-            reader.report_on_exception = false
-            reader
+      __skip__ =
+        if @verbose || !$stdout.tty?
+          kwargs[:exception] = true
+          if env
+            Kernel.system(env, *args, **kwargs)
+          else
+            Kernel.system(*args, **kwargs)
           end
+        else
+          printer = StatusPrinter.new
+          block =
+            proc do |stdin, stdout, stderr, wait_thr|
+              mux = Mutex.new
+              out = String.new
+              err = String.new
+              readers =
+                [
+                  [stdout, :stdout, out],
+                  [stderr, :stderr, err]
+                ].map do |io, name, str|
+                  reader =
+                    Thread.new do
+                      while (line = io.gets)
+                        mux.synchronize do
+                          printer.send(name, line)
+                          str << line
+                        end
+                      end
+                    end
+                  reader.report_on_exception = false
+                  reader
+                end
 
-          readers.each(&:join)
+              readers.each(&:join)
 
-          [out, err, wait_thr.value]
+              [out, err, wait_thr.value]
+            end
+          begin
+            if env
+              Open3.popen3(env, *args, **kwargs, &block)
+            else
+              Open3.popen3(*args, **kwargs, &block)
+            end
+          ensure
+            printer.done
+          end
         end
-        begin
-          env ? Open3.popen3(env, *args, **kwargs, &block) : Open3.popen3(*args, **kwargs, &block)
-        ensure
-          printer.done
-        end
-      end
-
     rescue => e
       $stdout.flush
       $stderr.puts "Try running with `rake --verbose` for more complete output."
@@ -126,12 +140,14 @@ module RubyWasm
 
     def stdout(message)
       require "io/console"
-      @mutex.synchronize {
+      @mutex.synchronize do
         $stdout.print "\e[K"
         first_line = message.lines(chomp: true).first || ""
 
         # Make sure we don't line-wrap the output
-        size = __skip__ = IO.respond_to?(:console_size) ? IO.console_size : IO.console.winsize
+        size =
+          __skip__ =
+            IO.respond_to?(:console_size) ? IO.console_size : IO.console.winsize
         terminal_width = size[1].to_i.nonzero? || 80
         width_limit = terminal_width / 2 - 3
 
@@ -144,19 +160,15 @@ module RubyWasm
         $stdout.print "\e[1A\n"
         @counter += 1
         @counter = 0 if @counter >= @indicators.length
-      }
+      end
     end
 
     def stderr(message)
-      @mutex.synchronize {
-        $stdout.print message
-      }
+      @mutex.synchronize { $stdout.print message }
     end
 
     def done
-      @mutex.synchronize {
-        $stdout.print "\e[K"
-      }
+      @mutex.synchronize { $stdout.print "\e[K" }
     end
   end
 end
