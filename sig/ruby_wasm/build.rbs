@@ -227,7 +227,7 @@ module RubyWasm
     @start_times: Hash[[Class, String], Time]
 
     def initialize: (?verbose: bool) -> void
-    def system: (*_ToS args, ?chdir: String?, ?out: Kernel::redirect_fd?, ?env: Hash[String, String]?) -> void
+    def system: (*_ToS args, ?chdir: String?, ?env: Hash[String, String]?) -> void
     def rm_rf: (FileUtils::pathlist list) -> void
     def rm_f: (FileUtils::pathlist list) -> void
     def cp_r: (FileUtils::pathlist src, path dest) -> void
@@ -239,6 +239,17 @@ module RubyWasm
     def end_section: (Class klass, String name) -> void
 
     private def _print_command: (Array[_ToS] command, Hash[String, String]? env) -> void
+  end
+
+  class StatusPrinter
+    @mutex: Mutex
+    @counter: Integer
+    @indicators: String
+
+    def initialize: () -> void
+    def stdout: (String message) -> void
+    def stderr: (String message) -> void
+    def done: () -> void
   end
 
   class Downloader

@@ -48,7 +48,11 @@ module RubyWasm
       lib_wasi_vfs_url =
         "https://github.com/kateinoigakukun/wasi-vfs/releases/download/v#{WASI_VFS_VERSION}/libwasi_vfs-wasm32-unknown-unknown.zip"
       Dir.mktmpdir do |tmpdir|
-        executor.system "curl", "-L", lib_wasi_vfs_url, "-o", "#{tmpdir}/libwasi_vfs.zip"
+        executor.system "curl",
+                        "-L",
+                        lib_wasi_vfs_url,
+                        "-o",
+                        "#{tmpdir}/libwasi_vfs.zip"
         executor.system "unzip", "#{tmpdir}/libwasi_vfs.zip", "-d", tmpdir
         executor.mkdir_p File.dirname(lib_wasi_vfs_a)
         executor.mv File.join(tmpdir, "libwasi_vfs.a"), lib_wasi_vfs_a
