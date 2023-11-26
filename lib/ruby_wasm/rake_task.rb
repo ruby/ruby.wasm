@@ -103,6 +103,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     digest << @toolchain.name
     digest << @libyaml.name
     digest << @zlib.name
+    digest << @openssl.name
     digest << @wasi_vfs.name
     digest.hexdigest
   end
