@@ -335,7 +335,7 @@ _Static_assert(RUBY_API_VERSION_MAJOR == 3, "unsupported Ruby version");
 void rb_vm_bugreport(const void *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL); }
-#elif RUBY_API_VERSION_MINOR == 3
+#elif RUBY_API_VERSION_MINOR >= 3
 bool rb_vm_bugreport(const void *, FILE *);
 
 void rb_abi_guest_rb_vm_bugreport(void) { rb_vm_bugreport(NULL, stderr); }
