@@ -2,7 +2,7 @@ require_relative "./product"
 
 module RubyWasm
   class WasiVfsProduct < BuildProduct
-    WASI_VFS_VERSION = "0.1.1"
+    WASI_VFS_VERSION = "0.4.0"
 
     def initialize(build_dir)
       @build_dir = build_dir
