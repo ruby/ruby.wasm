@@ -5,7 +5,7 @@ module RubyWasm
   class OpenSSLProduct < AutoconfProduct
     attr_reader :target
 
-    OPENSSL_VERSION = "3.0.5"
+    OPENSSL_VERSION = "3.2.0"
 
     def initialize(build_dir, target, toolchain)
       @build_dir = build_dir
@@ -41,7 +41,6 @@ module RubyWasm
         -no-sock
         -no-dgram
         --libdir=lib
-        -DNO_SYSLOG
         -Wl,--allow-undefined
       ]
       if @target == "wasm32-unknown-wasi"
@@ -49,13 +48,16 @@ module RubyWasm
                       -D_WASI_EMULATED_SIGNAL
                       -D_WASI_EMULATED_PROCESS_CLOCKS
                       -D_WASI_EMULATED_MMAN
+                      -D_WASI_EMULATED_GETPID
+                      -DNO_CHMOD
+                      -DHAVE_FORK=0
                     ]
       end
       args + tools_args
     end
 
     def build(executor)
-      return if Dir.exist?(install_root)
+      return if File.exist?(File.join(install_root, "lib", "libssl.a"))
 
       executor.mkdir_p File.dirname(product_build_dir)
       executor.rm_rf product_build_dir
@@ -79,7 +81,7 @@ module RubyWasm
       # OpenSSL build system doesn't have well support for parallel build, so force -j1.
       executor.system "make",
                       "-j1",
-                      "install_sw",
+                      "install_dev",
                       "DESTDIR=#{destdir}",
                       chdir: product_build_dir
     end
