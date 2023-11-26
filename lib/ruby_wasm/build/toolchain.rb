@@ -56,7 +56,7 @@ module RubyWasm
     def initialize(
       wasi_sdk_path = ENV["WASI_SDK_PATH"],
       build_dir: nil,
-      version_major: 14,
+      version_major: 20,
       version_minor: 0,
       binaryen_version: 108
     )
