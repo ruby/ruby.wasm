@@ -59,10 +59,16 @@ module RubyWasm
               [out, err, wait_thr.value]
             end
           begin
-            if env
-              Open3.popen3(env, *args, **kwargs, &block)
-            else
-              Open3.popen3(*args, **kwargs, &block)
+            stdout, stderr, status =
+              if env
+                Open3.popen3(env, *args, **kwargs, &block)
+              else
+                Open3.popen3(*args, **kwargs, &block)
+              end
+            unless status.success?
+              $stderr.puts stdout
+              $stderr.puts stderr
+              raise "Command failed with status (#{status.exitstatus}): #{args.join(" ")}"
             end
           ensure
             printer.done
