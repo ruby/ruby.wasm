@@ -13,7 +13,7 @@ $ npm install --save ruby-head-wasm-wasi@latest
 # or if you want the nightly snapshot
 $ npm install --save ruby-head-wasm-wasi@next
 # or you can specify the exact snapshot version
-$ npm install --save ruby-head-wasm-wasi@2.2.0-2023-11-15-a
+$ npm install --save ruby-head-wasm-wasi@2.3.0-2023-11-26-a
 ```
 
 ## Quick Start (for Node.js)
