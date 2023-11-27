@@ -51,13 +51,13 @@ module RubyWasm
           "origin",
           "#{@params[:rev]}:origin/#{@params[:rev]}",
           chdir: src_dir
-        ) or raise "failed to clone #{repo_url}"
+        )
         executor.system(
           "git",
           "checkout",
           "origin/#{@params[:rev]}",
           chdir: src_dir
-        ) or raise "failed to checkout #{@params[:rev]}"
+        )
       when "local"
         executor.mkdir_p File.dirname(src_dir)
         executor.cp_r @params[:src], src_dir
@@ -80,10 +80,8 @@ module RubyWasm
                         "gnu",
                         "config.guess",
                         "config.sub",
-                        chdir: src_dir or
-          raise "failed to download config.guess and config.sub"
-        executor.system "./autogen.sh", chdir: src_dir or
-          raise "failed to run autogen.sh"
+                        chdir: src_dir
+        executor.system "./autogen.sh", chdir: src_dir
       end
     end
   end

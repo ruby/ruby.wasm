@@ -74,6 +74,7 @@ module RubyWasm
             printer.done
           end
         end
+      return
     rescue => e
       $stdout.flush
       $stderr.puts "Try running with `rake --verbose` for more complete output."
