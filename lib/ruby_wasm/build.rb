@@ -5,9 +5,17 @@ require_relative "build/toolchain"
 module RubyWasm
   # Build executor to run the actual build commands.
   class BuildExecutor
-    def initialize(verbose: false)
+    attr_reader :process_count
+
+    def initialize(verbose: false, process_count: nil)
       @verbose = verbose
       @github_actions_markup = ENV["ENABLE_GITHUB_ACTIONS_MARKUP"] != nil
+      __skip__ = begin
+        require "etc"
+        @process_count = process_count || Etc.nprocessors
+      rescue LoadError
+        @process_count = process_count || 1
+      end
     end
 
     def system(*args, chdir: nil, env: nil)

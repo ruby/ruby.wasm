@@ -33,6 +33,7 @@ module RubyWasm
       executor.mkdir_p objdir
       do_extconf executor, crossruby
       executor.system "make",
+                      "-j#{executor.process_count}",
                       "-C",
                       "#{objdir}",
                       *make_args(crossruby),
