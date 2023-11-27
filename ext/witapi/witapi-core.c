@@ -3,54 +3,15 @@
 #include "ruby.h"
 #include "ruby/version.h"
 
-// ========= Private Ruby API =========
-// from eval_intern.h
-VALUE rb_f_eval(int argc, const VALUE *argv, VALUE self);
-// from internal/vm.h
-PUREFUNC(VALUE rb_vm_top_self(void));
-// from vm_core.h
-typedef struct rb_control_frame_struct {
-  const VALUE *pc;  /* cfp[0] */
-  VALUE *sp;        /* cfp[1] */
-  const void *iseq; /* cfp[2] */
-  VALUE self;       /* cfp[3] / block[0] */
-  const VALUE *ep;  /* cfp[4] / block[1] */
-} rb_control_frame_t;
-
-typedef struct rb_execution_context_struct {
-  /* execution information */
-  VALUE *vm_stack;      /* must free, must mark */
-  size_t vm_stack_size; /* size in word (byte size / sizeof(VALUE)) */
-  rb_control_frame_t *cfp;
-} rb_execution_context_t;
-
-// from vm.c and vm_core.h
-RUBY_EXTERN struct rb_execution_context_struct *ruby_current_ec;
-#define GET_EC() (ruby_current_ec)
-rb_control_frame_t *
-rb_vm_get_ruby_level_next_cfp(const rb_execution_context_t *ec,
-                              const rb_control_frame_t *cfp);
-// ====== End of Private Ruby API =====
-
-VALUE
-ruby_eval_string_value_from_file(VALUE str, VALUE file) {
-  rb_execution_context_t *ec = GET_EC();
-  rb_control_frame_t *cfp =
-      ec ? rb_vm_get_ruby_level_next_cfp(ec, ec->cfp) : NULL;
-  VALUE self = cfp ? cfp->self : rb_vm_top_self();
-#define argc 4
-  const VALUE argv[argc] = {str, Qnil, file, INT2FIX(1)};
-  return rb_f_eval(argc, argv, self);
-#undef argc
-}
-
 static VALUE rb_eval_string_value_protect_thunk(VALUE str) {
-  return ruby_eval_string_value_from_file(str, rb_utf8_str_new("eval", 4));
+  const ID id_eval = rb_intern("eval");
+  VALUE binding = rb_const_get(rb_cObject, rb_intern("TOPLEVEL_BINDING"));
+  const VALUE file = rb_utf8_str_new("eval", 4);
+  VALUE args[3] = {str, binding, file};
+  return rb_funcallv(rb_mKernel, id_eval, 3, args);
 }
 
-// TODO(katei): This API should be moved to CRuby itself.
-VALUE
-rb_eval_string_value_protect(VALUE str, int *pstate) {
+static VALUE rb_eval_string_value_protect(VALUE str, int *pstate) {
   return rb_protect(rb_eval_string_value_protect_thunk, str, pstate);
 }
 
