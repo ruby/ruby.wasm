@@ -28,7 +28,10 @@ module RubyWasm
                       "--prefix=#{install_dir}",
                       "--disable-install-doc",
                       chdir: product_build_dir
-      executor.system "make", "install", chdir: product_build_dir
+      executor.system "make",
+                      "-j#{executor.process_count}",
+                      "install",
+                      chdir: product_build_dir
     end
   end
 end

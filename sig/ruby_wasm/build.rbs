@@ -224,7 +224,10 @@ module RubyWasm
   class BuildExecutor
     @verbose: bool
     @github_actions_markup: bool
+    @process_count: Integer
     @start_times: Hash[[Class, String], Time]
+
+    attr_reader process_count: Integer
 
     def initialize: (?verbose: bool) -> void
     def system: (*_ToS args, ?chdir: String?, ?env: Hash[String, String]?) -> void
