@@ -108,7 +108,7 @@ NPM_PACKAGES = [
     target: "wasm32-unknown-wasi"
   },
   {
-    name: "ruby-3_2-wasm-wasi",
+    name: "ruby-3.2-wasm-wasi",
     build: "3_2-wasm32-unknown-wasi-full-js-debug",
     target: "wasm32-unknown-wasi"
   }
