@@ -132,8 +132,6 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
   </tbody>
 </table>
 
-Note: `*` is a wildcard that represents any other profile name except for itself, applied recursively. For example, `minimal-full-js-debug` is a valid profile.
-
 ## Notable Limitations
 
 The current WASI target build does not yet support `Thread` related APIs. Specifically, WASI does not yet have an API for creating and managing threads yet.
