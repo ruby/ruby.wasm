@@ -1,5 +1,5 @@
 {
-  "name": "ruby-3_2-wasm-wasi",
+  "name": "@ruby/3.2-wasm-wasi",
   "version": "2.3.0",
   "description": "Ruby 3.2 built on WASI",
   "main": "./dist/index.cjs.js",
