@@ -1,4 +1,4 @@
-# ruby-head-wasm-emscripten
+# @ruby/head-wasm-emscripten
 
 WebAssembly port of CRuby by Emscripten with a thin JavaScript wrapper.
 
@@ -6,14 +6,14 @@ This package distributes the latest `master` branch of CRuby.
 
 ## Installation
 
-For installing ruby-head-wasm-emscripten, just run this command in your shell:
+For installing `@ruby/head-wasm-emscripten`, just run this command in your shell:
 
 ```console
-$ npm install --save ruby-head-wasm-emscripten@latest
+$ npm install --save @ruby/head-wasm-emscripten@latest
 # or if you want the nightly snapshot
-$ npm install --save ruby-head-wasm-emscripten@next
+$ npm install --save @ruby/head-wasm-emscripten@next
 # or you can specify the exact snapshot version
-$ npm install --save ruby-head-wasm-emscripten@2.3.0-2023-11-26-a
+$ npm install --save @ruby/head-wasm-emscripten@2.3.0-2023-11-26-a
 ```
 
 ## Quick Start
@@ -21,14 +21,14 @@ $ npm install --save ruby-head-wasm-emscripten@2.3.0-2023-11-26-a
 This quick start is for browsers and Node.js environments. See [the example project](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-emscripten/example) for more details.
 
 ```javascript
-import { loadRuby } from "ruby-head-wasm-emscripten";
+import { loadRuby } from "@ruby/head-wasm-emscripten";
 
 const main = async () => {
   const args = ["--disable-gems", "-e", "puts 'Hello :)'"];
   console.log(`$ ruby.wasm ${args.join(" ")}`);
 
   const defaultModule = {
-    locateFile: (path) => "./node_modules/ruby-head-wasm-emscripten/dist/" + path,
+    locateFile: (path) => "./node_modules/@ruby/head-wasm-emscripten/dist/" + path,
     setStatus: (msg) => console.log(msg),
     print: (line) => console.log(line),
     arguments: args,

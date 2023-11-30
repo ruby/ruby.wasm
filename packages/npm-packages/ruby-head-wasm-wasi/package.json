@@ -1,5 +1,5 @@
 {
-  "name": "ruby-head-wasm-wasi",
+  "name": "@ruby/head-wasm-wasi",
   "version": "2.3.0",
   "description": "Ruby head built on WASI",
   "main": "./dist/index.cjs.js",

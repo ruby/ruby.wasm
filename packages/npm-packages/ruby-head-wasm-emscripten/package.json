@@ -1,5 +1,5 @@
 {
-  "name": "ruby-head-wasm-emscripten",
+  "name": "@ruby/head-wasm-emscripten",
   "version": "2.3.0",
   "description": "Ruby head built on Emscripten",
   "type": "commonjs",

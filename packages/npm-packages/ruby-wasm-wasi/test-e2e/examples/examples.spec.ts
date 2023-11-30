@@ -14,7 +14,7 @@ test.beforeEach(async ({ context }) => {
     const packagePath = path.join(__dirname, "..", "..", "package.json");
     const packageInfo = JSON.parse(readFileSync(packagePath, "utf-8"));
     const version = packageInfo.version;
-    const url = `https://registry.npmjs.org/ruby-head-wasm-wasi/${version}`;
+    const url = `https://registry.npmjs.org/@ruby/head-wasm-wasi/${version}`;
     const response = await new Promise<http.IncomingMessage>(
       (resolve, reject) => {
         https.get(url, resolve).on("error", reject);
@@ -22,7 +22,7 @@ test.beforeEach(async ({ context }) => {
     );
     if (response.statusCode == 404) {
       console.log(
-        `ruby-head-wasm-wasi@${version} is not published yet, so skipping CDN tests`,
+        `@ruby/head-wasm-wasi@${version} is not published yet, so skipping CDN tests`,
       );
       test.skip();
     }

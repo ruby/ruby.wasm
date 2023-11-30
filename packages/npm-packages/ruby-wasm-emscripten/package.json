@@ -1,5 +1,5 @@
 {
-  "name": "ruby-wasm-emscripten",
+  "name": "@ruby/wasm-emscripten",
   "version": "0.1.0",
   "description": "WebAssembly port of CRuby by Emscripten",
   "type": "commonjs",
