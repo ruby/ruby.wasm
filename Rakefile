@@ -48,16 +48,6 @@ BUILD_PROFILES = {
     default_exts: "",
     user_exts: []
   },
-  "minimal-js" => {
-    debug: false,
-    default_exts: "",
-    user_exts: %w[js witapi]
-  },
-  "minimal-js-debug" => {
-    debug: true,
-    default_exts: "",
-    user_exts: %w[js witapi]
-  },
   "full" => {
     debug: false,
     default_exts: FULL_EXTS,
