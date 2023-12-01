@@ -25,7 +25,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
     test("JS::Object#await returns value", async ({ page }) => {
       const resolve = await resolveBinding(page, "checkResolved");
       await page.setContent(`
-      <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
       <script type="text/ruby" data-eval="async">
       require "js"
       JS.global.checkResolved JS.global[:Promise].resolve(42).await
@@ -36,7 +36,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
 
     test("JS::Object#await throws error on default attr", async ({ page }) => {
       await page.setContent(`
-      <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
       <script type="text/ruby">
       require "js"
       JS.global[:Promise].resolve(42).await
@@ -51,7 +51,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
     test("default stack size is enough to require 'json'", async ({ page }) => {
       const resolve = await resolveBinding(page, "checkResolved");
       await page.setContent(`
-      <script src="https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
       <script type="text/ruby" data-eval="async">
       require 'json'
       JS.global.checkResolved "ok"

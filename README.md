@@ -15,7 +15,7 @@ Create and save `index.html` page with the following contents:
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/ruby-3_2-wasm-wasi@2.3.0/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/3.2-wasm-wasi@2.3.0/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     puts "Hello, world!"
   </script>
@@ -28,18 +28,18 @@ Dependencies: [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs), [wasmtime
 
 ```console
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3_2-wasm32-unknown-wasi-full.tar.gz
-$ tar xfz ruby-3_2-wasm32-unknown-wasi-full.tar.gz
+$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.2-wasm32-unknown-wasi-full.tar.gz
+$ tar xfz ruby-3.2-wasm32-unknown-wasi-full.tar.gz
 
 # Extract ruby binary not to pack itself
-$ mv 3_2-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
+$ mv 3.2-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
 
 # Put your app code
 $ mkdir src
 $ echo "puts 'Hello'" > src/my_app.rb
 
 # Pack the whole directory under /usr and your app dir
-$ wasi-vfs pack ruby.wasm --mapdir /src::./src --mapdir /usr::./3_2-wasm32-unknown-wasi-full/usr -o my-ruby-app.wasm
+$ wasi-vfs pack ruby.wasm --mapdir /src::./src --mapdir /usr::./3.2-wasm32-unknown-wasi-full/usr -o my-ruby-app.wasm
 
 # Run the packed scripts
 $ wasmtime my-ruby-app.wasm -- /src/my_app.rb
@@ -60,19 +60,19 @@ See the `README.md` of each package for more detail and its usage.
   </thead>
   <tbody>
     <tr>
-      <td><a href="/packages/npm-packages/ruby-3_2-wasm-wasi">ruby-3_2-wasm-wasi</a></td>
+      <td><a href="/packages/npm-packages/ruby-3.2-wasm-wasi">@ruby/3.2-wasm-wasi</a></td>
       <td>CRuby 3.2 built on WASI with JS interop support</td>
-      <td><a href="https://badge.fury.io/js/ruby-3_2-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/ruby-3_2-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
+      <td><a href="https://badge.fury.io/js/@ruby/3.2-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby/3.2-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
     </tr>
     <tr>
-      <td><a href="/packages/npm-packages/ruby-head-wasm-wasi">ruby-head-wasm-wasi</a></td>
+      <td><a href="/packages/npm-packages/ruby-head-wasm-wasi">@ruby/head-wasm-wasi</a></td>
       <td>HEAD CRuby built on WASI with JS interop support</td>
-      <td><a href="https://badge.fury.io/js/ruby-head-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/ruby-head-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
+      <td><a href="https://badge.fury.io/js/@ruby/head-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby/head-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
     </tr>
     <tr>
-      <td><a href="/packages/npm-packages/ruby-head-wasm-emscripten">ruby-head-wasm-emscripten</a></td>
+      <td><a href="/packages/npm-packages/ruby-head-wasm-emscripten">@ruby/head-wasm-emscripten</a></td>
       <td>HEAD CRuby built on Emscripten (not well tested)</td>
-      <td><a href="https://badge.fury.io/js/ruby-head-wasm-emscripten" rel="nofollow"><img src="https://badge.fury.io/js/ruby-head-wasm-emscripten.svg" alt="npm version" style="max-width: 100%;"></a></td>
+      <td><a href="https://badge.fury.io/js/@ruby/head-wasm-emscripten" rel="nofollow"><img src="https://badge.fury.io/js/@ruby/head-wasm-emscripten.svg" alt="npm version" style="max-width: 100%;"></a></td>
     </tr>
   </tbody>
 </table>
@@ -131,8 +131,6 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
     </tr>
   </tbody>
 </table>
-
-Note: `*` is a wildcard that represents any other profile name except for itself, applied recursively. For example, `minimal-full-js-debug` is a valid profile.
 
 ## Notable Limitations
 

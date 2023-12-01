@@ -1,5 +1,5 @@
 {
-  "name": "ruby-3_2-wasm-wasi",
+  "name": "@ruby/3.2-wasm-wasi",
   "version": "2.3.0",
   "description": "Ruby 3.2 built on WASI",
   "main": "./dist/index.cjs.js",
@@ -38,17 +38,17 @@
     "README.md"
   ],
   "scripts": {
-    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-3_2-wasm-wasi npm -C ../ruby-wasm-wasi run test:run",
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-3.2-wasm-wasi npm -C ../ruby-wasm-wasi run test:run",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
-    "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-3_2-wasm-wasi",
+    "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-3.2-wasm-wasi",
     "build:static": "npm run build:static:files && npm run build:static:compat",
-    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/3_2-wasm32-unknown-wasi-full-js-debug ./dist",
+    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/3.2-wasm32-unknown-wasi-full-js-debug ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
     "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
-  "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3_2-wasm-wasi",
+  "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3.2-wasm-wasi",
   "publishConfig": {
     "access": "public"
   },

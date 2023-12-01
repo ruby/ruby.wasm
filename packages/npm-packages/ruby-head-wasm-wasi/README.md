@@ -1,4 +1,4 @@
-# ruby-head-wasm-wasi
+# @ruby/head-wasm-wasi
 
 WebAssembly port of CRuby with WASI.
 
@@ -6,14 +6,14 @@ This package distributes the latest `master` branch of CRuby.
 
 ## Installation
 
-For installing ruby-head-wasm-wasi family, just run this command in your shell:
+For installing `@ruby/head-wasm-wasi` family, just run this command in your shell:
 
 ```console
-$ npm install --save ruby-head-wasm-wasi@latest
+$ npm install --save @ruby/head-wasm-wasi@latest
 # or if you want the nightly snapshot
-$ npm install --save ruby-head-wasm-wasi@next
+$ npm install --save @ruby/head-wasm-wasi@next
 # or you can specify the exact snapshot version
-$ npm install --save ruby-head-wasm-wasi@2.3.0-2023-11-26-a
+$ npm install --save @ruby/head-wasm-wasi@2.3.0-2023-11-26-a
 ```
 
 ## Quick Start (for Node.js)
@@ -28,8 +28,8 @@ const main = async () => {
   const binary = await fs.readFile(
     //  Tips: Replace the binary with debug info if you want symbolicated stack trace.
     //  (only nightly release for now)
-    //  "./node_modules/ruby-head-wasm-wasi/dist/ruby.debug+stdlib.wasm"
-    "./node_modules/ruby-head-wasm-wasi/dist/ruby.wasm"
+    //  "./node_modules/@ruby/head-wasm-wasi/dist/ruby.debug+stdlib.wasm"
+    "./node_modules/@ruby/head-wasm-wasi/dist/ruby.wasm"
   );
   const module = await WebAssembly.compile(binary);
   const { vm } = await DefaultRubyVM(module);
@@ -63,8 +63,8 @@ In browser, you need a WASI polyfill. See [the example project](https://github.c
       const response = await fetch(
         //      Tips: Replace the binary with debug info if you want symbolicated stack trace.
         //      (only nightly release for now)
-        //      "https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@next/dist/ruby.debug+stdlib.wasm"
-        "https://cdn.jsdelivr.net/npm/ruby-head-wasm-wasi@latest/dist/ruby.wasm"
+        //      "https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@next/dist/ruby.debug+stdlib.wasm"
+        "https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/ruby.wasm"
       );
       const buffer = await response.arrayBuffer();
       const module = await WebAssembly.compile(buffer);
