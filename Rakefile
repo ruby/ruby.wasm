@@ -15,7 +15,7 @@ BUILD_SOURCES = {
     rev: "master",
     patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
   },
-  "3_2" => {
+  "3.2" => {
     type: "github",
     repo: "ruby/ruby",
     rev: "v3_2_0"
@@ -109,7 +109,7 @@ NPM_PACKAGES = [
   },
   {
     name: "ruby-3.2-wasm-wasi",
-    build: "3_2-wasm32-unknown-wasi-full-js-debug",
+    build: "3.2-wasm32-unknown-wasi-full-js-debug",
     target: "wasm32-unknown-wasi"
   }
 ]
