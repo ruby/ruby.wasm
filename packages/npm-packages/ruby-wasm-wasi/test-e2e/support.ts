@@ -1,4 +1,4 @@
-import { BrowserContext, Page, expect } from "@playwright/test";
+import { BrowserContext, Page, Route, expect } from "@playwright/test";
 import path from "path";
 
 export const waitForRubyVM = async (page: Page) => {
@@ -17,16 +17,35 @@ export const setupDebugLog = (context: BrowserContext) => {
   }
 };
 
-export const setupProxy = (context: BrowserContext) => {
+type CustomRouter = (
+  route: Route,
+  relativePath: string,
+  mockedPath: string,
+) => void;
+export const setupProxy = (
+  context: BrowserContext,
+  customRouter: CustomRouter | null,
+) => {
   const cdnPattern =
     /cdn.jsdelivr.net\/npm\/@ruby\/.+-wasm-wasi@.+\/dist\/(.+)/;
+
   context.route(cdnPattern, (route) => {
     const request = route.request();
     console.log(">> [MOCK]", request.method(), request.url());
     const relativePath = request.url().match(cdnPattern)[1];
-    route.fulfill({
-      path: path.join(process.env.RUBY_NPM_PACKAGE_ROOT, "dist", relativePath),
-    });
+    const mockedPath = path.join(
+      process.env.RUBY_NPM_PACKAGE_ROOT,
+      "dist",
+      relativePath,
+    );
+
+    if (customRouter) {
+      customRouter(route, relativePath, mockedPath);
+    } else {
+      route.fulfill({
+        path: mockedPath,
+      });
+    }
   });
 };
 
@@ -44,3 +63,14 @@ export const { setupUncaughtExceptionRejection, expectUncaughtException } =
       },
     };
   })();
+
+export const resolveBinding = async (page: Page, name: string) => {
+  let checkResolved;
+  const resolvedValue = new Promise((resolve) => {
+    checkResolved = resolve;
+  });
+  await page.exposeBinding(name, async (source, v) => {
+    checkResolved(v);
+  });
+  return async () => await resolvedValue;
+};

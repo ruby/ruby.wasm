@@ -14,7 +14,7 @@ test.beforeEach(async ({ context, page }) => {
   setupDebugLog(context);
   setupUncaughtExceptionRejection(page);
   if (process.env.RUBY_NPM_PACKAGE_ROOT) {
-    setupProxy(context);
+    setupProxy(context, null);
   } else {
     console.info("Testing against CDN deployed files");
     const packagePath = path.join(__dirname, "..", "..", "package.json");
@@ -64,3 +64,24 @@ test("script-src/index.html is healthy", async ({ page }) => {
     await page.waitForEvent("console");
   }
 });
+
+// The browser.script.iife.js obtained from CDN does not include the patch to require_relative.
+// Skip when testing against the CDN.
+if (process.env.RUBY_NPM_PACKAGE_ROOT) {
+  test("require_relative/index.html is healthy", async ({ page }) => {
+    // Add a listener to detect errors in the page
+    page.on("pageerror", (error) => {
+      console.log(`page error occurs: ${error.message}`);
+    });
+
+    const messages: string[] = [];
+    page.on("console", (msg) => messages.push(msg.text()));
+    await page.goto("/require_relative/index.html");
+
+    await waitForRubyVM(page);
+    const expected = "Hello, world!\n";
+    while (messages[messages.length - 1] != expected) {
+      await page.waitForEvent("console");
+    }
+  });
+}

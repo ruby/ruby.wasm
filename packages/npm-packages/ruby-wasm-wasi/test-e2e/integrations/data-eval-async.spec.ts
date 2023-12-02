@@ -5,6 +5,7 @@ import {
   setupProxy,
   setupUncaughtExceptionRejection,
   expectUncaughtException,
+  resolveBinding,
 } from "../support";
 
 if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
@@ -12,20 +13,9 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
 } else {
   test.beforeEach(async ({ context, page }) => {
     setupDebugLog(context);
-    setupProxy(context);
+    setupProxy(context, null);
     setupUncaughtExceptionRejection(page);
   });
-
-  const resolveBinding = async (page: Page, name: string) => {
-    let checkResolved;
-    const resolvedValue = new Promise((resolve) => {
-      checkResolved = resolve;
-    });
-    await page.exposeBinding(name, async (source, v) => {
-      checkResolved(v);
-    });
-    return async () => await resolvedValue;
-  };
 
   test.describe('data-eval="async"', () => {
     test("JS::Object#await returns value", async ({ page }) => {
