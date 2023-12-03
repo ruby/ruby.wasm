@@ -1,11 +1,13 @@
 def latest_build_sources
   BUILD_SOURCES
-    .map do |name, src|
+    .filter_map do |name, src|
       case src[:type]
       when "github"
         url = "repos/#{src[:repo]}/commits/#{src[:rev]}"
         revision = JSON.parse(`gh api #{url}`)
         [name, revision["sha"]]
+      when "tarball"
+        nil
       else
         raise "#{src[:type]} is not supported to pin source revision"
       end
