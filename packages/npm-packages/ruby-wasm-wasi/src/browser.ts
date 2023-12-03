@@ -1,5 +1,5 @@
 import { init, WASI } from "@wasmer/wasi";
-import { RubyVM } from "./index";
+import { RubyVM } from "./index.js";
 
 const consolePrinter = () => {
   let memory: WebAssembly.Memory | undefined = undefined;

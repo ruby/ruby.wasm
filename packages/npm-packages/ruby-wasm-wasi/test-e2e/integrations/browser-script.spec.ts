@@ -1,13 +1,14 @@
 import { test, expect, Page } from "@playwright/test";
 
-import { setupDebugLog, setupProxy, waitForRubyVM } from "../support";
+import { setupDebugLog, setupProxy, setupUncaughtExceptionRejection, expectUncaughtException } from "../support";
 
 if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
   test.skip("skip", () => {});
 } else {
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     setupDebugLog(context);
     setupProxy(context);
+    setupUncaughtExceptionRejection(page);
   });
 
   const resolveBinding = async (page: Page, name: string) => {
@@ -35,6 +36,8 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
     });
 
     test("JS::Object#await throws error on default attr", async ({ page }) => {
+      expectUncaughtException(page);
+
       await page.setContent(`
       <script src="https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/browser.script.iife.js"></script>
       <script type="text/ruby">
@@ -59,5 +62,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
      `);
       expect(await resolve()).toBe("ok");
     });
+  });
+  test.describe('data-eval="async" crash', () => {
   });
 }

@@ -9,5 +9,7 @@ fi
 package_dir="$(cd "$(dirname "$0")/.." && pwd)"
 dist_dir="$1"
 
-mkdir -p "$dist_dir/bindgen"
-find "$package_dir/src/bindgen" -name "*.d.ts" -exec cp {} "$dist_dir/bindgen" \;
+for format in "esm" "cjs"; do
+  mkdir -p "$dist_dir/$format/bindgen"
+  find "$package_dir/src/bindgen" -name "*.d.ts" -exec cp {} "$dist_dir/$format/bindgen" \;
+done

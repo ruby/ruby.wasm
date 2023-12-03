@@ -28,3 +28,17 @@ export const setupProxy = (context: BrowserContext) => {
     });
   });
 };
+
+export const { setupUncaughtExceptionRejection, expectUncaughtException } = (() => {
+  const rejectUncaughtException = (err: Error) => {
+    expect(err).toEqual(undefined);
+  }
+  return {
+    setupUncaughtExceptionRejection: (page: Page) => {
+      page.on("pageerror", rejectUncaughtException);
+    },
+    expectUncaughtException: (page: Page) => {
+      page.off("pageerror", rejectUncaughtException);
+    },
+  }
+})()

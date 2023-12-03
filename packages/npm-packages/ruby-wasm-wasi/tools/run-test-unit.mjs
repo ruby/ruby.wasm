@@ -5,7 +5,7 @@ import * as wasmerWasi from "@wasmer/wasi";
 import fs from "fs/promises";
 import path from "path";
 import * as nodeWasi from "wasi";
-import { RubyVM } from "../dist/index.cjs.js";
+import { RubyVM } from "@ruby/wasm-wasi";
 
 const deriveRubySetup = () => {
   let preopens = {}

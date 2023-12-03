@@ -1,4 +1,4 @@
-import { DefaultRubyVM } from "./browser";
+import { DefaultRubyVM } from "./browser.js";
 
 export const main = async (
   pkg: { name: string; version: string },
