@@ -1,4 +1,4 @@
-import { initRubyVM } from "./init";
+const { initRubyVM } = require("./init");
 
 describe("Ruby code evaluation", () => {
   test("empty expression", async () => {

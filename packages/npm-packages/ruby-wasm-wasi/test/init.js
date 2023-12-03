@@ -1,7 +1,7 @@
-import fs from "fs/promises";
-import path from "path";
-import { WASI } from "wasi";
-import { RubyVM } from "../src/index";
+const fs = require("fs/promises");
+const path = require("path");
+const { WASI } = require("wasi");
+const { RubyVM } = require("../dist/cjs/index");
 
 const rubyModule = (async () => {
   let binaryPath;
@@ -19,7 +19,7 @@ const rubyModule = (async () => {
   return await WebAssembly.compile(binary.buffer);
 })();
 
-export const initRubyVM = async (
+const initRubyVM = async (
   { suppressStderr } = { suppressStderr: false },
 ) => {
   let preopens = {};
@@ -47,3 +47,5 @@ export const initRubyVM = async (
   vm.initialize();
   return vm;
 };
+
+module.exports = { initRubyVM };

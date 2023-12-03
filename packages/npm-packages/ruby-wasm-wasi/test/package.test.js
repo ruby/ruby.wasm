@@ -1,10 +1,10 @@
-import fs from "fs/promises";
-import path from "path";
-import { WASI } from "wasi";
-import { RubyVM } from "../dist/esm/index";
-import { DefaultRubyVM } from "../dist/esm/node";
+const fs = require("fs/promises");
+const path = require("path");
+const { WASI } = require("wasi");
+const { RubyVM } = require("../dist/cjs/index");
+const { DefaultRubyVM } = require("../dist/cjs/node");
 
-const initRubyVM = async (rubyModule: WebAssembly.Module, args: string[]) => {
+const initRubyVM = async (rubyModule, args) => {
   const wasi = new WASI();
   const vm = new RubyVM();
   const imports = {
@@ -34,10 +34,10 @@ describe("Packaging validation", () => {
     return;
   }
 
-  const moduleCache = new Map<string, WebAssembly.Module>();
-  const loadWasmModule = async (file: string) => {
+  const moduleCache = new Map();
+  const loadWasmModule = async (file) => {
     if (moduleCache.has(file)) {
-      return moduleCache.get(file)!;
+      return moduleCache.get(file);
     }
     const binary = await fs.readFile(
       path.join(process.env.RUBY_NPM_PACKAGE_ROOT, `./dist/${file}`),

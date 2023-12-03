@@ -1,4 +1,4 @@
-import { initRubyVM } from "./init";
+const { initRubyVM } = require("./init");
 
 describe("RbValue#toJS", () => {
   test.each([

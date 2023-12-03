@@ -1,5 +1,4 @@
-import { RbValue } from "../src/index";
-import { initRubyVM } from "./init";
+const { initRubyVM } = require("./init");
 
 describe("GC integration", () => {
   test("Wrapped Ruby object should live until wrapper will be released", async () => {
@@ -10,11 +9,11 @@ describe("GC integration", () => {
         imports.call(:mark_js_object_live, JS::Object.wrap(Object.new))
       end
     `);
-    const livingObjects = new Set<RbValue>();
+    const livingObjects = new Set();
     run.call(
       "call",
       vm.wrap({
-        mark_js_object_live: (object: RbValue) => {
+        mark_js_object_live: (object) => {
           livingObjects.add(object);
         },
       }),
@@ -27,8 +26,8 @@ describe("GC integration", () => {
   });
 
   test("protect exported Ruby objects", async () => {
-    function dropRbValue(value: RbValue) {
-      (value as any).inner.drop();
+    function dropRbValue(value) {
+      value.inner.drop();
     }
     const vm = await initRubyVM();
     const initialGCCount = Number(vm.eval("GC.count").toString());
