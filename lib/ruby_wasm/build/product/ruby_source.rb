@@ -16,6 +16,8 @@ module RubyWasm
       case @params[:type]
       when "github"
         digest << @params[:rev]
+      when "tarball"
+        digest << @params[:url]
       when "local"
         digest << File.mtime(@params[:src]).to_i.to_s
       else
@@ -58,6 +60,11 @@ module RubyWasm
           "origin/#{@params[:rev]}",
           chdir: src_dir
         )
+      when "tarball"
+        executor.mkdir_p src_dir
+        tarball_path = File.join(File.dirname(src_dir), File.basename(src_dir) + ".tar.gz")
+        executor.system("curl", "-L", "-o", tarball_path, @params[:url])
+        executor.system("tar", "xf", tarball_path, "-C", src_dir, "--strip-components=1")
       when "local"
         executor.mkdir_p File.dirname(src_dir)
         executor.cp_r @params[:src], src_dir
