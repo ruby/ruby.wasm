@@ -18,7 +18,7 @@ export const setupDebugLog = (context: BrowserContext) => {
 };
 
 export const setupProxy = (context: BrowserContext) => {
-  const cdnPattern = /cdn.jsdelivr.net\/npm\/ruby-.+-wasm-wasi@.+\/dist\/(.+)/;
+  const cdnPattern = /cdn.jsdelivr.net\/npm\/@ruby\/.+-wasm-wasi@.+\/dist\/(.+)/;
   context.route(cdnPattern, (route) => {
     const request = route.request();
     console.log(">> [MOCK]", request.method(), request.url());
