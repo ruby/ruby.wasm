@@ -178,6 +178,7 @@ module RubyWasm
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
         executor.system "make",
+                        "-j#{executor.process_count}",
                         "install",
                         "DESTDIR=#{install_dir}",
                         chdir: build_dir
