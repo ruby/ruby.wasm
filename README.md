@@ -62,17 +62,17 @@ See the `README.md` of each package for more detail and its usage.
     <tr>
       <td><a href="/packages/npm-packages/ruby-3.2-wasm-wasi">@ruby/3.2-wasm-wasi</a></td>
       <td>CRuby 3.2 built on WASI with JS interop support</td>
-      <td><a href="https://badge.fury.io/js/@ruby/3.2-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby/3.2-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
+      <td><a href="https://www.npmjs.com/package/@ruby/3.2-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby%2F3.2-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
     </tr>
     <tr>
       <td><a href="/packages/npm-packages/ruby-head-wasm-wasi">@ruby/head-wasm-wasi</a></td>
       <td>HEAD CRuby built on WASI with JS interop support</td>
-      <td><a href="https://badge.fury.io/js/@ruby/head-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby/head-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
+      <td><a href="https://www.npmjs.com/package/@ruby/head-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby%2Fhead-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
     </tr>
     <tr>
       <td><a href="/packages/npm-packages/ruby-head-wasm-emscripten">@ruby/head-wasm-emscripten</a></td>
       <td>HEAD CRuby built on Emscripten (not well tested)</td>
-      <td><a href="https://badge.fury.io/js/@ruby/head-wasm-emscripten" rel="nofollow"><img src="https://badge.fury.io/js/@ruby/head-wasm-emscripten.svg" alt="npm version" style="max-width: 100%;"></a></td>
+      <td><a href="https://www.npmjs.com/package/@ruby/head-wasm-emscripten" rel="nofollow"><img src="https://badge.fury.io/js/@ruby%2Fhead-wasm-emscripten.svg" alt="npm version" style="max-width: 100%;"></a></td>
     </tr>
   </tbody>
 </table>
