@@ -17,8 +17,8 @@ function config({ basename }) {
       nodePolyfills(),
       inject({ Buffer: ["buffer", "Buffer"] }),
       typescript(typescriptOptions),
-      nodeResolve({ resolveOnly: ["@wasmer/wasi"] })
-    ]
+      nodeResolve({ resolveOnly: ["@wasmer/wasi"] }),
+    ],
   };
 }
 

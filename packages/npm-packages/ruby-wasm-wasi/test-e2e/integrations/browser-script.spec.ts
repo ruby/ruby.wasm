@@ -1,6 +1,11 @@
 import { test, expect, Page } from "@playwright/test";
 
-import { setupDebugLog, setupProxy, setupUncaughtExceptionRejection, expectUncaughtException } from "../support";
+import {
+  setupDebugLog,
+  setupProxy,
+  setupUncaughtExceptionRejection,
+  expectUncaughtException,
+} from "../support";
 
 if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
   test.skip("skip", () => {});
@@ -62,7 +67,5 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
      `);
       expect(await resolve()).toBe("ok");
     });
-  });
-  test.describe('data-eval="async" crash', () => {
   });
 }
