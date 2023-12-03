@@ -2,35 +2,20 @@
   "name": "@ruby/head-wasm-wasi",
   "version": "2.3.0",
   "description": "Ruby head built on WASI",
-  "main": "./dist/index.cjs.js",
-  "umd:main": "./dist/index.umd.js",
-  "module": "./dist/index.esm.js",
-  "typings": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
   "exports": {
     ".": {
-      "browser": "./dist/index.esm.js",
-      "umd": "./dist/index.umd.js",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/browser.d.ts"
+      "browser": "./dist/esm/index.js",
+      "umd": "./dist/umd/index.js",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     },
-    "./dist/browser": {
-      "browser": "./dist/browser.esm.js",
-      "umd": "./dist/browser.umd.js",
-      "import": "./dist/browser.esm.js",
-      "require": "./dist/browser.cjs.js",
-      "types": "./dist/browser.d.ts"
-    },
-    "./dist/browser.script": {
-      "browser": "./dist/browser.script.esm.js",
-      "umd": "./dist/browser.script.umd.js",
-      "import": "./dist/browser.script.esm.js",
-      "types": "./dist/browser.script.d.ts"
-    },
-    "./dist/node": {
-      "import": "./dist/node.esm.js",
-      "require": "./dist/node.cjs.js",
-      "types": "./dist/node.d.ts"
+    "./dist/*": {
+      "browser": "./dist/esm/*.js",
+      "umd": "./dist/umd/*.js",
+      "import": "./dist/esm/*.js",
+      "require": "./dist/cjs/*.js"
     }
   },
   "files": [
@@ -45,7 +30,7 @@
     "build:static": "npm run build:static:files && npm run build:static:compat",
     "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/head-wasm32-unknown-wasi-full-js-debug ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
-    "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup"
+    "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup && ../ruby-wasm-wasi/tools/post-build.sh ./dist"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
   "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi",

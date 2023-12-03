@@ -1,8 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
 import { WASI } from "wasi";
-import { RubyVM } from "../dist/index.umd.js";
-import { DefaultRubyVM } from "../src/node";
+import { RubyVM } from "../dist/esm/index";
+import { DefaultRubyVM } from "../dist/esm/node";
 
 const initRubyVM = async (rubyModule: WebAssembly.Module, args: string[]) => {
   const wasi = new WASI();

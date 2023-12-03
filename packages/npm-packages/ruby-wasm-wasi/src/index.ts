@@ -1,10 +1,10 @@
-import * as RbAbi from "./bindgen/rb-abi-guest";
+import * as RbAbi from "./bindgen/rb-abi-guest.js";
 import {
   RbJsAbiHost,
   addRbJsAbiHostToImports,
   JsAbiResult,
   JsAbiValue,
-} from "./bindgen/rb-js-abi-host";
+} from "./bindgen/rb-js-abi-host.js";
 
 /**
  * A Ruby VM instance
