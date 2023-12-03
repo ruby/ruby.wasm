@@ -1,4 +1,4 @@
-import { initRubyVM } from "./init";
+const { initRubyVM } = require("./init");
 
 describe("RubyVM#wrap", () => {
   test("Wrap arbitrary JS object to RbValue", async () => {

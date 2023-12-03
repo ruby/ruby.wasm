@@ -1,4 +1,4 @@
-import { initRubyVM } from "./init";
+const { initRubyVM } = require("./init");
 
 describe("RubyVM", () => {
   test("empty expression", async () => {
@@ -148,7 +148,7 @@ eval:11:in \`<main>'`);
       setVM.call("call", vm.wrap(vm));
 
       // HACK: We need to capture all promises to avoid unhandled promise rejection
-      const promises: Promise<any>[] = [];
+      const promises = [];
       const _Promise = global.Promise;
       const spy = jest.spyOn(global, "Promise").mockImplementation((future) => {
         const promise = new _Promise(future);
@@ -158,7 +158,7 @@ eval:11:in \`<main>'`);
 
       vm.evalAsync(code);
 
-      const rejections: Error[] = [];
+      const rejections = [];
       for (const promise of promises) {
         try {
           await promise;

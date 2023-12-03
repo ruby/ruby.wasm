@@ -45,8 +45,10 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-json": "^6.0.1",
-    "rollup": "^4.6.1"
+    "rollup": "^4.6.1",
+    "rollup-plugin-polyfill-node": "^0.13.0"
   },
   "dependencies": {
     "@ruby/wasm-wasi": "^2.0.0"
