@@ -6,3 +6,19 @@ RDoc::Task.new do |doc|
   doc.title = "ruby.wasm Documentation"
   doc.rdoc_files = FileList.new %w[*.md ext/**/*.c ext/**/*.rb]
 end
+
+namespace :doc do
+  desc "Update docs/api/javascript.md"
+  task :api_js do
+    sh "npx",
+       "documentation",
+       "readme",
+       "--readme-file",
+       "./packages/npm-packages/ruby-wasm-wasi/README.md",
+       "--section",
+       "API",
+       "--markdown-toc",
+       "false",
+       "./packages/npm-packages/ruby-wasm-wasi/dist/esm/index.js"
+  end
+end

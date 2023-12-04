@@ -108,3 +108,17 @@ $ git commit -m"Bump version to 0.6.0"
 $ git tag 0.6.0
 $ git push origin 0.6.0
 ```
+
+## Release Channels
+
+Each npm package in this project provides two release channels: `latest` and `next`. The `latest` channel is for stable releases, and `next` channel is for pre-release.
+
+e.g. For [`@ruby/wasm-wasi`](https://www.npmjs.com/package/@ruby/wasm-wasi)
+
+```console
+$ npm install --save @ruby/wasm-wasi@latest
+# or if you want the nightly snapshot
+$ npm install --save @ruby/wasm-wasi@next
+# or you can specify the exact snapshot version
+$ npm install --save @ruby/wasm-wasi@2.3.0-2023-11-26-a
+```

@@ -373,6 +373,7 @@ export class RubyVM {
     return this.transport.importJsValue(value, this);
   }
 
+  /** @private */
   private privateObject(): RubyVMPrivate {
     return {
       transport: this.transport,
@@ -380,6 +381,7 @@ export class RubyVM {
     };
   }
 
+  /** @private */
   private rbValueOfPointer(pointer: number): RbValue {
     const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
     return new RbValue(abiValue, this, this.privateObject());
