@@ -11,11 +11,11 @@ Try ruby.wasm in [TryRuby](https://try.ruby-lang.org/playground#code=puts+RUBY_D
 
 ## Quick Links
 
-- [[**Cheat Sheet**]](./docs/cheat_sheet.md)
-- [[**FAQ**]](./docs/faq.md)
-- [[**API Reference**]](https://ruby.github.io/ruby.wasm/JS.html)
-- [[**Complete Examples**]](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example)
-- [[**Community Showcase**]](https://github.com/ruby/ruby.wasm/wiki/Showcase)
+- [Cheat Sheet](https://github.com/ruby/ruby.wasm/blob/main/docs/cheat_sheet.md)
+- [FAQ](https://github.com/ruby/ruby.wasm/blob/main/docs/faq.md)
+- [API Reference](https://ruby.github.io/ruby.wasm/JS.html)
+- [Complete Examples](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example)
+- [Community Showcase](https://github.com/ruby/ruby.wasm/wiki/Showcase)
 
 ## Quick Example: Ruby on browser
 

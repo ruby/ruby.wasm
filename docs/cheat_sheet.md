@@ -1,5 +1,6 @@
 [[**Cheat Sheet**]](./cheat_sheet.md)
 [[**FAQ**]](./faq.md)
+[[**API Reference**]](https://ruby.github.io/ruby.wasm/JS.html)
 [[**Complete Examples**]](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example)
 [[**Community Showcase**]](https://github.com/ruby/ruby.wasm/wiki/Showcase)
 
