@@ -15,7 +15,10 @@ BUILD_SOURCES = {
     rev: "master",
     patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
   },
-  "3.2" => { type: "tarball", url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz" }
+  "3.2" => {
+    type: "tarball",
+    url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
+  }
 }
 
 # Respect revisions specified in build_manifest.json, which is usually generated on GitHub Actions.
