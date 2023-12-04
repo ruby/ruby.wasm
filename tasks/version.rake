@@ -22,8 +22,17 @@ def bump_version_npm_package(package, version)
   end
 end
 
+def bump_version_rb(lib, version)
+  lib_dir = "#{Dir.pwd}/lib/#{lib}"
+  version_rb = "#{lib_dir}/version.rb"
+  version_rb_content = File.read(version_rb)
+  version_rb_content.gsub!(/VERSION = ".+"/, "VERSION = \"#{version}\"")
+  File.write(version_rb, version_rb_content)
+end
+
 task :bump_version, %i[version] do |t, args|
   version = args[:version] or raise "version is required"
+  bump_version_rb("ruby_wasm", version)
   NPM_PACKAGES.each { |pkg| bump_version_npm_package(pkg[:name], version) }
   # Update ./package-lock.json
   sh "npm install"
