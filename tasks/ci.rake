@@ -26,6 +26,8 @@ EOS
     when "github"
       output +=
         "| #{name} | [`#{source[:repo]}@#{source[:rev]}`](https://github.com/ruby/ruby/tree/#{source[:rev]}) |\n"
+    when "tarball"
+      output += "| #{name} | #{source[:url]} |\n"
     else
       raise "unknown source type: #{source[:type]}"
     end
