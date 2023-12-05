@@ -1,7 +1,5 @@
-import inject from "@rollup/plugin-inject";
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
-import nodePolyfills from "rollup-plugin-polyfill-node";
 
 const typescriptOptions = { tsconfig: "./tsconfig.json", declaration: false };
 
@@ -14,10 +12,8 @@ function config({ basename }) {
       name: "ruby-wasm-wasi",
     },
     plugins: [
-      nodePolyfills(),
-      inject({ Buffer: ["buffer", "Buffer"] }),
       typescript(typescriptOptions),
-      nodeResolve({ resolveOnly: ["@wasmer/wasi"] }),
+      nodeResolve({ resolveOnly: ["@bjorn3/browser_wasi_shim"] }),
     ],
   };
 }

@@ -1,11 +1,12 @@
 #!/bin/sh
 ":" //# ; exec /usr/bin/env node --experimental-wasi-unstable-preview1 "$0" "$@"
 
-import * as wasmerWasi from "@wasmer/wasi";
+import * as browserWasi from "@bjorn3/browser_wasi_shim";
 import fs from "fs/promises";
 import path from "path";
 import * as nodeWasi from "wasi";
 import { RubyVM } from "@ruby/wasm-wasi";
+import { consolePrinter } from "@ruby/wasm-wasi/dist/console";
 
 const deriveRubySetup = () => {
   let preopens = {}
@@ -55,9 +56,6 @@ const instantiateNodeWasi = async (rootTestFile) => {
 };
 
 const instantiateWasmerWasi = async (rootTestFile) => {
-  await wasmerWasi.init();
-
-  const memFs = new wasmerWasi.MemFS();
   const walk = async (dir) => {
     const names = await fs.readdir(dir);
     const files = await Promise.all(names.map(async name => {
@@ -69,27 +67,33 @@ const instantiateWasmerWasi = async (rootTestFile) => {
     }));
     return files.flat();
   };
-  const mkdirpMemFs = (guestPath) => {
-    const parts = guestPath.split('/');
-    for (let i = 2; i <= parts.length; i++) {
-      memFs.createDir(parts.slice(0, i).join('/'));
+
+  const __root__ = new browserWasi.Directory({});
+  const writeMemFs = (guestPath, contents) => {
+    const dirname = path.dirname(guestPath);
+    const parts = dirname.split('/');
+    let current = __root__;
+    for (let i = 1; i < parts.length; i++) {
+      const dir = current.create_entry_for_path(parts[i], /* is_dir */ true);
+      current = dir;
     }
+    const basename = path.basename(guestPath);
+    const file = current.create_entry_for_path(basename, /* is_dir */ false)
+    file.data = contents;
   };
   const loadToMemFs = async (guestPath, hostPath) => {
     const hostFiles = await walk(hostPath);
     await Promise.all(hostFiles.map(async hostFile => {
       const guestFile = path.join(guestPath, path.relative(hostPath, hostFile));
-      mkdirpMemFs(path.dirname(guestFile));
       const contents = await fs.readFile(hostFile);
-      memFs.open(guestFile, { write: true, create: true }).write(contents);
+      writeMemFs(guestFile, contents);
     }));
   };
 
   const dirname = path.dirname(new URL(import.meta.url).pathname);
-  await loadToMemFs('/__root__/test', path.join(dirname, '../test'));
+  await loadToMemFs('/test', path.join(dirname, '../test'));
 
-  const { binaryPath, preopens } = deriveRubySetup();
-  preopens["__root__"] = '/__root__';
+  const { binaryPath } = deriveRubySetup();
 
   if (process.env.RUBY_ROOT) {
     console.error('For now, testing with RUBY_ROOT is not supported.');
@@ -98,26 +102,85 @@ const instantiateWasmerWasi = async (rootTestFile) => {
   const binary = await fs.readFile(binaryPath);
   const rubyModule = await WebAssembly.compile(binary);
 
-  const wasi = new wasmerWasi.WASI({
-    args: ["ruby.wasm"].concat(process.argv.slice(2)),
-    env: {
-      ...process.env,
-      // Extend fiber stack size to be able to run test-unit
-      "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
-    },
-    preopens,
-    fs: memFs,
+  const args = ["ruby.wasm"].concat(process.argv.slice(2));
+  const env = Object.entries({
+    ...process.env,
+    // Extend fiber stack size to be able to run test-unit
+    "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
+  }).map(([key, value]) => `${key}=${value}`);
+
+  // WORKAROUND: `@bjorn3/browser_wasi_shim` does not set proper rights
+  // for stdout and stderr, but wasi-libc's fcntl(2) respects rights and
+  // CRuby checks it. So we need to override `fd_fdstat_get` here.
+  const FILETYPE_CHARACTER_DEVICE = 2;
+  class Stdout extends browserWasi.OpenFile {
+    fd_filestat_get() {
+      const { ret, filestat } = super.fd_filestat_get();
+      filestat.filetype = FILETYPE_CHARACTER_DEVICE;
+      return { ret, filestat };
+    }
+
+    fd_fdstat_get() {
+      const { ret, fdstat } = super.fd_fdstat_get();
+      const RIGHTS_FD_WRITE = BigInt(1);
+      const RIGHTS_FD_TELL = BigInt(1) << BigInt(5);
+      fdstat.fs_filetype = FILETYPE_CHARACTER_DEVICE;
+      fdstat.fs_rights_base = RIGHTS_FD_WRITE;
+      return { ret, fdstat };
+    }
+  }
+
+  const fds = [
+    new browserWasi.OpenFile(new browserWasi.File([])),
+    new Stdout(new browserWasi.File([])),
+    new Stdout(new browserWasi.File([])),
+    new browserWasi.PreopenDirectory("/__root__", __root__.contents)
+  ]
+
+  const wasi = new browserWasi.WASI(args, env, fds, {
+    debug: false,
   });
 
   const vm = new RubyVM();
-  const imports = wasi.getImports(rubyModule);
+  const imports = {
+    wasi_snapshot_preview1: wasi.wasiImport,
+  };
+  const printer = consolePrinter({
+    stdout: (str) => process.stdout.write(str),
+    stderr: (str) => process.stderr.write(str),
+  });
+  printer.addToImports(imports);
   vm.addToImports(imports);
 
+  {
+    // WORKAROUND: browser_wasi_shim does not support some syscalls yet
+    // and returns -1 instead of proper ERRNO values and it results in confusing
+    // error messages "Success -- /path/to/file".
+    // Update browser_wasi_shim version when my fix[^1] will be released.
+    // [^1]: https://github.com/bjorn3/browser_wasi_shim/commit/6193f7482633ef818604375d9755ded67946adfc
+    const syscalls = imports["wasi_snapshot_preview1"]
+    for (const name of Object.keys(syscalls)) {
+      const original = syscalls[name];
+      syscalls[name] = (...args) => {
+        const result = original(...args);
+        if (result === -1) {
+          return 58; // ENOTSUP
+        }
+        // browser_wasi_shim's `random_get` returns `undefined` on success
+        // instead of `0`.
+        if (result === undefined) {
+          return 0; // Success
+        }
+        return result;
+      };
+    }
+  }
+
   const instance = await WebAssembly.instantiate(rubyModule, imports);
-  wasi.instantiate(instance);
+  printer.setMemory(instance.exports.memory);
   await vm.setInstance(instance);
 
-  instance.exports._initialize();
+  wasi.initialize(instance);
   vm.initialize(["ruby.wasm", rootTestFile]);
 
   return { instance, vm, wasi };
@@ -147,15 +210,6 @@ const test = async (instantiate) => {
     require_relative '${rootTestFile}'
     Test::Unit::AutoRunner.run
   `);
-
-  // TODO(makenowjust): override `wasi_snapshot_preview1.fd_write` for output to stdout/stderr.
-  // See `src/browser.ts`.
-  if (wasi.getStderrString) {
-    console.error(wasi.getStderrString());
-  }
-  if (wasi.getStdoutString) {
-    console.log(wasi.getStdoutString());
-  }
 };
 
 const main = async () => {
