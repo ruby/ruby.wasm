@@ -1,5 +1,5 @@
 import fs from "fs/promises";
-import { DefaultRubyVM } from "@ruby/head-wasm-wasi/dist/node.cjs.js";
+import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/node";
 
 // $ node --experimental-wasi-unstable-preview1 index.node.js
 
