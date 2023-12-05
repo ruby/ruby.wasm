@@ -534,8 +534,26 @@ type RubyVMPrivate = {
 
 class RbExceptionFormatter {
   private literalsCache: [RbValue, RbValue, RbValue] | null = null;
+  private isFormmatting: boolean = false;
 
   format(error: RbValue, vm: RubyVM, privateObject: RubyVMPrivate): string {
+    // All Ruby exceptions raised during formatting exception message should
+    // be caught and return a fallback message.
+    // Therefore, we don't need to worry about infinite recursion here ideally
+    // but checking re-entrancy just in case.
+    class RbExceptionFormatterError extends Error {}
+    if (this.isFormmatting) {
+      throw new RbExceptionFormatterError("Unexpected exception occurred during formatting exception message");
+    }
+    this.isFormmatting = true;
+    try {
+      return this._format(error, vm, privateObject);
+    } finally {
+      this.isFormmatting = false;
+    }
+  }
+
+  private _format(error: RbValue, vm: RubyVM, privateObject: RubyVMPrivate): string {
     const [zeroLiteral, oneLiteral, newLineLiteral] = (() => {
       if (this.literalsCache == null) {
         const zeroOneNewLine: [RbValue, RbValue, RbValue] = [
@@ -550,21 +568,42 @@ class RbExceptionFormatter {
       }
     })();
 
-    const backtrace = error.call("backtrace");
-    if (backtrace.call("nil?").toString() === "true") {
-      return this.formatString(
-        error.call("class").toString(),
-        error.toString(),
-      );
+    let className: string;
+    let backtrace: RbValue;
+    let message: string;
+    try {
+      className = error.call("class").toString();
+    } catch (e) {
+      className = "unknown";
     }
-    const firstLine = backtrace.call("at", zeroLiteral);
-    const restLines = backtrace
-      .call("drop", oneLiteral)
-      .call("join", newLineLiteral);
-    return this.formatString(error.call("class").toString(), error.toString(), [
-      firstLine.toString(),
-      restLines.toString(),
-    ]);
+
+    try {
+      message = error.toString();
+    } catch (e) {
+      message = "unknown";
+    }
+
+    try {
+      backtrace = error.call("backtrace");
+    } catch (e) {
+      return this.formatString(className, message);
+    }
+
+    if (backtrace.call("nil?").toString() === "true") {
+      return this.formatString(className, message);
+    }
+    try {
+      const firstLine = backtrace.call("at", zeroLiteral);
+      const restLines = backtrace
+        .call("drop", oneLiteral)
+        .call("join", newLineLiteral);
+      return this.formatString(className, message, [
+        firstLine.toString(),
+        restLines.toString(),
+      ]);
+    } catch (e) {
+      return this.formatString(className, message);
+    }
   }
 
   formatString(
