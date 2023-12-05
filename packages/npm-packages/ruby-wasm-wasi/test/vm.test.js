@@ -113,6 +113,25 @@ eval:3:in \`foo'
 eval:11:in \`<main>'`);
   });
 
+  test("exception while formatting exception backtrace", async () => {
+    const vm = await initRubyVM();
+    const throwError = () => {
+      vm.eval(`
+      class BrokenException < Exception
+        def to_s
+          raise "something went wrong in BrokenException#to_s"
+        end
+        def backtrace
+          raise "something went wrong in BrokenException#backtrace"
+        end
+      end
+      raise BrokenException.new
+      `);
+    }
+    expect(throwError)
+      .toThrowError(`BrokenException: unknown`);
+  });
+
   test("eval encoding", async () => {
     const vm = await initRubyVM();
     expect(vm.eval(`Encoding.default_external.name`).toString()).toBe("UTF-8");
