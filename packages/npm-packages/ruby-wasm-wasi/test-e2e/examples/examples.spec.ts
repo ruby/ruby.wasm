@@ -1,12 +1,18 @@
 import { test, expect, Page } from "@playwright/test";
 import path from "path";
-import { waitForRubyVM, setupDebugLog, setupProxy } from "../support";
+import {
+  waitForRubyVM,
+  setupDebugLog,
+  setupProxy,
+  setupUncaughtExceptionRejection,
+} from "../support";
 import { readFileSync } from "fs";
 import http from "http";
 import https from "https";
 
-test.beforeEach(async ({ context }) => {
+test.beforeEach(async ({ context, page }) => {
   setupDebugLog(context);
+  setupUncaughtExceptionRejection(page);
   if (process.env.RUBY_NPM_PACKAGE_ROOT) {
     setupProxy(context);
   } else {
