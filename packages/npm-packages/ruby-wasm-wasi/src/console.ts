@@ -37,35 +37,39 @@ export function consolePrinter(
   },
 ) {
   let memory: WebAssembly.Memory | undefined = undefined;
-  let view: DataView | undefined = undefined;
+  let _view: DataView | undefined = undefined;
+
+  function getMemoryView(): DataView {
+    if (typeof memory === "undefined") {
+      throw new Error("Memory is not set");
+    }
+    if (_view === undefined || _view.buffer.byteLength === 0) {
+      _view = new DataView(memory.buffer);
+    }
+    return _view;
+  }
 
   const decoder = new TextDecoder();
 
   return {
     addToImports(imports: WebAssembly.Imports): void {
-      const original = imports.wasi_snapshot_preview1.fd_write as (
-        fd: number,
-        iovs: number,
-        iovsLen: number,
-        nwritten: number,
-      ) => number;
-      imports.wasi_snapshot_preview1.fd_write = (
-        fd: number,
-        iovs: number,
-        iovsLen: number,
-        nwritten: number,
-      ): number => {
+      const wasiImport = imports.wasi_snapshot_preview1 as {
+        fd_write: (
+          fd: number,
+          iovs: number,
+          iovsLen: number,
+          nwritten: number,
+        ) => number;
+        fd_filestat_get: (fd: number, filestat: number) => number;
+        fd_fdstat_get: (fd: number, fdstat: number) => number;
+      };
+      const original_fd_write = wasiImport.fd_write;
+      wasiImport.fd_write = (fd, iovs, iovsLen, nwritten): number => {
         if (fd !== 1 && fd !== 2) {
-          return original(fd, iovs, iovsLen, nwritten);
+          return original_fd_write(fd, iovs, iovsLen, nwritten);
         }
 
-        if (typeof memory === "undefined" || typeof view === "undefined") {
-          throw new Error("Memory is not set");
-        }
-        if (view.buffer.byteLength === 0) {
-          view = new DataView(memory.buffer);
-        }
-
+        const view = getMemoryView();
         const buffers = Array.from({ length: iovsLen }, (_, i) => {
           const ptr = iovs + i * 8;
           const buf = view.getUint32(ptr, true);
@@ -86,10 +90,44 @@ export function consolePrinter(
 
         return 0;
       };
+
+      const original_fd_filestat_get = wasiImport.fd_filestat_get;
+      wasiImport.fd_filestat_get = (fd, filestat): number => {
+        if (fd !== 1 && fd !== 2) {
+          return original_fd_filestat_get(fd, filestat);
+        }
+
+        const view = getMemoryView();
+        const result = original_fd_filestat_get(fd, filestat);
+        if (result !== 0) {
+          return result;
+        }
+
+        const filetypePtr = filestat + 0;
+        view.setUint8(filetypePtr, 2); // FILETYPE_CHARACTER_DEVICE
+
+        return 0;
+      };
+
+      const original_fd_fdstat_get = wasiImport.fd_fdstat_get;
+      wasiImport.fd_fdstat_get = (fd, fdstat): number => {
+        if (fd !== 1 && fd !== 2) {
+          return original_fd_fdstat_get(fd, fdstat);
+        }
+
+        const view = getMemoryView();
+
+        const fs_filetypePtr = fdstat + 0;
+        view.setUint8(fs_filetypePtr, 2); // FILETYPE_CHARACTER_DEVICE
+
+        const fs_rights_basePtr = fdstat + 8;
+        view.setBigUint64(fs_rights_basePtr, BigInt(1)); // RIGHTS_FD_WRITE
+
+        return 0;
+      };
     },
     setMemory(m: WebAssembly.Memory) {
       memory = m;
-      view = new DataView(m.buffer);
     },
   };
 }

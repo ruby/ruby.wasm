@@ -1,4 +1,4 @@
-import { Fd, File, OpenFile, WASI } from "@bjorn3/browser_wasi_shim";
+import { Fd, WASI } from "@bjorn3/browser_wasi_shim";
 import { RubyVM } from "./index.js";
 import { consolePrinter } from "./console.js";
 
@@ -18,31 +18,7 @@ export const DefaultRubyVM = async (
     ([k, v]) => `${k}=${v}`,
   );
 
-  // WORKAROUND: `@bjorn3/browser_wasi_shim` does not set proper rights
-  // and filetypes for stdout and stderr, but wasi-libc's fcntl(2) respects
-  // rights and  CRuby checks it. So we need to override `fd_fdstat_get` here.
-  const FILETYPE_CHARACTER_DEVICE = 2;
-  class Stdout extends OpenFile {
-    fd_filestat_get() {
-      const { ret, filestat } = super.fd_filestat_get();
-      filestat.filetype = FILETYPE_CHARACTER_DEVICE;
-      return { ret, filestat };
-    }
-
-    fd_fdstat_get() {
-      const { ret, fdstat } = super.fd_fdstat_get();
-      const RIGHTS_FD_WRITE = BigInt(1);
-      fdstat.fs_filetype = FILETYPE_CHARACTER_DEVICE;
-      fdstat.fs_rights_base = RIGHTS_FD_WRITE;
-      return { ret, fdstat };
-    }
-  }
-
-  const fds: Fd[] = [
-    new OpenFile(new File([])), // stdin
-    new Stdout(new File([])), // stdout
-    new Stdout(new File([])), // stderr
-  ];
+  const fds: Fd[] = [];
   const wasi = new WASI(args, env, fds, { debug: false });
   const vm = new RubyVM();
 
