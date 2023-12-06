@@ -3,7 +3,10 @@ dist
 /build
 /rubies
 /release
+/tmp
+/target
 /Gemfile.lock
+/lib/ruby_wasm/ruby_wasm.so
 
 .cache
 compile_commands.json

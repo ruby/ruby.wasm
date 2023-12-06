@@ -51,6 +51,11 @@ BUILD_PROFILES = {
     default_exts: "",
     user_exts: []
   },
+  "minimal-component-debug" => {
+    debug: true,
+    default_exts: "",
+    user_exts: %w[c10zrt]
+  },
   "full" => {
     debug: false,
     default_exts: FULL_EXTS,

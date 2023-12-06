@@ -5,31 +5,6 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
   # Name of the task.
   attr_accessor :name
 
-  # Source to build from.
-  attr_reader :source
-
-  # Target to build for.
-  attr_reader :target
-
-  # Toolchain for the build.
-  # Defaults to the Toolchain.get for the target.
-  attr_reader :toolchain
-
-  # LibYAML product to build.
-  attr_reader :libyaml
-
-  # zlib product to build.
-  attr_reader :zlib
-
-  # wasi-vfs product used by the crossruby.
-  attr_reader :wasi_vfs
-
-  # BaseRuby product to build.
-  attr_reader :baseruby
-
-  # CrossRuby product to build.
-  attr_reader :crossruby
-
   def initialize(
     name,
     target:,
@@ -37,40 +12,22 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     toolchain: nil,
     build_dir: nil,
     rubies_dir: nil,
-    **options
+    **options,
+    &block
   )
-    @name = name
-    @target = target
-    @build_dir = build_dir || File.join(Dir.pwd, "build")
-    @rubies_dir = rubies_dir || File.join(Dir.pwd, "rubies")
-    @toolchain = (toolchain || RubyWasm::Toolchain.get(target, @build_dir))
-
-    @libyaml = RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
-    @zlib = RubyWasm::ZlibProduct.new(@build_dir, @target, @toolchain)
-    @wasi_vfs = RubyWasm::WasiVfsProduct.new(@build_dir)
-    @source = RubyWasm::BuildSource.new(src, @build_dir)
-    @baseruby = RubyWasm::BaseRubyProduct.new(@build_dir, @source)
-    @openssl = RubyWasm::OpenSSLProduct.new(@build_dir, @target, @toolchain)
-
-    build_params =
-      RubyWasm::BuildParams.new(options.merge(name: name, target: target))
-
-    @crossruby =
-      RubyWasm::CrossRubyProduct.new(
-        build_params,
-        @build_dir,
-        @rubies_dir,
-        @baseruby,
-        @source,
-        @toolchain
+    @build =
+      RubyWasm::Build.new(
+        name,
+        target: target,
+        src: src,
+        toolchain: toolchain,
+        build_dir: build_dir || File.join(Dir.pwd, "build"),
+        rubies_dir: rubies_dir || File.join(Dir.pwd, "rubies"),
+        **options,
+        &block
       )
-    yield self if block_given?
-
-    @crossruby.with_libyaml @libyaml
-    @crossruby.with_zlib @zlib
-    @crossruby.with_wasi_vfs @wasi_vfs
-    @crossruby.with_openssl @openssl
-
+    yield @build if block_given?
+    @crossruby = @build.crossruby
     # Rake.verbose can be Object.new by default, so compare with true explicitly.
     executor = RubyWasm::BuildExecutor.new(verbose: Rake.verbose == true)
 
@@ -95,16 +52,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
   def hexdigest
     require "digest"
     digest = Digest::SHA256.new
-    @source.cache_key(digest)
-    @crossruby.cache_key(digest)
-    digest << @build_dir
-    digest << @rubies_dir
-    digest << @target
-    digest << @toolchain.name
-    digest << @libyaml.name
-    digest << @zlib.name
-    digest << @openssl.name
-    digest << @wasi_vfs.name
+    @build.cache_key(digest)
     digest.hexdigest
   end
 end

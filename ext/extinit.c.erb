@@ -14,7 +14,8 @@ end
 exts = ARGV
 
 c_src = ERB.new(DATA.read).result
-IO.popen("#{@cc} -c -xc - -o #{@o}", "w") {|f| f << c_src }
+IO.popen([@cc, "-c", "-xc", "-", "-o", @o], "w") {|f| f << c_src }
+exit $?.exitstatus
 
 __END__
 #define init(func, name) { \
@@ -26,6 +27,6 @@ void ruby_init_ext(const char *name, void (*init)(void));
 
 void Init_extra_exts(void) {
 <% exts.each do |ext| %>
-  init(<%= "Init_#{ext}" %>, "<%= ext %>");
+  init(<%= "Init_#{File.basename ext}" %>, "<%= ext %>");
 <% end %>
 }

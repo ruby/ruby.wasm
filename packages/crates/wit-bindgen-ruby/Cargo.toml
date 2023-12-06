@@ -1,0 +1,10 @@
+[package]
+name = "wit-bindgen-ruby"
+version = "0.1.0"
+edition = "2021"
+authors = ["Yuta Saito <kateinoigakukun@gmail.com>"]
+license = "MIT"
+publish = false
+
+[dependencies]
+wit-parser = "0.13.0"

@@ -1,4 +1,3 @@
-require "rake"
 require_relative "./product"
 
 module RubyWasm

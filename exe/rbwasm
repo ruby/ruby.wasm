@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH << File.join(__dir__, "../lib")
+require "ruby_wasm"
+require "ruby_wasm/cli"
+
+RubyWasm::CLI.new(stdout: $stdout, stderr: $stderr).run(ARGV)

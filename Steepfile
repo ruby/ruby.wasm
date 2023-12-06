@@ -14,6 +14,7 @@ target :lib do
   library "uri"
   library "shellwords"
   library "io-console"
+  library "optparse"
 
   configure_code_diagnostics(D::Ruby.default)
 end

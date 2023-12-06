@@ -1,19 +1,33 @@
 require_relative "./product"
+require "json"
 
 module RubyWasm
   class CrossRubyExtProduct < BuildProduct
     attr_reader :name
-    def initialize(srcdir, toolchain, name: nil)
+
+    def initialize(srcdir, toolchain, ext_relative_path: nil)
       @srcdir, @toolchain = srcdir, toolchain
-      @name = name || File.basename(srcdir)
+      # ext_relative_path is relative path from build dir
+      # e.g. cgi-0.3.6/ext/cgi/escape
+      @ext_relative_path = ext_relative_path || File.basename(srcdir)
+      @name = ext_relative_path
     end
 
     def product_build_dir(crossruby)
-      File.join(crossruby.ext_build_dir, @name)
+      File.join(crossruby.ext_build_dir, @ext_relative_path)
     end
 
     def linklist(crossruby)
       File.join(product_build_dir(crossruby), "link.filelist")
+    end
+
+    def metadata_json(crossruby)
+      File.join(product_build_dir(crossruby), "rbwasm.metadata.json")
+    end
+
+    def feature_name(crossruby)
+      metadata = JSON.parse(File.read(metadata_json(crossruby)))
+      metadata["target"]
     end
 
     def make_args(crossruby)
@@ -28,7 +42,6 @@ module RubyWasm
     end
 
     def build(executor, crossruby)
-      lib = @name
       objdir = product_build_dir crossruby
       executor.mkdir_p objdir
       do_extconf executor, crossruby
@@ -37,7 +50,7 @@ module RubyWasm
                       "-C",
                       "#{objdir}",
                       *make_args(crossruby),
-                      "#{lib}.a"
+                      "static"
       # A ext can provide link args by link.filelist. It contains only built archive file by default.
       unless File.exist?(linklist(crossruby))
         executor.write(
@@ -58,6 +71,9 @@ module RubyWasm
         # HACK: extout is required to find config.h
         "-e",
         %Q($extout="#{crossruby.build_dir}/.ext"),
+        # HACK: skip have_devel check since ruby is not installed yet
+        "-e",
+        "$have_devel = true",
         # HACK: force static ext build by imitating extmk
         "-e",
         "$static = true; trace_var(:$static) {|v| $static = true }",
@@ -68,6 +84,10 @@ module RubyWasm
         %Q($0="#{@srcdir}/extconf.rb"),
         "-e",
         %Q(require_relative "#{@srcdir}/extconf.rb"),
+        # HACK: extract "$target" from extconf.rb to get a full target name
+        # like "cgi/escape" instead of "escape"
+        "-e",
+        %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
         "-I#{crossruby.build_dir}"
       ]
       # Clear RUBYOPT to avoid loading unrelated bundle setup
@@ -108,22 +128,14 @@ module RubyWasm
                   :xcflags,
                   :xldflags
 
-    def initialize(
-      params,
-      build_dir,
-      rubies_dir,
-      baseruby,
-      source,
-      toolchain,
-      user_exts: []
-    )
+    def initialize(params, build_dir, rubies_dir, baseruby, source, toolchain)
       @params = params
       @rubies_dir = rubies_dir
       @build_dir = build_dir
       @baseruby = baseruby
       @source = source
       @toolchain = toolchain
-      @user_exts = user_exts
+      @user_exts = []
       @wasmoptflags = []
       @cppflags = []
       @cflags = []
@@ -170,7 +182,7 @@ module RubyWasm
       executor.mkdir_p File.dirname(extinit_obj)
       executor.system "ruby",
                       extinit_c_erb,
-                      *@user_exts.map(&:name),
+                      *@user_exts.map { |ext| ext.feature_name(self) },
                       "--cc",
                       toolchain.cc,
                       "--output",
@@ -187,7 +199,7 @@ module RubyWasm
       executor.rm_rf dest_dir
       executor.cp_r install_dir, dest_dir
       @user_exts.each { |ext| ext.do_install_rb(executor, self) }
-      executor.system "tar", "cfz", artifact, "-C", "rubies", name
+      executor.system "tar", "cfz", artifact, "-C", @rubies_dir, name
 
       executor.end_section self.class, name
     end
