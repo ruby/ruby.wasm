@@ -5,8 +5,7 @@ import * as browserWasi from "@bjorn3/browser_wasi_shim";
 import fs from "fs/promises";
 import path from "path";
 import * as nodeWasi from "wasi";
-import { RubyVM } from "@ruby/wasm-wasi";
-import { consolePrinter } from "@ruby/wasm-wasi/dist/console";
+import { RubyVM, consolePrinter } from "@ruby/wasm-wasi";
 
 const deriveRubySetup = () => {
   let preopens = {}
