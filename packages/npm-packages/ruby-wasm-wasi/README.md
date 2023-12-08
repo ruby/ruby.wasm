@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/@ruby%2Fwasm-wasi.svg)](https://www.npmjs.com/package/@ruby/wasm-wasi)
 
-This package core API for Ruby on WebAssembly targeting WASI-compatible environments. WebAssembly binaries are distributed in version-specific packages.
+This package provides core APIs for Ruby on WebAssembly targeting WASI-compatible environments. WebAssembly binaries are distributed in version-specific packages.
 
 See [Cheat Sheet](https://github.com/ruby/ruby.wasm/blob/main/docs/cheat_sheet.md) for how to use this package.
 
