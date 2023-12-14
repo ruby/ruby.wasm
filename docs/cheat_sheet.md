@@ -64,6 +64,30 @@ If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` pa
 </html>
 ```
 
+<details>
+<summary>Alternative: Without ES Modules</summary>
+
+```html
+<html>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.3.0/dist/browser.umd.js"></script>
+  <script>
+    const main = async () => {
+      const { DefaultRubyVM } = window["ruby-wasm-wasi"];
+      const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/3.2-wasm-wasi@2.3.0/dist/ruby+stdlib.wasm");
+      const module = await WebAssembly.compileStreaming(response);
+      const { vm } = await DefaultRubyVM(module);
+
+      vm.eval(`
+        require "js"
+        JS.global[:document].write "Hello, world!"
+      `);
+    }
+    main()
+  </script>
+</html>
+```
+</details>
+
 ## Use JavaScript from Ruby
 
 ### Get/set JavaScript variables from Ruby
