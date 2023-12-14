@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from "@playwright/test";
+import { BrowserContext, Page, expect } from "@playwright/test";
 import path from "path";
 
 export const waitForRubyVM = async (page: Page) => {

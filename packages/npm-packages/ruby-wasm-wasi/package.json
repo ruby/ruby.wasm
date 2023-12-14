@@ -55,16 +55,14 @@
     "build": "npm run build:rollup && npm run build:tsc && npm run build:static && ./tools/post-build.sh ./dist"
   },
   "devDependencies": {
-    "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-node-resolve": "^15.1.0",
     "@rollup/plugin-typescript": "^11.1.2",
     "@types/jest": "^29.5.3",
     "@types/node": "20.8.10",
-    "@wasmer/wasi": "^1.2.2",
     "jest": "^29.6.2",
     "prettier": "^3.0.0",
     "rollup": "^4.6.1",
-    "rollup-plugin-polyfill-node": "^0.13.0",
+    "@bjorn3/browser_wasi_shim": "^0.2.17",
     "typescript": "^5.3.2"
   },
   "dependencies": {

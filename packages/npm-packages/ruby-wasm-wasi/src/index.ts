@@ -6,6 +6,8 @@ import {
   JsAbiValue,
 } from "./bindgen/rb-js-abi-host.js";
 
+export { consolePrinter } from "./console.js";
+
 /**
  * A Ruby VM instance
  *
