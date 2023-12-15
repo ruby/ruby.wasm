@@ -124,6 +124,8 @@ end
 
 ### `await` JavaScript `Promise` from Ruby
 
+`data-eval="async"` attribute is required to use `await` in `<script>` tag:
+
 ```html
 <html>
   <script src="https://cdn.jsdelivr.net/npm/@ruby/3.2-wasm-wasi@2.4.0/dist/browser.script.iife.js"></script>
@@ -136,7 +138,7 @@ end
 </html>
 ```
 
-Or using `@ruby/wasm-wasi` package API:
+Or using `@ruby/wasm-wasi` package API `RubyVM#evalAsync`:
 
 ```html
 <html>
