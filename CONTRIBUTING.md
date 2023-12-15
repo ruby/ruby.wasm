@@ -15,6 +15,9 @@ $ rake --tasks
 ## Building and Testing [`ruby-wasm-wasi`](./packages/npm-packages/ruby-wasm-wasi)
 
 ```console
+# Install rollup globally
+# npm install -g rollup
+
 # Download a prebuilt Ruby release (if you don't need to re-build Ruby)
 $ rake build:download_prebuilt
 
