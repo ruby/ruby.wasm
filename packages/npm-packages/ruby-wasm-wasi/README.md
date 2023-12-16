@@ -10,8 +10,8 @@ See [Cheat Sheet](https://github.com/ruby/ruby.wasm/blob/main/docs/cheat_sheet.m
 
 | Version | Package                                            |
 | ------- | -------------------------------------------------- |
-| `head`  | [`@ruby/head-wasm-wasi`](./../ruby-head-wasm-wasi) |
-| `3.2`   | [`@ruby/3.2-wasm-wasi`](./../ruby-3.2-wasm-wasi)   |
+| `head`  | [`@ruby/head-wasm-wasi`](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi) |
+| `3.2`   | [`@ruby/3.2-wasm-wasi`](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3.2-wasm-wasi)   |
 
 ## API
 
