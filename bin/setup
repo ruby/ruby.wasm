@@ -3,5 +3,8 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
+export GEM_HOME="$(gem env user_gemhome)"
+export PATH="$PATH:$GEM_HOME/bin"
+
 bundle install
 npm ci
