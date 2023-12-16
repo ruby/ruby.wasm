@@ -36,6 +36,7 @@ const instantiateNodeWasi = async (rootTestFile) => {
       "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
     },
     preopens,
+    version: "preview1",
   });
 
   const vm = new RubyVM();
