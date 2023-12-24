@@ -1,28 +1,35 @@
 import fs from "fs";
 import path from "path";
 import { test, expect } from "@playwright/test";
-import { setupDebugLog, setupProxy, resolveBinding } from "../support";
+import {
+  setupDebugLog,
+  setupProxy,
+  setupUncaughtExceptionRejection,
+  expectUncaughtException,
+  resolveBinding,
+} from "../support";
 
 if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
   test.skip("skip", () => {});
 } else {
-  test.beforeEach(async ({ context }) => {
+  test.beforeEach(async ({ context, page }) => {
     setupDebugLog(context);
-    setupProxy(context, (route, relativePath, mockedPath) => {
-      if (relativePath.match("fixtures")) {
-        route.fulfill({
-          path: path.join("./test-e2e/integrations", relativePath),
-        });
-      } else if (fs.existsSync(mockedPath)) {
-        route.fulfill({
-          path: mockedPath,
-        });
-      } else {
-        route.fulfill({
-          status: 404,
-        });
-      }
+    setupProxy(context);
+
+    context.route(/fixtures/, (route) => {
+      const filename = path.basename(route.request().url());
+      route.fulfill({
+        path: path.join("./test-e2e/integrations/fixtures", filename),
+      });
     });
+
+    context.route(/not_found/, (route) => {
+      route.fulfill({
+        status: 404,
+      });
+    });
+
+    setupUncaughtExceptionRejection(page);
   });
 
   test.describe("JS::RequireRemote#load", () => {
@@ -64,6 +71,8 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
     test("JS::RequireRemote#load throws error when gem is not found", async ({
       page,
     }) => {
+      expectUncaughtException(page);
+
       // Opens the URL that will be used as the basis for determining the relative URL.
       await page.goto(
         "https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/",
@@ -73,12 +82,12 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
       </script>
       <script type="text/ruby" data-eval="async">
         require 'js/require_remote'
-        JS::RequireRemote.instance.load 'foo'
+        JS::RequireRemote.instance.load 'not_found'
       </script>
      `);
 
       const error = await page.waitForEvent("pageerror");
-      expect(error.message).toMatch(/cannot load such url -- .+\/foo.rb/);
+      expect(error.message).toMatch(/cannot load such url -- .+\/not_found.rb/);
     });
   });
 }

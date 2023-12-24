@@ -13,7 +13,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
 } else {
   test.beforeEach(async ({ context, page }) => {
     setupDebugLog(context);
-    setupProxy(context, null);
+    setupProxy(context);
     setupUncaughtExceptionRejection(page);
   });
 

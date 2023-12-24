@@ -14,7 +14,7 @@ test.beforeEach(async ({ context, page }) => {
   setupDebugLog(context);
   setupUncaughtExceptionRejection(page);
   if (process.env.RUBY_NPM_PACKAGE_ROOT) {
-    setupProxy(context, null);
+    setupProxy(context);
   } else {
     console.info("Testing against CDN deployed files");
     const packagePath = path.join(__dirname, "..", "..", "package.json");

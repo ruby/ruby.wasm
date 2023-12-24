@@ -1,4 +1,4 @@
-import { BrowserContext, Page, Route, expect } from "@playwright/test";
+import { BrowserContext, Page, expect } from "@playwright/test";
 import path from "path";
 
 export const waitForRubyVM = async (page: Page) => {
@@ -17,18 +17,9 @@ export const setupDebugLog = (context: BrowserContext) => {
   }
 };
 
-type CustomRouter = (
-  route: Route,
-  relativePath: string,
-  mockedPath: string,
-) => void;
-export const setupProxy = (
-  context: BrowserContext,
-  customRouter: CustomRouter | null,
-) => {
+export const setupProxy = (context: BrowserContext) => {
   const cdnPattern =
     /cdn.jsdelivr.net\/npm\/@ruby\/.+-wasm-wasi@.+\/dist\/(.+)/;
-
   context.route(cdnPattern, (route) => {
     const request = route.request();
     console.log(">> [MOCK]", request.method(), request.url());
@@ -39,13 +30,9 @@ export const setupProxy = (
       relativePath,
     );
 
-    if (customRouter) {
-      customRouter(route, relativePath, mockedPath);
-    } else {
-      route.fulfill({
-        path: mockedPath,
-      });
-    }
+    route.fulfill({
+      path: mockedPath,
+    });
   });
 };
 
