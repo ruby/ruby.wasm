@@ -61,11 +61,6 @@ BUILD_PROFILES = {
     default_exts: FULL_EXTS,
     user_exts: []
   },
-  "full-js" => {
-    debug: false,
-    default_exts: FULL_EXTS,
-    user_exts: %w[js witapi]
-  },
   "full-js-debug" => {
     debug: true,
     default_exts: FULL_EXTS,
@@ -78,17 +73,9 @@ BUILDS =
     .product(BUILD_SOURCES.keys, BUILD_PROFILES.keys)
     .select do |target, _, profile_name|
       if target == "wasm32-unknown-emscripten"
-        profile = BUILD_PROFILES[profile_name]
-        user_exts = profile[:user_exts]
-        # Skip builds with JS extensions or debug mode for Emscripten
-        # because JS extensions have incompatible import/export entries
-        # and debug mode is rarely used for Emscripten.
-        next(
-          !(
-            user_exts.include?("witapi") || user_exts.include?("js") ||
-              profile[:debug]
-          )
-        )
+        # Builds only full for Emscripten since minimal, js, debug
+        # builds are rarely used with Emscripten.
+        next profile_name == "full"
       end
       next true
     end
