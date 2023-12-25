@@ -1,6 +1,6 @@
 {
   "name": "@ruby/3.2-wasm-wasi",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Ruby 3.2 built on WASI",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
