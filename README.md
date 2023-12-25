@@ -23,7 +23,7 @@ Create and save `index.html` page with the following contents:
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/@ruby/3.2-wasm-wasi@2.4.1/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/3.3-wasm-wasi@2.4.1/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     require "js"
 
@@ -70,6 +70,11 @@ See the `README.md` of each package for more detail and its usage.
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <td><a href="/packages/npm-packages/ruby-3.3-wasm-wasi">@ruby/3.3-wasm-wasi</a></td>
+      <td>CRuby 3.3 built on WASI with JS interop support</td>
+      <td><a href="https://www.npmjs.com/package/@ruby/3.3-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby%2F3.3-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
+    </tr>
     <tr>
       <td><a href="/packages/npm-packages/ruby-3.2-wasm-wasi">@ruby/3.2-wasm-wasi</a></td>
       <td>CRuby 3.2 built on WASI with JS interop support</td>
