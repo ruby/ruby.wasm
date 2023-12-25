@@ -44,10 +44,6 @@
     "ruby"
   ],
   "license": "MIT",
-  "devDependencies": {
-    "@rollup/plugin-json": "^6.0.1",
-    "rollup": "^4.6.1"
-  },
   "dependencies": {
     "@ruby/wasm-wasi": "^2.0.0"
   }
