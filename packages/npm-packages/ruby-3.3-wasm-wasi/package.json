@@ -1,0 +1,54 @@
+{
+  "name": "@ruby/3.3-wasm-wasi",
+  "version": "2.4.0",
+  "description": "Ruby 3.3 built on WASI",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/esm/index.js",
+      "umd": "./dist/umd/index.js",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./dist/*": {
+      "browser": "./dist/esm/*.js",
+      "umd": "./dist/umd/*.js",
+      "import": "./dist/esm/*.js",
+      "require": "./dist/cjs/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-3.3-wasm-wasi npm -C ../ruby-wasm-wasi run test:run",
+    "build:deps": "cd ../ruby-wasm-wasi && npm run build",
+    "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
+    "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-3.3-wasm-wasi",
+    "build:static": "npm run build:static:files && npm run build:static:compat",
+    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/3.3-wasm32-unknown-wasi-full-js-debug ./dist",
+    "build:rollup": "rollup -c rollup.config.mjs",
+    "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup && ../ruby-wasm-wasi/tools/post-build.sh ./dist"
+  },
+  "repository": "https://github.com/ruby/ruby.wasm",
+  "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3.3-wasm-wasi",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "wasi",
+    "ruby"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-json": "^6.0.1",
+    "rollup": "^4.6.1"
+  },
+  "dependencies": {
+    "@ruby/wasm-wasi": "^2.0.0"
+  }
+}

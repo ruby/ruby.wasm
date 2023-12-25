@@ -15,6 +15,10 @@ BUILD_SOURCES = {
     rev: "master",
     patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
   },
+  "3.3" => {
+    type: "tarball",
+    url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
+  },
   "3.2" => {
     type: "tarball",
     url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
@@ -104,6 +108,11 @@ NPM_PACKAGES = [
   {
     name: "ruby-head-wasm-wasi",
     build: "head-wasm32-unknown-wasi-full-js-debug",
+    target: "wasm32-unknown-wasi"
+  },
+  {
+    name: "ruby-3.3-wasm-wasi",
+    build: "3.3-wasm32-unknown-wasi-full-js-debug",
     target: "wasm32-unknown-wasi"
   },
   {
