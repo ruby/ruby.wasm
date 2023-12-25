@@ -15,6 +15,10 @@ BUILD_SOURCES = {
     rev: "master",
     patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
   },
+  "3.3" => {
+    type: "tarball",
+    url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
+  },
   "3.2" => {
     type: "tarball",
     url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
@@ -57,11 +61,6 @@ BUILD_PROFILES = {
     default_exts: FULL_EXTS,
     user_exts: []
   },
-  "full-js" => {
-    debug: false,
-    default_exts: FULL_EXTS,
-    user_exts: %w[js witapi]
-  },
   "full-js-debug" => {
     debug: true,
     default_exts: FULL_EXTS,
@@ -74,17 +73,9 @@ BUILDS =
     .product(BUILD_SOURCES.keys, BUILD_PROFILES.keys)
     .select do |target, _, profile_name|
       if target == "wasm32-unknown-emscripten"
-        profile = BUILD_PROFILES[profile_name]
-        user_exts = profile[:user_exts]
-        # Skip builds with JS extensions or debug mode for Emscripten
-        # because JS extensions have incompatible import/export entries
-        # and debug mode is rarely used for Emscripten.
-        next(
-          !(
-            user_exts.include?("witapi") || user_exts.include?("js") ||
-              profile[:debug]
-          )
-        )
+        # Builds only full for Emscripten since minimal, js, debug
+        # builds are rarely used with Emscripten.
+        next profile_name == "full"
       end
       next true
     end
@@ -104,6 +95,11 @@ NPM_PACKAGES = [
   {
     name: "ruby-head-wasm-wasi",
     build: "head-wasm32-unknown-wasi-full-js-debug",
+    target: "wasm32-unknown-wasi"
+  },
+  {
+    name: "ruby-3.3-wasm-wasi",
+    build: "3.3-wasm32-unknown-wasi-full-js-debug",
     target: "wasm32-unknown-wasi"
   },
   {

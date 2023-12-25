@@ -1,0 +1,1 @@
+../ruby-head-wasm-wasi/rollup.config.mjs
