@@ -24,8 +24,14 @@ export const setupProxy = (context: BrowserContext) => {
     const request = route.request();
     console.log(">> [MOCK]", request.method(), request.url());
     const relativePath = request.url().match(cdnPattern)[1];
+    const mockedPath = path.join(
+      process.env.RUBY_NPM_PACKAGE_ROOT,
+      "dist",
+      relativePath,
+    );
+
     route.fulfill({
-      path: path.join(process.env.RUBY_NPM_PACKAGE_ROOT, "dist", relativePath),
+      path: mockedPath,
     });
   });
 };
@@ -44,3 +50,14 @@ export const { setupUncaughtExceptionRejection, expectUncaughtException } =
       },
     };
   })();
+
+export const resolveBinding = async (page: Page, name: string) => {
+  let checkResolved;
+  const resolvedValue = new Promise((resolve) => {
+    checkResolved = resolve;
+  });
+  await page.exposeBinding(name, async (source, v) => {
+    checkResolved(v);
+  });
+  return async () => await resolvedValue;
+};
