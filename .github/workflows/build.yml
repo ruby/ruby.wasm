@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-manifest
       - uses: actions/cache@v3.3.2
@@ -137,10 +137,10 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-manifest
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: release
       - uses: actions/setup-node@v4
