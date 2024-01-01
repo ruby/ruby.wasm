@@ -78,7 +78,7 @@ jobs:
       - run: rake ci:pin_build_manifest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: build-manifest
           path: build_manifest.json
@@ -125,7 +125,7 @@ jobs:
       - name: rake ${{ matrix.entry.test }}
         run: rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ matrix.entry.artifact }}
         with:
           name: ${{ matrix.entry.artifact_name }}
