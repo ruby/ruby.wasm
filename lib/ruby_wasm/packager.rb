@@ -1,8 +1,8 @@
 class RubyWasm::Packager
-  def initialize(dest_dir, definition = Bundler.definition)
+  def initialize(dest_dir, target_triplet, definition = Bundler.definition)
     @dest_dir = dest_dir
     @definition = definition
-    @target_triplet = "wasm32-unknown-wasi"
+    @target_triplet = target_triplet
   end
 
   def package(executor, options)

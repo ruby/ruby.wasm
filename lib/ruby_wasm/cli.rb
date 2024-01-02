@@ -43,7 +43,7 @@ module RubyWasm
       options = {
         save_temps: false,
         optimize: false,
-        format: :single_module,
+        target_triplet: "wasm32-unknown-wasi",
         stdlib: true
       }
       OptionParser
@@ -58,16 +58,16 @@ module RubyWasm
             options[:save_temps] = true
           end
 
+          opts.on("--target TRIPLET", "Target triplet") do |triplet|
+            options[:target_triplet] = triplet
+          end
+
           opts.on("--optimize", "Optimize the output") do
             options[:optimize] = true
           end
 
           opts.on("-o", "--output FILE", "Output file") do |file|
             options[:output] = file
-          end
-
-          opts.on("--format FORMAT", "Output format") do |format|
-            options[:format] = format.to_sym
           end
 
           opts.on("--[no-]stdlib", "Include stdlib") do |stdlib|
@@ -92,7 +92,7 @@ module RubyWasm
     end
 
     private def do_build(executor, tmp_dir, options)
-      packager = RubyWasm::Packager.new(tmp_dir)
+      packager = RubyWasm::Packager.new(tmp_dir, options[:target_triplet])
       wasm_bytes = packager.package(executor, options)
       @stdout.puts "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       if options[:output]
