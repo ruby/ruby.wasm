@@ -5,6 +5,7 @@ require "open-uri"
 $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
 require "ruby_wasm/rake_task"
+require "ruby_wasm/packager"
 
 Dir.glob("tasks/**.rake").each { |f| import f }
 
@@ -54,7 +55,8 @@ LIB_ROOT = File.dirname(__FILE__)
 
 TOOLCHAINS = {}
 BUILDS.map { |_, target, _| target }.uniq.each do |target|
-  toolchain = RubyWasm::Toolchain.get(target)
+  build_dir = File.join(LIB_ROOT, "build")
+  toolchain = RubyWasm::Toolchain.get(target, build_dir)
   TOOLCHAINS[toolchain.name] = toolchain
 end
 

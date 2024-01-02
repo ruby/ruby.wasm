@@ -76,7 +76,7 @@ class RubyWasm::Packager
   end
 
   # Retrieves the alias definitions for the Ruby sources.
-  def build_source_aliases
+  def self.build_source_aliases(root)
     patches = Dir[File.join(root, "patches", "*.patch")]
     sources = {
       "head" => {
@@ -139,7 +139,7 @@ class RubyWasm::Packager
       options[:src]
     else
       src_name = options[:src]
-      aliases = build_source_aliases
+      aliases = self.class.build_source_aliases(root)
       aliases[src_name] || raise("Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})")
     end
     options.merge(
