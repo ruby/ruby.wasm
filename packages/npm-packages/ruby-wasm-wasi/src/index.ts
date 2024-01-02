@@ -88,12 +88,13 @@ export class RubyVM {
    * an array of strings starting with the Ruby program name.
    */
   initialize(
-    args: string[] = ["ruby.wasm", "--disable-gems", "-EUTF-8", "-e_=0"],
+    args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0"],
   ) {
     const c_args = args.map((arg) => arg + "\0");
     this.guest.rubyInit();
     this.guest.rubySysinit(c_args);
     this.guest.rubyOptions(c_args);
+    this.eval(`require "/bundle/setup"`);
   }
 
   /**

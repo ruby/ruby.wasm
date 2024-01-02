@@ -3,30 +3,23 @@
 set -eu
 
 usage() {
-    echo "Usage: $(basename $0) ruby_root dist_dir"
+    echo "Usage: $(basename $0) dist_dir"
     exit 1
 }
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 1 ]; then
     usage
 fi
 
-ruby_root="$1"
-dist_dir="$2"
+dist_dir="$PWD/$1"
 package_dir="$(cd "$(dirname "$0")/.." && pwd)"
 
 mkdir -p "$dist_dir"
 
-"$WASMOPT" --strip-debug "$ruby_root/usr/local/bin/ruby" -o "$dist_dir/ruby.wasm"
-
-# Build +stdlib versions (removing files that are not used in normal use cases)
-
-workdir="$(mktemp -d)"
-cp -R "$ruby_root" "$workdir/ruby-root"
-rm -rf $workdir/ruby-root/usr/local/include
-rm -f $workdir/ruby-root/usr/local/lib/libruby-static.a
-rm -f $workdir/ruby-root/usr/local/bin/ruby
-"$WASI_VFS_CLI" pack "$dist_dir/ruby.wasm" --mapdir /usr::$workdir/ruby-root/usr -o "$dist_dir/ruby+stdlib.wasm"
-"$WASI_VFS_CLI" pack "$ruby_root/usr/local/bin/ruby" --mapdir /usr::$workdir/ruby-root/usr -o "$dist_dir/ruby.debug+stdlib.wasm"
-
-cp $dist_dir/*.wasm "$package_dir/dist/"
+# Cache rubies in the package dir
+export RUBY_WASM_ROOT="$package_dir/../../../"
+cd "$package_dir"
+bundle exec rbwasm build --no-stdlib -o "$dist_dir/ruby.wasm"
+"$WASMOPT" --strip-debug "$dist_dir/ruby.wasm" -o "$dist_dir/ruby.wasm"
+bundle exec rbwasm build -o "$dist_dir/ruby.debug+stdlib.wasm"
+"$WASMOPT" --strip-debug "$dist_dir/ruby.debug+stdlib.wasm" -o "$dist_dir/ruby+stdlib.wasm"

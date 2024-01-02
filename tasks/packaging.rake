@@ -12,7 +12,7 @@ namespace :npm do
 
     namespace pkg[:name] do
       desc "Build npm package #{pkg[:name]}"
-      task "build" => ["build:#{pkg[:build]}"] do
+      task "build" do
         sh tools, "npm run build", chdir: pkg_dir
       end
 

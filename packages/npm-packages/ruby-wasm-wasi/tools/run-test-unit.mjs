@@ -149,19 +149,6 @@ const test = async (instantiate) => {
   Error.stackTraceLimit = Infinity;
 
   await vm.evalAsync(`
-    # HACK: Until we've fixed the issue in the test-unit or power_assert
-    # See https://github.com/test-unit/test-unit/pull/221
-    module Kernel
-      alias test_unit_original_require require
-
-      def require(path)
-        if path == "power_assert"
-          raise LoadError, "power_assert is not supported in this environment"
-        end
-        test_unit_original_require(path)
-      end
-    end
-
     require 'test/unit'
     require_relative '${rootTestFile}'
     Test::Unit::AutoRunner.run

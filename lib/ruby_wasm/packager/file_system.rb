@@ -55,18 +55,7 @@ class RubyWasm::Packager::FileSystem
   end
 
   def setup_rb_content
-    content = <<~RUBY
-    kernel = (class << ::Kernel; self; end)
-    [kernel, ::Kernel].each do |k|
-      if k.private_method_defined?(:gem_original_require)
-        private_require = k.private_method_defined?(:require)
-        k.send(:remove_method, :require)
-        k.send(:define_method, :require, k.instance_method(:gem_original_require))
-        k.send(:private, :require) if private_require
-      end
-    end
-    RUBY
-
+    content = ""
     self.each_gem_require_path do |relative, _|
       content << %Q[$:.unshift File.expand_path("#{File.join("/", relative)}")\n]
     end
