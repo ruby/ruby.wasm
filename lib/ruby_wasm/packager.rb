@@ -94,9 +94,7 @@ class RubyWasm::Packager
         url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
       }
     }
-    sources.each do |name, source|
-      source[:name] = name
-    end
+    sources.each { |name, source| source[:name] = name }
 
     build_manifest = File.join(root, "build_manifest.json")
     if File.exist?(build_manifest)
@@ -112,19 +110,18 @@ class RubyWasm::Packager
     sources
   end
 
-  ALL_DEFAULT_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
+  ALL_DEFAULT_EXTS =
+    "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
 
   # Retrieves the build options used for building Ruby itself.
   def build_options
     default = {
       target: "wasm32-unknown-wasi",
       src: "3.3",
-      default_exts: ALL_DEFAULT_EXTS,
+      default_exts: ALL_DEFAULT_EXTS
     }
     override = {}
-    if @config
-      override = @config["build_options"] || {}
-    end
+    override = @config["build_options"] || {} if @config
     # Merge the default options with the config options
     default.merge(override)
   end
@@ -135,16 +132,22 @@ class RubyWasm::Packager
     toolchain = RubyWasm::Toolchain.get(options[:target])
     build_dir = File.join(root, "build")
     rubies_dir = File.join(root, "rubies")
-    src = if options[:src].is_a?(Hash)
-      options[:src]
-    else
-      src_name = options[:src]
-      aliases = self.class.build_source_aliases(root)
-      aliases[src_name] || raise("Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})")
-    end
+    src =
+      if options[:src].is_a?(Hash)
+        options[:src]
+      else
+        src_name = options[:src]
+        aliases = self.class.build_source_aliases(root)
+        aliases[src_name] ||
+          raise(
+            "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})"
+          )
+      end
     options.merge(
-      toolchain: toolchain, build_dir: build_dir,
-      rubies_dir: rubies_dir, src: src
+      toolchain: toolchain,
+      build_dir: build_dir,
+      rubies_dir: rubies_dir,
+      src: src
     )
   end
 end

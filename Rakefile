@@ -9,14 +9,14 @@ require "ruby_wasm/packager"
 
 Dir.glob("tasks/**.rake").each { |f| import f }
 
-BUILD_SOURCES = ["3.3", "3.2", "head"]
-BUILD_PROFILES = ["full", "minimal"]
+BUILD_SOURCES = %w[3.3 3.2 head]
+BUILD_PROFILES = %w[full minimal]
 
-BUILDS = BUILD_SOURCES.product(BUILD_PROFILES).map do |src, profile|
-  [src, "wasm32-unknown-wasi", profile]
-end + BUILD_SOURCES.map do |src|
-  [src, "wasm32-unknown-emscripten", "full"]
-end
+BUILDS =
+  BUILD_SOURCES
+    .product(BUILD_PROFILES)
+    .map { |src, profile| [src, "wasm32-unknown-wasi", profile] } +
+    BUILD_SOURCES.map { |src| [src, "wasm32-unknown-emscripten", "full"] }
 
 NPM_PACKAGES = [
   {
@@ -54,11 +54,14 @@ STANDALONE_PACKAGES = [
 LIB_ROOT = File.dirname(__FILE__)
 
 TOOLCHAINS = {}
-BUILDS.map { |_, target, _| target }.uniq.each do |target|
-  build_dir = File.join(LIB_ROOT, "build")
-  toolchain = RubyWasm::Toolchain.get(target, build_dir)
-  TOOLCHAINS[toolchain.name] = toolchain
-end
+BUILDS
+  .map { |_, target, _| target }
+  .uniq
+  .each do |target|
+    build_dir = File.join(LIB_ROOT, "build")
+    toolchain = RubyWasm::Toolchain.get(target, build_dir)
+    TOOLCHAINS[toolchain.name] = toolchain
+  end
 
 namespace :build do
   BUILD_TASKS =
@@ -67,7 +70,18 @@ namespace :build do
 
       desc "Cross-build Ruby for #{@target}"
       task name do
-        sh *["exe/rbwasm", "build", "--ruby-version", src, "--target", target, "--build-profile", profile, "-o", "/dev/null"]
+        sh *[
+             "exe/rbwasm",
+             "build",
+             "--ruby-version",
+             src,
+             "--target",
+             target,
+             "--build-profile",
+             profile,
+             "-o",
+             "/dev/null"
+           ]
       end
     end
 

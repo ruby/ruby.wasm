@@ -11,8 +11,8 @@ module RubyWasm
 
     def run(args)
       available_commands = %w[build]
-      parser = OptionParser
-        .new do |opts|
+      parser =
+        OptionParser.new do |opts|
           opts.banner = <<~USAGE
           Usage: rbwasm [options...] [command]
 
@@ -70,9 +70,10 @@ module RubyWasm
             options[:target_triplet] = triplet
           end
 
-          opts.on("--build-profile PROFILE", "Build profile. full or minimal") do |profile|
-            options[:profile] = profile
-          end
+          opts.on(
+            "--build-profile PROFILE",
+            "Build profile. full or minimal"
+          ) { |profile| options[:profile] = profile }
 
           opts.on("--optimize", "Optimize the output") do
             options[:optimize] = true
@@ -115,10 +116,7 @@ module RubyWasm
     private
 
     def build_config(options)
-      config = {
-        target: options[:target_triplet],
-        src: options[:ruby_version],
-      }
+      config = { target: options[:target_triplet], src: options[:ruby_version] }
       case options[:profile]
       when "full"
         config[:profile] = RubyWasm::Packager::ALL_DEFAULT_EXTS
@@ -131,10 +129,9 @@ module RubyWasm
     end
 
     def do_build(executor, tmp_dir, options)
-      if defined?(Bundler)
-        definition = Bundler.definition
-      end
-      packager = RubyWasm::Packager.new(tmp_dir, options[:target_triplet], definition)
+      definition = Bundler.definition if defined?(Bundler)
+      packager =
+        RubyWasm::Packager.new(tmp_dir, options[:target_triplet], definition)
       wasm_bytes = packager.package(executor, options)
       @stderr.puts "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]

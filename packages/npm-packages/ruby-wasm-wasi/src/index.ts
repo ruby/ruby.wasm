@@ -87,9 +87,7 @@ export class RubyVM {
    * @param args The command line arguments to pass to Ruby. Must be
    * an array of strings starting with the Ruby program name.
    */
-  initialize(
-    args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0"],
-  ) {
+  initialize(args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0"]) {
     const c_args = args.map((arg) => arg + "\0");
     this.guest.rubyInit();
     this.guest.rubySysinit(c_args);
