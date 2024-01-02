@@ -33,7 +33,16 @@ class RubyWasm::Packager::Core
 
     # Array of paths to extconf.rb files.
     def specs_with_extensions
-      @packager.specs.select { |spec| !spec.extensions.empty? }
+      @packager.specs.filter_map do |spec|
+        exts =
+          spec.extensions.select do |ext|
+            # Filter out extensions of default gems (e.g. json, openssl)
+            # for the exactly same gem version.
+            File.exist?(File.join(spec.full_gem_path, ext))
+          end
+        next nil if exts.empty?
+        [spec, exts]
+      end
     end
   end
 
@@ -60,8 +69,8 @@ class RubyWasm::Packager::Core
 
     def user_exts
       @user_exts ||=
-        specs_with_extensions.flat_map do |spec|
-          spec.extensions.map do |ext|
+        specs_with_extensions.flat_map do |spec, exts|
+          exts.map do |ext|
             ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"
             ext_srcdir = File.join(spec.full_gem_path, ext_feature)
             ext_relative_path = File.join(spec.full_name, ext_feature)
@@ -82,7 +91,7 @@ class RubyWasm::Packager::Core
       base = "ruby-#{src_channel}-static-#{target_triplet}"
       exts = specs_with_extensions.sort
       hash = ::Digest::MD5.new
-      specs_with_extensions.each { |spec| hash << spec.full_name }
+      specs_with_extensions.each { |spec, _| hash << spec.full_name }
       exts.empty? ? base : "#{base}-#{hash.hexdigest}"
     end
   end
