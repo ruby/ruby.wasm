@@ -8,78 +8,14 @@ require "ruby_wasm/rake_task"
 
 Dir.glob("tasks/**.rake").each { |f| import f }
 
-BUILD_SOURCES = {
-  "head" => {
-    type: "github",
-    repo: "ruby/ruby",
-    rev: "master",
-    patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
-  },
-  "3.3" => {
-    type: "tarball",
-    url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
-  },
-  "3.2" => {
-    type: "tarball",
-    url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
-  }
-}
+BUILD_SOURCES = ["3.3", "3.2", "head"]
+BUILD_PROFILES = ["full", "minimal"]
 
-# Respect revisions specified in build_manifest.json, which is usually generated on GitHub Actions.
-if File.exist?("build_manifest.json")
-  begin
-    manifest = JSON.parse(File.read("build_manifest.json"))
-    manifest["ruby_revisions"].each do |name, rev|
-      BUILD_SOURCES[name][:rev] = rev
-    end
-  rescue StandardError
-    $stderr.puts "Failed to load build_manifest.json"
-  end
+BUILDS = BUILD_SOURCES.product(BUILD_PROFILES).map do |src, profile|
+  [src, "wasm32-unknown-wasi", profile]
+end + BUILD_SOURCES.map do |src|
+  [src, "wasm32-unknown-emscripten", "full"]
 end
-
-FULL_EXTS =
-  "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
-
-BUILD_PROFILES = {
-  "minimal" => {
-    debug: false,
-    default_exts: "",
-    user_exts: []
-  },
-  "minimal-debug" => {
-    debug: true,
-    default_exts: "",
-    user_exts: []
-  },
-  "full" => {
-    debug: false,
-    default_exts: FULL_EXTS,
-    user_exts: []
-  },
-  "full-debug" => {
-    debug: true,
-    default_exts: FULL_EXTS,
-    user_exts: []
-  },
-  "full-js-debug" => {
-    debug: true,
-    default_exts: FULL_EXTS,
-    user_exts: %w[js witapi]
-  }
-}
-
-BUILDS =
-  %w[wasm32-unknown-wasi wasm32-unknown-emscripten]
-    .product(BUILD_SOURCES.keys, BUILD_PROFILES.keys)
-    .select do |target, _, profile_name|
-      if target == "wasm32-unknown-emscripten"
-        # Builds only full for Emscripten since minimal, js, debug
-        # builds are rarely used with Emscripten.
-        next profile_name == "full"
-      end
-      next true
-    end
-    .map { |t, s, p| { src: s, target: t, profile: p } }
 
 NPM_PACKAGES = [
   {
@@ -117,45 +53,19 @@ STANDALONE_PACKAGES = [
 LIB_ROOT = File.dirname(__FILE__)
 
 TOOLCHAINS = {}
+BUILDS.map { |_, target, _| target }.uniq.each do |target|
+  toolchain = RubyWasm::Toolchain.get(target)
+  TOOLCHAINS[toolchain.name] = toolchain
+end
 
 namespace :build do
   BUILD_TASKS =
-    BUILDS.map do |params|
-      name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
-      source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
-      profile = BUILD_PROFILES[params[:profile]]
-      options = {
-        src: source,
-        target: params[:target],
-        default_exts: profile[:default_exts]
-      }
-      debug = profile[:debug]
-      RubyWasm::BuildTask.new(name, **options) do |t|
-        if debug
-          t.crossruby.debugflags = %w[-g]
-          t.crossruby.wasmoptflags = %w[-O3 -g]
-          t.crossruby.ldflags = %w[
-            -Xlinker
-            --stack-first
-            -Xlinker
-            -z
-            -Xlinker
-            stack-size=16777216
-          ]
-        else
-          t.crossruby.debugflags = %w[-g0]
-          t.crossruby.ldflags = %w[-Xlinker -zstack-size=16777216]
-        end
+    BUILDS.map do |src, target, profile|
+      name = "#{src}-#{target}-#{profile}"
 
-        toolchain = t.toolchain
-        t.crossruby.user_exts =
-          profile[:user_exts].map do |ext|
-            srcdir = File.join(LIB_ROOT, "packages", "gems", "js", "ext", ext)
-            RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
-          end
-        unless TOOLCHAINS.key? toolchain.name
-          TOOLCHAINS[toolchain.name] = toolchain
-        end
+      desc "Cross-build Ruby for #{@target}"
+      task name do
+        sh *["exe/rbwasm", "build", "--ruby-version", src, "--target", target, "--build-profile", profile, "-o", "/dev/null"]
       end
     end
 

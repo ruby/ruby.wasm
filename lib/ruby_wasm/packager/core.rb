@@ -51,7 +51,7 @@ class RubyWasm::Packager::Core
 
   class StaticLinking < BuildStrategy
     def build(executor, options)
-      @build ||= RubyWasm::Build.new(name, **@packager.build_options)
+      @build ||= RubyWasm::Build.new(name, **@packager.full_build_options)
       @build.crossruby.user_exts = user_exts
       @build.crossruby.debugflags = %w[-g]
       @build.crossruby.wasmoptflags = %w[-O3 -g]
@@ -63,7 +63,11 @@ class RubyWasm::Packager::Core
         -Xlinker
         stack-size=16777216
       ]
-      Bundler.with_unbundled_env do
+      if defined?(Bundler)
+        Bundler.with_unbundled_env do
+          @build.crossruby.build(executor, remake: options[:remake])
+        end
+      else
         @build.crossruby.build(executor, remake: options[:remake])
       end
       @build.crossruby.artifact
@@ -87,7 +91,7 @@ class RubyWasm::Packager::Core
 
     def name
       require "digest"
-      options = @packager.build_options
+      options = @packager.full_build_options
       src_channel = options[:src][:name]
       target_triplet = options[:target]
       base = "ruby-#{src_channel}-static-#{target_triplet}"

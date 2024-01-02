@@ -28,7 +28,7 @@
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-3.2-wasm-wasi",
     "build:static": "npm run build:static:files && npm run build:static:compat",
-    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/3.2-wasm32-unknown-wasi-full-js-debug ./dist",
+    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh 3.2 ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
     "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup && ../ruby-wasm-wasi/tools/post-build.sh ./dist"
   },

@@ -51,7 +51,9 @@ class RubyWasm::Packager::FileSystem
 
     setup_rb_path = File.join(bundle_relative_path, "setup.rb")
     RubyWasm.logger.info "Packaging setup.rb: #{setup_rb_path}"
-    File.write(File.join(@dest_dir, setup_rb_path), setup_rb_content)
+    full_setup_rb_path = File.join(@dest_dir, setup_rb_path)
+    FileUtils.mkdir_p File.dirname(full_setup_rb_path)
+    File.write(full_setup_rb_path, setup_rb_content)
   end
 
   def setup_rb_content

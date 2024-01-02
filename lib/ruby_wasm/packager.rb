@@ -1,10 +1,21 @@
+# A class responsible for packaging whole Ruby project
 class RubyWasm::Packager
-  def initialize(dest_dir, target_triplet, definition = Bundler.definition)
+  # Initializes a new instance of the RubyWasm::Packager class.
+  #
+  # @param dest_dir [String] The destination used to construct the filesystem.
+  # @param config [Hash] The build config used for building Ruby.
+  # @param definition [Bundler::Definition] The Bundler definition.
+  def initialize(dest_dir, config = nil, definition = nil)
     @dest_dir = dest_dir
     @definition = definition
-    @target_triplet = target_triplet
+    @config = config
   end
 
+  # Packages the Ruby code into a Wasm binary. (including extensions)
+  #
+  # @param executor [RubyWasm::BuildExecutor] The executor for building the Wasm binary.
+  # @param options [Hash] The packaging options.
+  # @return [Array<Integer>] The bytes of the packaged Wasm binary.
   def package(executor, options)
     ruby_core = RubyWasm::Packager::Core.new(self)
     tarball = ruby_core.build(executor, options)
@@ -29,42 +40,111 @@ class RubyWasm::Packager
     wasm_bytes
   end
 
+  # The list of excluded gems from the Bundler definition.
   EXCLUDED_GEMS = %w[ruby_wasm bundler]
 
+  # Retrieves the specs from the Bundler definition, excluding the excluded gems.
   def specs
+    return [] unless @definition
     @definition.specs.reject { |spec| EXCLUDED_GEMS.include?(spec.name) }
   end
 
+  # Checks if dynamic linking is supported.
   def support_dynamic_linking?
     @ruby_channel == "head"
   end
 
+  # Retrieves the root directory of the Ruby project.
+  # The root directory contains the following stuff:
+  #  * patches/*.patch
+  #  * build_manifest.json
+  #  * rubies
+  #  * build
   def root
     @root ||=
       begin
         if explicit = ENV["RUBY_WASM_ROOT"]
           File.expand_path(explicit)
-        else
+        elsif defined?(Bundler)
           Bundler.root
+        else
+          Dir.pwd
         end
       rescue Bundler::GemfileNotFound
         Dir.pwd
       end
   end
 
-  def build_options
-    {
-      target: @target_triplet,
-      src: {
-        name: "3.3",
+  # Retrieves the alias definitions for the Ruby sources.
+  def build_source_aliases
+    patches = Dir[File.join(root, "patches", "*.patch")]
+    sources = {
+      "head" => {
+        type: "github",
+        repo: "ruby/ruby",
+        rev: "master",
+        patches: patches.map { |p| File.expand_path(p) }
+      },
+      "3.3" => {
         type: "tarball",
         url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
       },
-      default_exts:
-        "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
-      toolchain: RubyWasm::Toolchain.get(@target_triplet),
-      build_dir: File.join(root, "build"),
-      rubies_dir: File.join(root, "rubies")
+      "3.2" => {
+        type: "tarball",
+        url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
+      }
     }
+    sources.each do |name, source|
+      source[:name] = name
+    end
+
+    build_manifest = File.join(root, "build_manifest.json")
+    if File.exist?(build_manifest)
+      begin
+        manifest = JSON.parse(File.read(build_manifest))
+        manifest["ruby_revisions"].each do |name, rev|
+          sources[name][:rev] = rev
+        end
+      rescue StandardError => e
+        RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
+      end
+    end
+    sources
+  end
+
+  ALL_DEFAULT_EXTS = "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
+
+  # Retrieves the build options used for building Ruby itself.
+  def build_options
+    default = {
+      target: "wasm32-unknown-wasi",
+      src: "3.3",
+      default_exts: ALL_DEFAULT_EXTS,
+    }
+    override = {}
+    if @config
+      override = @config["build_options"] || {}
+    end
+    # Merge the default options with the config options
+    default.merge(override)
+  end
+
+  # Retrieves the resolved build options
+  def full_build_options
+    options = build_options
+    toolchain = RubyWasm::Toolchain.get(options[:target])
+    build_dir = File.join(root, "build")
+    rubies_dir = File.join(root, "rubies")
+    src = if options[:src].is_a?(Hash)
+      options[:src]
+    else
+      src_name = options[:src]
+      aliases = build_source_aliases
+      aliases[src_name] || raise("Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})")
+    end
+    options.merge(
+      toolchain: toolchain, build_dir: build_dir,
+      rubies_dir: rubies_dir, src: src
+    )
   end
 end
