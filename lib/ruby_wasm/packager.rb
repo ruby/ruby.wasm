@@ -6,10 +6,8 @@ class RubyWasm::Packager
   end
 
   def package(executor, options)
-    require_relative "ruby_wasm.so"
-
     ruby_core = RubyWasm::Packager::Core.new(self)
-    tarball = ruby_core.build(executor)
+    tarball = ruby_core.build(executor, options)
 
     fs = RubyWasm::Packager::FileSystem.new(@dest_dir, self)
     fs.package_ruby_root(tarball, executor)
@@ -45,7 +43,7 @@ class RubyWasm::Packager
     @root ||=
       begin
         if explicit = ENV["RUBY_WASM_ROOT"]
-          explicit
+          File.expand_path(explicit)
         else
           Bundler.root
         end

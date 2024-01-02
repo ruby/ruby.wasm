@@ -3,9 +3,9 @@ class RubyWasm::Packager::Core
     @packager = packager
   end
 
-  def build(executor)
+  def build(executor, options)
     strategy = build_strategy
-    strategy.build(executor)
+    strategy.build(executor, options)
   end
 
   private
@@ -27,7 +27,7 @@ class RubyWasm::Packager::Core
       @packager = packager
     end
 
-    def build(executor)
+    def build(executor, options)
       raise NotImplementedError
     end
 
@@ -50,7 +50,7 @@ class RubyWasm::Packager::Core
   end
 
   class StaticLinking < BuildStrategy
-    def build(executor)
+    def build(executor, options)
       @build ||= RubyWasm::Build.new(name, **@packager.build_options)
       @build.crossruby.user_exts = user_exts
       @build.crossruby.debugflags = %w[-g]
@@ -63,7 +63,9 @@ class RubyWasm::Packager::Core
         -Xlinker
         stack-size=16777216
       ]
-      Bundler.with_unbundled_env { @build.crossruby.build(executor) }
+      Bundler.with_unbundled_env do
+        @build.crossruby.build(executor, remake: options[:remake])
+      end
       @build.crossruby.artifact
     end
 

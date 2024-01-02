@@ -1,5 +1,6 @@
 require "optparse"
 require "rbconfig"
+require_relative "ruby_wasm.so"
 
 module RubyWasm
   class CLI
@@ -33,7 +34,7 @@ module RubyWasm
       when "build"
         build(args)
       else
-        @stderr.puts "Unknown command: #{command}"
+        @stderr.puts parser
         exit
       end
     end
@@ -43,6 +44,7 @@ module RubyWasm
       options = {
         save_temps: false,
         optimize: false,
+        remake: false,
         target_triplet: "wasm32-unknown-wasi",
         stdlib: true
       }
@@ -64,6 +66,10 @@ module RubyWasm
 
           opts.on("--optimize", "Optimize the output") do
             options[:optimize] = true
+          end
+
+          opts.on("--remake", "Re-execute make for Ruby") do
+            options[:remake] = true
           end
 
           opts.on("-o", "--output FILE", "Output file") do |file|
