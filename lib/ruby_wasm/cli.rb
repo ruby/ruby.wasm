@@ -11,7 +11,7 @@ module RubyWasm
 
     def run(args)
       available_commands = %w[build]
-      OptionParser
+      parser = OptionParser
         .new do |opts|
           opts.banner = <<~USAGE
           Usage: rbwasm [options...] [command]
@@ -20,14 +20,14 @@ module RubyWasm
         USAGE
           opts.version = RubyWasm::VERSION
           opts.on("-h", "--help", "Prints this help") do
-            @stdout.puts opts
+            @stderr.puts opts
             exit
           end
           opts.on("--log-level LEVEL", "Log level") do |level|
             RubyWasm.log_level = level.to_sym
           end
         end
-        .order!(args)
+      parser.order!(args)
 
       command = args.shift
       case command
