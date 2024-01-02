@@ -1,9 +1,0 @@
-link.filelist:
-	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
-
-c10zrt.a: link.filelist
-
-c10zrt.o: $(srcdir)/c10zrt.c
-c10zrt_core.o: $(srcdir)/c10zrt_core.s
-# 	reference-types feature is required to have multiple tables
-	$(CC) -mreference-types -target wasm32-unknown-unknown-wasm -c $< -o $@

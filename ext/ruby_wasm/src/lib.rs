@@ -1,14 +1,11 @@
-mod types;
-
 use std::path::PathBuf;
 
 use magnus::{
     eval, exception, function, method,
     prelude::*,
     value::{self, InnerValue},
-    wrap, Error, ExceptionClass, RArray, RModule, Ruby,
+    wrap, Error, ExceptionClass, RModule, Ruby,
 };
-use types::ValType;
 use wizer::Wizer;
 
 static RUBY_WASM: value::Lazy<RModule> =
@@ -28,67 +25,6 @@ fn preinit(core_module: Vec<u8>) -> Result<Vec<u8>, Error> {
     wizer
         .run(&core_module)
         .map_err(|e| Error::new(rbwasm_error, format!("failed to run wizer: {}", e)))
-}
-
-#[wrap(class = "RubyWasmExt::WasmInject")]
-struct WasmInject(std::cell::RefCell<wasm_inject::WasmInject>);
-
-impl WasmInject {
-    fn new(core_module: Vec<u8>) -> Result<Self, Error> {
-        let inner = wasm_inject::WasmInject::new(&core_module, "ruby.c10zrt").map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to create componentizer: {}", e),
-            )
-        })?;
-        Ok(Self(std::cell::RefCell::new(inner)))
-    }
-
-    fn add_export_func(&self, name: String, params: RArray, results: RArray) -> Result<(), Error> {
-        let params = ValType::vec_from_rarray(params)?;
-        let results = ValType::vec_from_rarray(results)?;
-        self.0
-            .borrow_mut()
-            .add_export_func(&name, &params, &results)
-            .map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to add export func: {}", e),
-                )
-            })?;
-        Ok(())
-    }
-
-    fn add_import_func(
-        &self,
-        module: String,
-        name: String,
-        params: RArray,
-        results: RArray,
-    ) -> Result<(), Error> {
-        let params = ValType::vec_from_rarray(params)?;
-        let results = ValType::vec_from_rarray(results)?;
-        self.0
-            .borrow_mut()
-            .add_import_func(&module, &name, &params, &results)
-            .map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to add import func: {}", e),
-                )
-            })?;
-        Ok(())
-    }
-
-    fn run(&self) -> Result<Vec<u8>, Error> {
-        let wasm = self.0.borrow_mut().run().map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to run componentizer: {}", e),
-            )
-        })?;
-        Ok(wasm)
-    }
 }
 
 struct WasiVfsInner {
@@ -125,18 +61,9 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
 
     module.define_singleton_method("preinitialize", function!(preinit, 1))?;
 
-    let wasm_inject = module.define_class("WasmInject", ruby.class_object())?;
-    wasm_inject.define_singleton_method("new", function!(WasmInject::new, 1))?;
-    wasm_inject.define_method("add_export_func", method!(WasmInject::add_export_func, 3))?;
-    wasm_inject.define_method("add_import_func", method!(WasmInject::add_import_func, 4))?;
-    wasm_inject.define_method("run", method!(WasmInject::run, 0))?;
-
     let wasi_vfs = module.define_class("WasiVfs", ruby.class_object())?;
     wasi_vfs.define_singleton_method("new", function!(WasiVfs::new, 0))?;
     wasi_vfs.define_method("map_dir", method!(WasiVfs::map_dir, 2))?;
     wasi_vfs.define_method("pack", method!(WasiVfs::pack, 1))?;
-
-    let val_type = module.define_class("ValType", ruby.class_object())?;
-    val_type.define_singleton_method("new", function!(ValType::new, 1))?;
     Ok(())
 }
