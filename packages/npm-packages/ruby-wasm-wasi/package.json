@@ -47,7 +47,7 @@
     "test:e2e": "playwright install && npm run test:e2e:examples && npm run test:e2e:integrations",
     "test:e2e:examples": "playwright test -c test-e2e/playwright.examples.config.ts",
     "test:e2e:integrations": "playwright test -c test-e2e/playwright.integrations.config.ts",
-    "serve:example": "bundle exec ruby -run -e httpd ./example -p 8085",
+    "serve:example": "BUNDLE_GEMFILE=../../../Gemfile bundle exec ruby -run -e httpd ./example -p 8085",
     "format": "prettier --write .",
     "build:static": "./tools/pack-bindgen-src.sh ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
