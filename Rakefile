@@ -150,7 +150,7 @@ namespace :build do
         toolchain = t.toolchain
         t.crossruby.user_exts =
           profile[:user_exts].map do |ext|
-            srcdir = File.join(LIB_ROOT, "ext", ext)
+            srcdir = File.join(LIB_ROOT, "packages", "gems", "js", "ext", ext)
             RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
           end
         unless TOOLCHAINS.key? toolchain.name

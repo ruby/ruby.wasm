@@ -10,7 +10,7 @@ module RubyWasm
       # ext_relative_path is relative path from build dir
       # e.g. cgi-0.3.6/ext/cgi/escape
       @ext_relative_path = ext_relative_path || File.basename(srcdir)
-      @name = ext_relative_path
+      @name = @ext_relative_path
     end
 
     def product_build_dir(crossruby)
