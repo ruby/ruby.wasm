@@ -18,7 +18,8 @@ class TestURLResolver < Test::Unit::TestCase
   end
 
   def test_get_location_with_relative_path_and_filename
-    url_resolver = JS::RequireRemote::URLResolver.new("https://example.com/bar.rb")
+    url_resolver =
+      JS::RequireRemote::URLResolver.new("https://example.com/bar.rb")
     script_location = url_resolver.get_location("./foo.rb")
     assert_equal "https://example.com/foo.rb", script_location.url.to_s
     assert_equal "./foo.rb", script_location.filename
@@ -32,21 +33,24 @@ class TestURLResolver < Test::Unit::TestCase
   end
 
   def test_get_location_with_relative_path_and_directory
-    url_resolver = JS::RequireRemote::URLResolver.new("https://example.com/bar/")
+    url_resolver =
+      JS::RequireRemote::URLResolver.new("https://example.com/bar/")
     script_location = url_resolver.get_location("./foo.rb")
     assert_equal "https://example.com/bar/foo.rb", script_location.url.to_s
     assert_equal "./foo.rb", script_location.filename
   end
 
   def test_get_location_with_backward_relative_path
-    url_resolver = JS::RequireRemote::URLResolver.new("https://example.com/bar/")
+    url_resolver =
+      JS::RequireRemote::URLResolver.new("https://example.com/bar/")
     script_location = url_resolver.get_location("../foo.rb")
     assert_equal "https://example.com/foo.rb", script_location.url.to_s
     assert_equal "../foo.rb", script_location.filename
   end
 
   def test_get_location_with_backward_relative_path_and_filename
-    url_resolver = JS::RequireRemote::URLResolver.new("https://example.com/baz.rb")
+    url_resolver =
+      JS::RequireRemote::URLResolver.new("https://example.com/baz.rb")
     script_location = url_resolver.get_location("../foo.rb")
     assert_equal "https://example.com/foo.rb", script_location.url.to_s
     assert_equal "../foo.rb", script_location.filename

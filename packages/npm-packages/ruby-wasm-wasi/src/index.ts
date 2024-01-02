@@ -545,7 +545,9 @@ class RbExceptionFormatter {
     // but checking re-entrancy just in case.
     class RbExceptionFormatterError extends Error {}
     if (this.isFormmatting) {
-      throw new RbExceptionFormatterError("Unexpected exception occurred during formatting exception message");
+      throw new RbExceptionFormatterError(
+        "Unexpected exception occurred during formatting exception message",
+      );
     }
     this.isFormmatting = true;
     try {
@@ -555,7 +557,11 @@ class RbExceptionFormatter {
     }
   }
 
-  private _format(error: RbValue, vm: RubyVM, privateObject: RubyVMPrivate): string {
+  private _format(
+    error: RbValue,
+    vm: RubyVM,
+    privateObject: RubyVMPrivate,
+  ): string {
     const [zeroLiteral, oneLiteral, newLineLiteral] = (() => {
       if (this.literalsCache == null) {
         const zeroOneNewLine: [RbValue, RbValue, RbValue] = [

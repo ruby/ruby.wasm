@@ -127,9 +127,8 @@ eval:11:in \`<main>'`);
       end
       raise BrokenException.new
       `);
-    }
-    expect(throwError)
-      .toThrowError(`BrokenException: unknown`);
+    };
+    expect(throwError).toThrowError(`BrokenException: unknown`);
   });
 
   test("eval encoding", async () => {

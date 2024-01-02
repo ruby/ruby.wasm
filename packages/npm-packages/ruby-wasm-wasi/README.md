@@ -8,8 +8,8 @@ See [Cheat Sheet](https://github.com/ruby/ruby.wasm/blob/main/docs/cheat_sheet.m
 
 ## Ruby Version Support
 
-| Version | Package                                            |
-| ------- | -------------------------------------------------- |
+| Version | Package                                                                                                         |
+| ------- | --------------------------------------------------------------------------------------------------------------- |
 | `head`  | [`@ruby/head-wasm-wasi`](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi) |
 | `3.3`   | [`@ruby/3.3-wasm-wasi`](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3.3-wasm-wasi)   |
 | `3.2`   | [`@ruby/3.2-wasm-wasi`](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-3.2-wasm-wasi)   |
