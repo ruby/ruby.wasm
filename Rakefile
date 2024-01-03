@@ -21,22 +21,26 @@ BUILDS =
 NPM_PACKAGES = [
   {
     name: "ruby-head-wasm-emscripten",
-    build: "head-wasm32-unknown-emscripten-full",
+    ruby_version: "head",
+    gemfile: nil,
     target: "wasm32-unknown-emscripten"
   },
   {
     name: "ruby-head-wasm-wasi",
-    build: "head-wasm32-unknown-wasi-full-js-debug",
+    ruby_version: "head",
+    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   },
   {
     name: "ruby-3.3-wasm-wasi",
-    build: "3.3-wasm32-unknown-wasi-full-js-debug",
+    ruby_version: "3.3",
+    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   },
   {
     name: "ruby-3.2-wasm-wasi",
-    build: "3.2-wasm32-unknown-wasi-full-js-debug",
+    ruby_version: "3.2",
+    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   }
 ]

@@ -68,7 +68,7 @@ def rake_task_matrix
         artifact: "packages/npm-packages/#{pkg[:name]}/#{pkg[:name]}-*.tgz",
         artifact_name: "npm-#{pkg[:name]}",
         builder: pkg[:target],
-        rubies_cache_key: ruby_cache_keys[pkg[:build]]
+        rubies_cache_key: npm_pkg_rubies_cache_key(pkg)
       }
       # Run tests only if the package has 'test' script
       package_json =

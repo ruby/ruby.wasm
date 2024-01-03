@@ -5,14 +5,62 @@ tools = {
   "WASMOPT" => wasi_sdk.wasm_opt
 }
 
+def npm_pkg_build_command(pkg)
+  [
+    "bundle", "exec", "rbwasm",
+    "build",
+    "--ruby-version", pkg[:ruby_version],
+    "--target", pkg[:target],
+    "--build-profile", "full",
+  ]
+end
+
+def npm_pkg_rubies_cache_key(pkg)
+  build_command = npm_pkg_build_command(pkg)
+  require "open3"
+  cmd = build_command + ["--print-ruby-cache-key"]
+  stdout, status = Open3.capture2(*cmd)
+  unless status.success?
+    raise "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+  end
+  require "json"
+  JSON.parse(stdout)["hexdigest"]
+end
+
 namespace :npm do
   NPM_PACKAGES.each do |pkg|
     base_dir = Dir.pwd
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
     namespace pkg[:name] do
+      build_command = npm_pkg_build_command(pkg)
+
+      desc "Build ruby for npm package #{pkg[:name]}"
+      task "ruby" do
+        env = {
+          # Share ./build and ./rubies in the same workspace
+          "RUBY_WASM_ROOT" => base_dir,
+        }
+        if gemfile_path = pkg[:gemfile]
+          env["BUNDLE_GEMFILE"] = File.join(base_dir, gemfile_path)
+        else
+          # Explicitly disable rubygems integration since Bundler finds
+          # Gemfile in the repo root directory.
+          build_command.push "--disable-gems"
+        end
+        dist_dir = File.join(pkg_dir, "dist")
+        if pkg[:target] == "wasm32-unknown-wasi"
+          sh env, *build_command, "--no-stdlib", "-o", File.join(dist_dir, "ruby.wasm")
+          sh env, *build_command, "-o", File.join(dist_dir, "ruby.debug+stdlib.wasm")
+          sh wasi_sdk.wasm_opt, "--strip-debug", File.join(dist_dir, "ruby.wasm"), "-o", File.join(dist_dir, "ruby.wasm")
+          sh wasi_sdk.wasm_opt, "--strip-debug", File.join(dist_dir, "ruby.debug+stdlib.wasm"), "-o", File.join(dist_dir, "ruby+stdlib.wasm")
+        elsif pkg[:target] == "wasm32-unknown-emscripten"
+          sh env, *build_command, "-o", "/dev/null"
+        end
+      end
+
       desc "Build npm package #{pkg[:name]}"
-      task "build" do
+      task "build" => ["ruby"] do
         sh tools, "npm run build", chdir: pkg_dir
       end
 

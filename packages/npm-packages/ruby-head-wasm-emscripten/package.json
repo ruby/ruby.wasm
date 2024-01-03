@@ -11,9 +11,7 @@
     "README.md"
   ],
   "scripts": {
-    "build:ruby": "rake build:head-wasm32-unknown-emscripten-full",
-    "build:package": "./build-package.sh ../../../rubies/ruby-head-wasm32-unknown-emscripten-full",
-    "build": "npm run build:ruby && npm run build:package"
+    "build": "./build-package.sh ../../../rubies/ruby-head-wasm32-unknown-emscripten-full"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
   "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-emscripten",
