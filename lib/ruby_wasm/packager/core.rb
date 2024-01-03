@@ -102,14 +102,19 @@ class RubyWasm::Packager::Core
       build.crossruby.user_exts = user_exts(build)
       build.crossruby.debugflags = %w[-g]
       build.crossruby.wasmoptflags = %w[-O3 -g]
-      build.crossruby.ldflags = %w[
-        -Xlinker
-        --stack-first
-        -Xlinker
-        -z
-        -Xlinker
-        stack-size=16777216
-      ]
+      # Emscripten uses --global-base=1024 by default, but it conflicts with
+      # --stack-first and -z stack-size since global-base 1024 is smaller than
+      # the large stack size.
+      if @packager.full_build_options[:target] != "wasm32-unknown-emscripten"
+        build.crossruby.ldflags = %w[
+          -Xlinker
+          --stack-first
+          -Xlinker
+          -z
+          -Xlinker
+          stack-size=16777216
+        ]
+      end
       @build = build
       build
     end
