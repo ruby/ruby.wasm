@@ -29,11 +29,14 @@ class RubyWasm::Packager
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
 
-    wasi_vfs = RubyWasmExt::WasiVfs.new
-    wasi_vfs.map_dir("/bundle", fs.bundle_dir)
-    wasi_vfs.map_dir("/usr", File.dirname(fs.ruby_root))
+    if full_build_options[:target] == "wasm32-unknown-wasi"
+      # wasi-vfs supports only WASI target
+      wasi_vfs = RubyWasmExt::WasiVfs.new
+      wasi_vfs.map_dir("/bundle", fs.bundle_dir)
+      wasi_vfs.map_dir("/usr", File.dirname(fs.ruby_root))
 
-    wasm_bytes = wasi_vfs.pack(wasm_bytes)
+      wasm_bytes = wasi_vfs.pack(wasm_bytes)
+    end
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes
