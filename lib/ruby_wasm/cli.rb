@@ -1,6 +1,5 @@
 require "optparse"
 require "rbconfig"
-require_relative "ruby_wasm.so"
 
 module RubyWasm
   class CLI
@@ -172,6 +171,7 @@ module RubyWasm
     end
 
     def do_build(executor, tmpdir, packager, options)
+      require_relative "ruby_wasm.so"
       wasm_bytes = packager.package(executor, tmpdir, options)
       RubyWasm.logger.info "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]
