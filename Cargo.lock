@@ -1792,6 +1792,7 @@ dependencies = [
 [[package]]
 name = "wasi-vfs-cli"
 version = "0.4.0"
+source = "git+https://github.com/kateinoigakukun/wasi-vfs/?rev=b1e4e5d9cd6322e8745e67c092b495973835a94f#b1e4e5d9cd6322e8745e67c092b495973835a94f"
 dependencies = [
  "anyhow",
  "structopt",
