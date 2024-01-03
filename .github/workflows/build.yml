@@ -117,6 +117,7 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
       - run: ./bin/setup
+      - run: rake compile
       - name: Pre-release configuration
         run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
