@@ -173,13 +173,13 @@ module RubyWasm
 
     def do_build(executor, tmpdir, packager, options)
       wasm_bytes = packager.package(executor, tmpdir, options)
-      @stderr.puts "Size: #{SizeFormatter.format(wasm_bytes.size)}"
+      RubyWasm.logger.info "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]
       when "-"
         @stdout.write wasm_bytes.pack("C*")
       else
         File.binwrite(options[:output], wasm_bytes.pack("C*"))
-        @stderr.puts "Wrote #{options[:output]}"
+        RubyWasm.logger.debug "Wrote #{options[:output]}"
       end
     end
   end
