@@ -5,8 +5,8 @@ namespace :check do
   end
   task bindgen_c: :install_wit_bindgen do
     wits = [
-      %w[ext/witapi/bindgen/rb-abi-guest.wit --export],
-      %w[ext/js/bindgen/rb-js-abi-host.wit --import]
+      %w[packages/gems/js/ext/witapi/bindgen/rb-abi-guest.wit --export],
+      %w[packages/gems/js/ext/js/bindgen/rb-js-abi-host.wit --import]
     ]
     wits.each do |wit|
       path, mode = wit
@@ -20,9 +20,9 @@ namespace :check do
          "host",
          "js",
          "--import",
-         "ext/witapi/bindgen/rb-abi-guest.wit",
+         "packages/gems/js/ext/witapi/bindgen/rb-abi-guest.wit",
          "--export",
-         "ext/js/bindgen/rb-js-abi-host.wit",
+         "packages/gems/js/ext/js/bindgen/rb-js-abi-host.wit",
          "--out-dir",
          "packages/npm-packages/ruby-wasm-wasi/src/bindgen"
        ]
