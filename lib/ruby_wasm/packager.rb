@@ -86,7 +86,7 @@ class RubyWasm::Packager
       "head" => {
         type: "github",
         repo: "ruby/ruby",
-        rev: "master",
+        rev: "997124fc0b7697bb9383e8feb8e1d88017c4bcb8",
         patches: patches.map { |p| File.expand_path(p) }
       },
       "3.3" => {
