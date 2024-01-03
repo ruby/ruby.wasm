@@ -16,6 +16,9 @@ RUN set -eux; \
   apt-get clean; \
   rm -r /var/lib/apt/lists/*
 
+# Prefer apt-installed nodejs instead of emsdk's old one.
+ENV PATH=/usr/bin:$PATH
+
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
