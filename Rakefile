@@ -101,6 +101,17 @@ namespace :build do
       task name do
         sh *build_command
       end
+      namespace name do
+        task :remake do
+          sh *build_command, "--remake"
+        end
+        task :reconfigure do
+          sh *build_command, "--reconfigure"
+        end
+        task :clean do
+          sh *build_command, "--clean"
+        end
+      end
 
       BuildTask.new(name, target, build_command)
     end

@@ -46,11 +46,11 @@ To select a build profile, see [profiles section in README](https://github.com/r
 
 ```console
 # Build only a specific combination of ruby version, profile, and target
-$ rake build:head-wasm32-unknown-wasi-full-js
+$ rake build:head-wasm32-unknown-wasi-full
 # Clean up the build directory
-$ rake build:head-wasm32-unknown-wasi-full-js:clean
+$ rake build:head-wasm32-unknown-wasi-full:clean
 # Force to re-execute "make install"
-$ rake build:head-wasm32-unknown-wasi-full-js:remake
+$ rake build:head-wasm32-unknown-wasi-full:remake
 
 # Output is in the `rubies` directory
 $ tree -L 3 rubies/head-wasm32-unknown-wasi-full-js
