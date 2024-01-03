@@ -18,8 +18,11 @@ package_dir="$(cd "$(dirname "$0")/.." && pwd)"
 mkdir -p "$dist_dir"
 
 # Cache rubies in the package dir
-export RUBY_WASM_ROOT="$package_dir/../../../"
+export RUBY_WASM_ROOT="$package_dir/../../.."
+export BUNDLE_GEMFILE="$package_dir/Gemfile"
 cd "$package_dir"
+
+echo "$0: Entering $package_dir"
 
 rbwasm_options="--ruby-version $ruby_version --target wasm32-unknown-wasi --build-profile full"
 bundle exec rbwasm build ${rbwasm_options[@]} --no-stdlib -o "$dist_dir/ruby.wasm"

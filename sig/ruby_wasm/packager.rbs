@@ -55,7 +55,7 @@ class RubyWasm::Packager
       @build: RubyWasm::Build
       def derive_build: () -> RubyWasm::Build
       @user_exts: Array[RubyWasm::CrossRubyExtProduct]?
-      def user_exts: () -> Array[RubyWasm::CrossRubyExtProduct]
+      def user_exts: (RubyWasm::Build) -> Array[RubyWasm::CrossRubyExtProduct]
 
       def name: () -> string
     end

@@ -89,7 +89,7 @@ class RubyWasm::Packager::Core
       return @build if @build
       __skip__ =
         build ||= RubyWasm::Build.new(name, **@packager.full_build_options)
-      build.crossruby.user_exts = user_exts
+      build.crossruby.user_exts = user_exts(build)
       build.crossruby.debugflags = %w[-g]
       build.crossruby.wasmoptflags = %w[-O3 -g]
       build.crossruby.ldflags = %w[
@@ -104,7 +104,7 @@ class RubyWasm::Packager::Core
       build
     end
 
-    def user_exts
+    def user_exts(build)
       @user_exts ||=
         specs_with_extensions.flat_map do |spec, exts|
           exts.map do |ext|
@@ -113,7 +113,7 @@ class RubyWasm::Packager::Core
             ext_relative_path = File.join(spec.full_name, ext_feature)
             RubyWasm::CrossRubyExtProduct.new(
               ext_srcdir,
-              @build.toolchain,
+              build.toolchain,
               ext_relative_path: ext_relative_path
             )
           end
