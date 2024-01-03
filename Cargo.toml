@@ -3,5 +3,5 @@
 # in the ext/ directory.
 
 [workspace]
-members = ["./ext/ruby_wasm", "packages/crates/wit-bindgen-ruby"]
+members = ["./ext/ruby_wasm"]
 resolver = "2"
