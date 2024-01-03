@@ -64,18 +64,19 @@ class RubyWasm::Packager
   #  * rubies
   #  * build
   def root
-    @root ||=
-      begin
-        if explicit = ENV["RUBY_WASM_ROOT"]
-          File.expand_path(explicit)
-        elsif defined?(Bundler)
-          Bundler.root
-        else
+    __skip__ =
+      @root ||=
+        begin
+          if explicit = ENV["RUBY_WASM_ROOT"]
+            File.expand_path(explicit)
+          elsif defined?(Bundler)
+            Bundler.root
+          else
+            Dir.pwd
+          end
+        rescue Bundler::GemfileNotFound
           Dir.pwd
         end
-      rescue Bundler::GemfileNotFound
-        Dir.pwd
-      end
   end
 
   # Retrieves the alias definitions for the Ruby sources.

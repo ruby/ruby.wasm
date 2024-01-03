@@ -150,6 +150,8 @@ class RubyWasm::Packager::FileSystem
   end
 
   def rubyarchdir
-    Dir.glob(File.join(@ruby_root, "lib", "ruby", "*", "wasm32-wasi")).first
+    maybe =
+      Dir.glob(File.join(@ruby_root, "lib", "ruby", "*", "wasm32-wasi")).first
+    maybe || raise("Cannot find rubyarchdir")
   end
 end

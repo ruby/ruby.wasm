@@ -1,10 +1,45 @@
 module RubyWasm
   VERSION: String
 
+  interface _Cacheable
+    def cache_key: (Digest::SHA256 digest) -> void
+  end
+
+  class Build
+    include _Cacheable
+
+    @target: String
+    @build_dir: String
+    @rubies_dir: String
+    @toolchain: Toolchain
+    @libyaml: LibYAMLProduct
+    @zlib: ZlibProduct
+    @openssl: OpenSSLProduct
+    @wasi_vfs: WasiVfsProduct
+    @baseruby: BaseRubyProduct
+    @crossruby: CrossRubyProduct
+    @source: BuildSource
+
+    attr_reader toolchain: Toolchain
+
+    def initialize: (
+      string name,
+      target: String,
+      src: Packager::build_source,
+      toolchain: Toolchain?,
+      build_dir: string,
+      rubies_dir: string,
+      **untyped
+    ) -> void
+    def crossruby: () -> CrossRubyProduct
+  end
+
   class BuildParams
     attr_accessor name: String
     attr_accessor target: String
     attr_accessor default_exts: String
+
+    def initialize: (name: string, target: string, default_exts: string) -> void
   end
 
   class BuildProduct
@@ -109,21 +144,28 @@ module RubyWasm
   end
 
   class CrossRubyExtProduct < BuildProduct
+    include RubyWasm::_Cacheable
+
     @toolchain: Toolchain
     @srcdir: String
+    @ext_relative_path: String
 
     attr_reader name: String
-    def initialize: (String srcdir, Toolchain toolchain, ?name: nil) -> void
+    def initialize: (String srcdir, Toolchain toolchain, ?ext_relative_path: String?) -> void
     def product_build_dir: (CrossRubyProduct crossruby) -> String
     def linklist: (CrossRubyProduct crossruby) -> String
+    def metadata_json: (CrossRubyProduct crossruby) -> String
+    def feature_name: (CrossRubyProduct crossruby) -> String
+
     def make_args: (CrossRubyProduct crossruby) -> Array[String]
     def build: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
     def do_extconf: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
     def do_install_rb: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
-    def cache_key: (Digest::SHA256 digest) -> void
   end
 
   class CrossRubyProduct < AutoconfProduct
+    include RubyWasm::_Cacheable
+
     @params: BuildParams
     @rubies_dir: String
     @build_dir: String
@@ -143,13 +185,12 @@ module RubyWasm
     attr_accessor debugflags: Array[String]
     attr_accessor xcflags: Array[String]
     attr_accessor xldflags: Array[String]
-    def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Toolchain toolchain, ?user_exts: Array[CrossRubyExtProduct]) -> void
+    def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Toolchain toolchain) -> void
     def configure: (BuildExecutor executor, ?reconfigure: bool) -> void
     def build_exts: (BuildExecutor executor) -> void
     def build: (BuildExecutor executor, ?remake: bool, ?reconfigure: bool) -> void
     def clean: (BuildExecutor executor) -> void
     def name: -> String
-    def cache_key: (Digest::SHA256 digest) -> void
     def build_dir: -> String
     def ext_build_dir: -> String
     def with_libyaml: (LibYAMLProduct libyaml) -> LibYAMLProduct

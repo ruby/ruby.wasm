@@ -33,9 +33,9 @@ class RubyWasm::Build
     name,
     target:,
     src:,
-    toolchain: nil,
-    build_dir: nil,
-    rubies_dir: nil,
+    toolchain:,
+    build_dir:,
+    rubies_dir:,
     **options
   )
     @target = target

@@ -66,13 +66,14 @@ class RubyWasm::Packager::Core
   class StaticLinking < BuildStrategy
     def build(executor, options)
       build = derive_build
-      if defined?(Bundler)
-        Bundler.with_unbundled_env do
+      __skip__ =
+        if defined?(Bundler)
+          Bundler.with_unbundled_env do
+            build.crossruby.build(executor, remake: options[:remake])
+          end
+        else
           build.crossruby.build(executor, remake: options[:remake])
         end
-      else
-        build.crossruby.build(executor, remake: options[:remake])
-      end
       build.crossruby.artifact
     end
 
@@ -86,11 +87,12 @@ class RubyWasm::Packager::Core
 
     def derive_build
       return @build if @build
-      @build ||= RubyWasm::Build.new(name, **@packager.full_build_options)
-      @build.crossruby.user_exts = user_exts
-      @build.crossruby.debugflags = %w[-g]
-      @build.crossruby.wasmoptflags = %w[-O3 -g]
-      @build.crossruby.ldflags = %w[
+      __skip__ =
+        build ||= RubyWasm::Build.new(name, **@packager.full_build_options)
+      build.crossruby.user_exts = user_exts
+      build.crossruby.debugflags = %w[-g]
+      build.crossruby.wasmoptflags = %w[-O3 -g]
+      build.crossruby.ldflags = %w[
         -Xlinker
         --stack-first
         -Xlinker
@@ -98,7 +100,8 @@ class RubyWasm::Packager::Core
         -Xlinker
         stack-size=16777216
       ]
-      @build
+      @build = build
+      build
     end
 
     def user_exts

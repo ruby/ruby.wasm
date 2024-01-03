@@ -4,32 +4,21 @@ module RubyWasm
 
     @stdout: IO
     @stderr: IO
-    @rubies_dir: string
 
-    def initialize: (stdout: IO, stderr: IO, rubies_dir: string) -> void
+    def initialize: (stdout: IO, stderr: IO) -> void
 
     def build: (Array[String] args) -> void
 
-    private def do_build: (String tarball, RubyWasm::BuildExecutor executor, String output_dir, Hash[untyped, untyped] options) -> void
+    private
+
+    def build_config: (Hash[untyped, untyped] options) -> Hash[untyped, untyped]
+
+    def derive_packager: (Hash[untyped, untyped] options) -> Packager
+    def do_print_ruby_cache_key: (Packager) -> void
+    def do_build: (BuildExecutor, string tmpdir, Packager, Hash[untyped, untyped] options) -> void
   end
 
-  class RubyWasmExt
-    def self.preinitialize: (Array[Integer] module_bytes) -> Array[Integer]
-
-    class WasmInject
-      def initialize: (Array[Integer] module_bytes) -> void
-
-      def add_import_func: (String module_name, String func_name, Array[Symbol] params, Array[Symbol] return_type) -> void
-
-      def run: () -> Array[Integer]
-    end
-
-    class WasiVfs
-      def initialize: () -> void
-
-      def map_dir: (String guest_path, String host_path) -> void
-
-      def pack: (Array[Integer] module_bytes) -> Array[Integer]
-    end
-  end
+  self.@logger: Logger?
+  def self.logger: () -> Logger
+  attr_accessor self.log_level: Symbol
 end

@@ -151,9 +151,10 @@ module RubyWasm
     end
 
     def derive_packager(options)
-      if defined?(Bundler) && !options[:disable_gems]
-        definition = Bundler.definition
-      end
+      __skip__ =
+        if defined?(Bundler) && !options[:disable_gems]
+          definition = Bundler.definition
+        end
       RubyWasm::Packager.new(build_config(options), definition)
     end
 

@@ -15,6 +15,10 @@ target :lib do
   library "shellwords"
   library "io-console"
   library "optparse"
+  library "json"
+  library "logger"
+  library "pathname"
+  library "forwardable"
 
   configure_code_diagnostics(D::Ruby.default)
 end
