@@ -51,7 +51,11 @@ class RubyWasm::Build
     @openssl = RubyWasm::OpenSSLProduct.new(@build_dir, @target, @toolchain)
 
     build_params =
-      RubyWasm::BuildParams.new(options.merge(name: name, target: target))
+      RubyWasm::BuildParams.new(
+        name: name,
+        target: target,
+        default_exts: options[:default_exts]
+      )
 
     @crossruby =
       RubyWasm::CrossRubyProduct.new(

@@ -2,11 +2,9 @@
 class RubyWasm::Packager
   # Initializes a new instance of the RubyWasm::Packager class.
   #
-  # @param dest_dir [String] The destination used to construct the filesystem.
   # @param config [Hash] The build config used for building Ruby.
   # @param definition [Bundler::Definition] The Bundler definition.
-  def initialize(dest_dir, config = nil, definition = nil)
-    @dest_dir = dest_dir
+  def initialize(config = nil, definition = nil)
     @definition = definition
     @config = config
   end
@@ -14,13 +12,14 @@ class RubyWasm::Packager
   # Packages the Ruby code into a Wasm binary. (including extensions)
   #
   # @param executor [RubyWasm::BuildExecutor] The executor for building the Wasm binary.
+  # @param dest_dir [String] The destination used to construct the filesystem.
   # @param options [Hash] The packaging options.
   # @return [Array<Integer>] The bytes of the packaged Wasm binary.
-  def package(executor, options)
-    ruby_core = RubyWasm::Packager::Core.new(self)
+  def package(executor, dest_dir, options)
+    ruby_core = self.ruby_core_build()
     tarball = ruby_core.build(executor, options)
 
-    fs = RubyWasm::Packager::FileSystem.new(@dest_dir, self)
+    fs = RubyWasm::Packager::FileSystem.new(dest_dir, self)
     fs.package_ruby_root(tarball, executor)
 
     ruby_wasm_bin = File.expand_path("bin/ruby", fs.ruby_root)
@@ -38,6 +37,10 @@ class RubyWasm::Packager
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes
+  end
+
+  def ruby_core_build
+    @ruby_core_build ||= RubyWasm::Packager::Core.new(self)
   end
 
   # The list of excluded gems from the Bundler definition.
@@ -120,8 +123,7 @@ class RubyWasm::Packager
       src: "3.3",
       default_exts: ALL_DEFAULT_EXTS
     }
-    override = {}
-    override = @config["build_options"] || {} if @config
+    override = @config || {}
     # Merge the default options with the config options
     default.merge(override)
   end

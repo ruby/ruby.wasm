@@ -63,26 +63,51 @@ BUILDS
     TOOLCHAINS[toolchain.name] = toolchain
   end
 
+class BuildTask < Struct.new(:name, :target, :build_command)
+  def ruby_cache_key
+    return @key if @key
+    require "open3"
+    cmd = build_command + ["--print-ruby-cache-key"]
+    stdout, status = Open3.capture2(*cmd)
+    unless status.success?
+      raise "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+    end
+    require "json"
+    @key = JSON.parse(stdout)
+  end
+
+  def hexdigest
+    ruby_cache_key["hexdigest"]
+  end
+  def artifact
+    ruby_cache_key["artifact"]
+  end
+end
+
 namespace :build do
   BUILD_TASKS =
     BUILDS.map do |src, target, profile|
       name = "#{src}-#{target}-#{profile}"
 
-      desc "Cross-build Ruby for #{@target}"
+      build_command = [
+        "exe/rbwasm",
+        "build",
+        "--ruby-version",
+        src,
+        "--target",
+        target,
+        "--build-profile",
+        profile,
+        "--disable-gems",
+        "-o",
+        "/dev/null"
+      ]
+      desc "Cross-build Ruby for #{target}"
       task name do
-        sh *[
-             "exe/rbwasm",
-             "build",
-             "--ruby-version",
-             src,
-             "--target",
-             target,
-             "--build-profile",
-             profile,
-             "-o",
-             "/dev/null"
-           ]
+        sh *build_command
       end
+
+      BuildTask.new(name, target, build_command)
     end
 
   desc "Clean build directories"

@@ -54,11 +54,8 @@ def rake_task_matrix
       {
         task: "build:#{build.name}",
         artifact:
-          Pathname
-            .new(build.crossruby.artifact)
-            .relative_path_from(LIB_ROOT)
-            .to_s,
-        artifact_name: File.basename(build.crossruby.artifact, ".tar.gz"),
+          Pathname.new(build.artifact).relative_path_from(LIB_ROOT).to_s,
+        artifact_name: File.basename(build.artifact, ".tar.gz"),
         builder: build.target,
         rubies_cache_key: ruby_cache_keys[build.name]
       }

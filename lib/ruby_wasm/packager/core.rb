@@ -1,3 +1,5 @@
+require "forwardable"
+
 class RubyWasm::Packager::Core
   def initialize(packager)
     @packager = packager
@@ -7,6 +9,10 @@ class RubyWasm::Packager::Core
     strategy = build_strategy
     strategy.build(executor, options)
   end
+
+  extend Forwardable
+
+  def_delegators :build_strategy, :cache_key, :artifact
 
   private
 
@@ -44,6 +50,14 @@ class RubyWasm::Packager::Core
         [spec, exts]
       end
     end
+
+    def cache_key(digest)
+      raise NotImplementedError
+    end
+
+    def artifact
+      raise NotImplementedError
+    end
   end
 
   class DynamicLinking < BuildStrategy
@@ -51,6 +65,27 @@ class RubyWasm::Packager::Core
 
   class StaticLinking < BuildStrategy
     def build(executor, options)
+      build = derive_build
+      if defined?(Bundler)
+        Bundler.with_unbundled_env do
+          build.crossruby.build(executor, remake: options[:remake])
+        end
+      else
+        build.crossruby.build(executor, remake: options[:remake])
+      end
+      build.crossruby.artifact
+    end
+
+    def cache_key(digest)
+      derive_build.cache_key(digest)
+    end
+
+    def artifact
+      derive_build.crossruby.artifact
+    end
+
+    def derive_build
+      return @build if @build
       @build ||= RubyWasm::Build.new(name, **@packager.full_build_options)
       @build.crossruby.user_exts = user_exts
       @build.crossruby.debugflags = %w[-g]
@@ -63,14 +98,7 @@ class RubyWasm::Packager::Core
         -Xlinker
         stack-size=16777216
       ]
-      if defined?(Bundler)
-        Bundler.with_unbundled_env do
-          @build.crossruby.build(executor, remake: options[:remake])
-        end
-      else
-        @build.crossruby.build(executor, remake: options[:remake])
-      end
-      @build.crossruby.artifact
+      @build
     end
 
     def user_exts
@@ -94,7 +122,7 @@ class RubyWasm::Packager::Core
       options = @packager.full_build_options
       src_channel = options[:src][:name]
       target_triplet = options[:target]
-      base = "ruby-#{src_channel}-static-#{target_triplet}"
+      base = "ruby-#{src_channel}-#{target_triplet}#{options[:suffix]}"
       exts = specs_with_extensions.sort
       hash = ::Digest::MD5.new
       specs_with_extensions.each { |spec, _| hash << spec.full_name }

@@ -83,8 +83,13 @@ class RubyWasm::Packager::FileSystem
     end
   end
 
-  def bundle_dir = File.join(@dest_dir, bundle_relative_path)
-  def ruby_root = @ruby_root
+  def bundle_dir
+    File.join(@dest_dir, bundle_relative_path)
+  end
+
+  def ruby_root
+    @ruby_root
+  end
 
   private
 

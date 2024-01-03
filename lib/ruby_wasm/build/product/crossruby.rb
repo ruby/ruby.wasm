@@ -257,7 +257,7 @@ module RubyWasm
     end
 
     def artifact
-      File.join(@rubies_dir, "ruby-#{name}.tar.gz")
+      File.join(@rubies_dir, "#{name}.tar.gz")
     end
 
     def extinit_obj

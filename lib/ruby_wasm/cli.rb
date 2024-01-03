@@ -48,7 +48,8 @@ module RubyWasm
         ruby_version: "3.3",
         target_triplet: "wasm32-unknown-wasi",
         profile: "full",
-        stdlib: true
+        stdlib: true,
+        disable_gems: false
       }
       OptionParser
         .new do |opts|
@@ -90,11 +91,29 @@ module RubyWasm
           opts.on("--[no-]stdlib", "Include stdlib") do |stdlib|
             options[:stdlib] = stdlib
           end
+
+          opts.on("--disable-gems", "Disable gems") do
+            options[:disable_gems] = true
+          end
+
+          opts.on("--format FORMAT", "Output format") do |format|
+            options[:format] = format
+          end
+
+          opts.on("--print-ruby-cache-key", "Print Ruby cache key") do
+            options[:print_ruby_cache_key] = true
+          end
         end
         .parse!(args)
 
       verbose = RubyWasm.logger.level == :debug
       executor = RubyWasm::BuildExecutor.new(verbose: verbose)
+      packager = self.derive_packager(options)
+
+      if options[:print_ruby_cache_key]
+        self.do_print_ruby_cache_key(packager)
+        exit
+      end
 
       unless options[:output]
         @stderr.puts "Output file is not specified"
@@ -105,11 +124,13 @@ module RubyWasm
 
       if options[:save_temps]
         tmpdir = Dir.mktmpdir
-        self.do_build(executor, tmpdir, options)
+        self.do_build(executor, tmpdir, packager, options)
         @stderr.puts "Temporary files are saved to #{tmpdir}"
         exit
       else
-        Dir.mktmpdir { |tmpdir| self.do_build(executor, tmpdir, options) }
+        Dir.mktmpdir do |tmpdir|
+          self.do_build(executor, tmpdir, packager, options)
+        end
       end
     end
 
@@ -119,20 +140,39 @@ module RubyWasm
       config = { target: options[:target_triplet], src: options[:ruby_version] }
       case options[:profile]
       when "full"
-        config[:profile] = RubyWasm::Packager::ALL_DEFAULT_EXTS
+        config[:default_exts] = RubyWasm::Packager::ALL_DEFAULT_EXTS
       when "minimal"
-        config[:profile] = ""
+        config[:default_exts] = ""
       else
         RubyWasm.logger.error "Unknown profile: #{options[:profile]} (available: full, minimal)"
         exit 1
       end
+      config[:suffix] = "-#{options[:profile]}"
+      config
     end
 
-    def do_build(executor, tmp_dir, options)
-      definition = Bundler.definition if defined?(Bundler)
-      packager =
-        RubyWasm::Packager.new(tmp_dir, options[:target_triplet], definition)
-      wasm_bytes = packager.package(executor, options)
+    def derive_packager(options)
+      if defined?(Bundler) && !options[:disable_gems]
+        definition = Bundler.definition
+      end
+      RubyWasm::Packager.new(build_config(options), definition)
+    end
+
+    def do_print_ruby_cache_key(packager)
+      ruby_core_build = packager.ruby_core_build
+      require "digest"
+      digest = Digest::SHA256.new
+      ruby_core_build.cache_key(digest)
+      hexdigest = digest.hexdigest
+      require "json"
+      @stdout.puts JSON.generate(
+                     hexdigest: hexdigest,
+                     artifact: ruby_core_build.artifact
+                   )
+    end
+
+    def do_build(executor, tmpdir, packager, options)
+      wasm_bytes = packager.package(executor, tmpdir, options)
       @stderr.puts "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]
       when "-"

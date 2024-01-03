@@ -7,6 +7,9 @@ Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/**/test_*.rb"]
 end
 
-require "rb_sys/extensiontask"
+begin
+  require "rb_sys/extensiontask"
 
-RbSys::ExtensionTask.new("ruby_wasm") { |ext| ext.lib_dir = "lib/ruby_wasm" }
+  RbSys::ExtensionTask.new("ruby_wasm") { |ext| ext.lib_dir = "lib/ruby_wasm" }
+rescue LoadError
+end
