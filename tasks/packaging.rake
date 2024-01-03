@@ -54,6 +54,7 @@ namespace :npm do
           build_command.push "--disable-gems"
         end
         dist_dir = File.join(pkg_dir, "dist")
+        mkdir_p dist_dir
         if pkg[:target] == "wasm32-unknown-wasi"
           sh env,
              *build_command,
