@@ -131,9 +131,9 @@ class RubyWasm::Packager
   # Retrieves the resolved build options
   def full_build_options
     options = build_options
-    toolchain = RubyWasm::Toolchain.get(options[:target])
     build_dir = File.join(root, "build")
     rubies_dir = File.join(root, "rubies")
+    toolchain = RubyWasm::Toolchain.get(options[:target], build_dir)
     src =
       if options[:src].is_a?(Hash)
         options[:src]
