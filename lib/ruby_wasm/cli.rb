@@ -44,6 +44,8 @@ module RubyWasm
         save_temps: false,
         optimize: false,
         remake: false,
+        reconfigure: false,
+        clean: false,
         ruby_version: "3.3",
         target_triplet: "wasm32-unknown-wasi",
         profile: "full",
@@ -81,6 +83,14 @@ module RubyWasm
 
           opts.on("--remake", "Re-execute make for Ruby") do
             options[:remake] = true
+          end
+
+          opts.on("--reconfigure", "Re-execute configure for Ruby") do
+            options[:reconfigure] = true
+          end
+
+          opts.on("--clean", "Clean build artifacts") do
+            options[:clean] = true
           end
 
           opts.on("-o", "--output FILE", "Output file") do |file|
