@@ -72,7 +72,7 @@ namespace :standalone do
       wasi_sdk.install_binaryen
       base_dir = Dir.pwd
       sh tools,
-         "./build-package.sh #{base_dir}/rubies/#{pkg[:build]}",
+         "./build-package.sh #{base_dir}/rubies/ruby-#{pkg[:build]}",
          chdir: pkg_dir
     end
   end
