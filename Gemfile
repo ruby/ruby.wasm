@@ -8,10 +8,10 @@ group :development do
   gem "rake"
   gem "rake-compiler"
   gem "rb_sys", "~> 0.9.63"
-  gem "webrick"
 end
 
 group :check do
+  gem "webrick"
   gem "syntax_tree", "~> 3.5"
   gem "steep"
 end

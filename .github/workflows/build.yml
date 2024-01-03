@@ -131,7 +131,9 @@ jobs:
       - name: rake ${{ matrix.entry.task }}
         run: ./build-exec rake --verbose ${{ matrix.entry.task }}
       - name: rake ${{ matrix.entry.test }}
-        run: rake ${{ matrix.entry.test }}
+        run: |
+          bundle install --with=check --without=development
+          rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
       - uses: actions/upload-artifact@v4
         if: ${{ matrix.entry.artifact }}
