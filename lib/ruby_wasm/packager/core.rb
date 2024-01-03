@@ -66,17 +66,21 @@ class RubyWasm::Packager::Core
   class StaticLinking < BuildStrategy
     def build(executor, options)
       build = derive_build
-      force_rebuild = options[:remake] || options[:clean] || options[:reconfigure]
+      force_rebuild =
+        options[:remake] || options[:clean] || options[:reconfigure]
       if File.exist?(build.crossruby.artifact) && !force_rebuild
         return build.crossruby.artifact
       end
-      if options[:clean]
-        build.crossruby.clean(executor)
-      end
+      build.crossruby.clean(executor) if options[:clean]
 
-      do_build = proc do
-        build.crossruby.build(executor, remake: options[:remake], reconfigure: options[:reconfigure])
-      end
+      do_build =
+        proc do
+          build.crossruby.build(
+            executor,
+            remake: options[:remake],
+            reconfigure: options[:reconfigure]
+          )
+        end
 
       __skip__ =
         if defined?(Bundler)

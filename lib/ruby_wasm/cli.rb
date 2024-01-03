@@ -89,9 +89,7 @@ module RubyWasm
             options[:reconfigure] = true
           end
 
-          opts.on("--clean", "Clean build artifacts") do
-            options[:clean] = true
-          end
+          opts.on("--clean", "Clean build artifacts") { options[:clean] = true }
 
           opts.on("-o", "--output FILE", "Output file") do |file|
             options[:output] = file
