@@ -130,6 +130,11 @@ jobs:
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
         run: ./build-exec rake --verbose ${{ matrix.entry.task }}
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.entry.test != '' }}
+        with:
+          ruby-version: "3.2"
+          bundler-cache: false
       - name: rake ${{ matrix.entry.test }}
         run: |
           bundle install --with=check --without=development
