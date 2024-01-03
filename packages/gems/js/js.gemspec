@@ -11,7 +11,6 @@ Gem::Specification.new do |spec|
   spec.summary = "JavaScript bindings for ruby.wasm"
 
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
 
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z`.split("\x0").reject do |f|
