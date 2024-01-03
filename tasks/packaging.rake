@@ -7,11 +7,16 @@ tools = {
 
 def npm_pkg_build_command(pkg)
   [
-    "bundle", "exec", "rbwasm",
+    "bundle",
+    "exec",
+    "rbwasm",
     "build",
-    "--ruby-version", pkg[:ruby_version],
-    "--target", pkg[:target],
-    "--build-profile", "full",
+    "--ruby-version",
+    pkg[:ruby_version],
+    "--target",
+    pkg[:target],
+    "--build-profile",
+    "full"
   ]
 end
 
@@ -39,7 +44,7 @@ namespace :npm do
       task "ruby" do
         env = {
           # Share ./build and ./rubies in the same workspace
-          "RUBY_WASM_ROOT" => base_dir,
+          "RUBY_WASM_ROOT" => base_dir
         }
         if gemfile_path = pkg[:gemfile]
           env["BUNDLE_GEMFILE"] = File.join(base_dir, gemfile_path)
@@ -50,10 +55,25 @@ namespace :npm do
         end
         dist_dir = File.join(pkg_dir, "dist")
         if pkg[:target] == "wasm32-unknown-wasi"
-          sh env, *build_command, "--no-stdlib", "-o", File.join(dist_dir, "ruby.wasm")
-          sh env, *build_command, "-o", File.join(dist_dir, "ruby.debug+stdlib.wasm")
-          sh wasi_sdk.wasm_opt, "--strip-debug", File.join(dist_dir, "ruby.wasm"), "-o", File.join(dist_dir, "ruby.wasm")
-          sh wasi_sdk.wasm_opt, "--strip-debug", File.join(dist_dir, "ruby.debug+stdlib.wasm"), "-o", File.join(dist_dir, "ruby+stdlib.wasm")
+          sh env,
+             *build_command,
+             "--no-stdlib",
+             "-o",
+             File.join(dist_dir, "ruby.wasm")
+          sh env,
+             *build_command,
+             "-o",
+             File.join(dist_dir, "ruby.debug+stdlib.wasm")
+          sh wasi_sdk.wasm_opt,
+             "--strip-debug",
+             File.join(dist_dir, "ruby.wasm"),
+             "-o",
+             File.join(dist_dir, "ruby.wasm")
+          sh wasi_sdk.wasm_opt,
+             "--strip-debug",
+             File.join(dist_dir, "ruby.debug+stdlib.wasm"),
+             "-o",
+             File.join(dist_dir, "ruby+stdlib.wasm")
         elsif pkg[:target] == "wasm32-unknown-emscripten"
           sh env, *build_command, "-o", "/dev/null"
         end
