@@ -4,7 +4,12 @@ require "ruby_wasm/version"
 RDoc::Task.new do |doc|
   doc.main = "README.md"
   doc.title = "ruby.wasm Documentation"
-  doc.rdoc_files = FileList.new %w[*.md packages/gems/js/ext/**/*.c packages/gems/js/lib/**/*.rb]
+  doc.rdoc_files =
+    FileList.new %w[
+                   *.md
+                   packages/gems/js/ext/**/*.c
+                   packages/gems/js/lib/**/*.rb
+                 ]
 end
 
 namespace :doc do
