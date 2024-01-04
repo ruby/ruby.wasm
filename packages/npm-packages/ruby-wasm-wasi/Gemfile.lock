@@ -2,6 +2,7 @@ PATH
   remote: ../../..
   specs:
     ruby_wasm (2.4.1)
+      rb_sys (~> 0.9.63)
 
 PATH
   remote: ../../gems/js
@@ -11,6 +12,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    rb_sys (0.9.86)
 
 PLATFORMS
   ruby
