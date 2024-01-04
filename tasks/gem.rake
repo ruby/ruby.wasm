@@ -10,7 +10,10 @@ end
 begin
   require "rb_sys/extensiontask"
 
-  RbSys::ExtensionTask.new("ruby_wasm") { |ext| ext.lib_dir = "lib/ruby_wasm" }
+  gemspec = Gem::Specification.load("ruby_wasm.gemspec")
+  RbSys::ExtensionTask.new("ruby_wasm", gemspec) do |ext|
+    ext.lib_dir = "lib/ruby_wasm"
+  end
 rescue LoadError => e
   task :compile do
     $stderr.puts "Skipping compilation of ruby_wasm extension: #{e.message}"
