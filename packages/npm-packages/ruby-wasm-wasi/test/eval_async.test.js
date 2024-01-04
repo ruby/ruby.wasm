@@ -30,12 +30,49 @@ describe("Async Ruby code evaluation", () => {
     expect(ret1.toString()).toBe("43");
   });
 
-  test("await outside of evalAsync", async () => {
+  test("call async Ruby method from JS", async () => {
+    const vm = await initRubyVM();
+    const x = vm.eval(`
+      class X
+        def async_method
+          JS.global[:Promise].resolve(42).await
+        end
+        def async_method_with_args(a, b)
+          JS.global[:Promise].resolve(a + b).await
+        end
+      end
+      X.new
+    `);
+
+    const ret1 = await x.callAsync("async_method");
+    expect(ret1.toString()).toBe("42");
+
+    const ret2 = await x.callAsync(
+      "async_method_with_args",
+      vm.eval("1"),
+      vm.eval("2"),
+    );
+    expect(ret2.toString()).toBe("3");
+  });
+
+  test("await outside of evalAsync or callAsync", async () => {
     const vm = await initRubyVM();
     expect(() => {
       vm.eval(`require "js"; JS.global[:Promise].resolve(42).await`);
-    }).toThrowError(
-      "JS::Object#await can be called only from RubyVM#evalAsync JS API",
+    }).toThrow(
+      "JS::Object#await can be called only from RubyVM#evalAsync or RbValue#callAsync JS API",
+    );
+
+    const x = vm.eval(`
+      class X
+        def async_method
+          JS.global[:Promise].resolve(42).await
+        end
+      end
+      X.new
+    `);
+    expect(() => x.call("async_method")).toThrow(
+      "JS::Object#await can be called only from RubyVM#evalAsync or RbValue#callAsync JS API",
     );
   });
 });

@@ -84,7 +84,7 @@ module JS
       )
       if @loop == current
         raise (
-                "JS::Object#await can be called only from RubyVM#evalAsync JS API\n" +
+                "JS::Object#await can be called only from RubyVM#evalAsync or RbValue#callAsync JS API\n" +
                   "If you are using browser.script.iife.js, please ensure that you specify `data-eval=\"async\"` in your script tag\n" +
                   "e.g. <script type=\"text/ruby\" data-eval=\"async\">puts :hello</script>\n" +
                   "Or <script type=\"text/ruby\" data-eval=\"async\" src=\"path/to/script.rb\"></script>"
@@ -105,15 +105,19 @@ module JS
   private
 
   def self.__eval_async_rb(rb_code, future)
+    self.__async(future) do
+      JS::Object.wrap(Kernel.eval(rb_code.to_s, TOPLEVEL_BINDING, "eval_async"))
+    end
+  end
+
+  def self.__call_async_method(recv, method_name, future, *args)
+    self.__async(future) { recv.send(method_name.to_s, *args) }
+  end
+
+  def self.__async(future, &block)
     Fiber
       .new do
-        future.resolve JS::Object.wrap(
-                         Kernel.eval(
-                           rb_code.to_s,
-                           TOPLEVEL_BINDING,
-                           "eval_async"
-                         )
-                       )
+        future.resolve block.call
       rescue => e
         future.reject JS::Object.wrap(e)
       end

@@ -337,25 +337,8 @@ export class RubyVM {
    */
   evalAsync(code: string): Promise<RbValue> {
     const JS = this.eval("require 'js'; JS");
-    return new Promise((resolve, reject) => {
-      JS.call(
-        "__eval_async_rb",
-        this.wrap(code),
-        this.wrap({
-          resolve,
-          reject: (error: RbValue) => {
-            reject(
-              new RbError(
-                this.exceptionFormatter.format(
-                  error,
-                  this,
-                  this.privateObject(),
-                ),
-              ),
-            );
-          },
-        }),
-      );
+    return newRbPromise(this, this.privateObject(), (future) => {
+      JS.call("__eval_async_rb", this.wrap(code), future);
     });
   }
 
@@ -454,12 +437,12 @@ export class RbValue {
    *
    * @param callee name of the Ruby method to call
    * @param args arguments to pass to the method. Must be an array of RbValue
+   * @returns The result of the method call as a new RbValue.
    *
    * @example
    * const ary = vm.eval("[1, 2, 3]");
    * ary.call("push", 4);
    * console.log(ary.call("sample").toString());
-   *
    */
   call(callee: string, ...args: RbValue[]): RbValue {
     const innerArgs = args.map((arg) => arg.inner);
@@ -468,6 +451,38 @@ export class RbValue {
       this.vm,
       this.privateObject,
     );
+  }
+
+  /**
+   * Call a given method that may call `JS::Object#await` with given arguments
+   *
+   * @param callee name of the Ruby method to call
+   * @param args arguments to pass to the method. Must be an array of RbValue
+   * @returns A Promise that resolves to the result of the method call as a new RbValue.
+   *
+   * @example
+   * const client = vm.eval(`
+   *   require 'js'
+   *   class HttpClient
+   *     def get(url)
+   *       JS.global.fetch(url).await
+   *     end
+   *   end
+   *   HttpClient.new
+   * `);
+   * const response = await client.callAsync("get", vm.eval(`"https://example.com"`));
+   */
+  callAsync(callee: string, ...args: RbValue[]): Promise<RbValue> {
+    const JS = this.vm.eval("require 'js'; JS");
+    return newRbPromise(this.vm, this.privateObject, (future) => {
+      JS.call(
+        "__call_async_method",
+        this,
+        this.vm.wrap(callee),
+        future,
+        ...args,
+      );
+    });
   }
 
   /**
@@ -701,6 +716,25 @@ const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
     return new RbValue(value, vm, privateObject);
   });
 };
+
+function newRbPromise(
+  vm: RubyVM,
+  privateObject: RubyVMPrivate,
+  body: (future: RbValue) => void,
+): Promise<RbValue> {
+  return new Promise((resolve, reject) => {
+    const future = vm.wrap({
+      resolve,
+      reject: (error: RbValue) => {
+        const rbError = new RbError(
+          privateObject.exceptionFormatter.format(error, vm, privateObject),
+        );
+        reject(rbError);
+      },
+    });
+    body(future);
+  });
+}
 
 /**
  * Error class thrown by Ruby execution
