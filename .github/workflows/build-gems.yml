@@ -17,6 +17,8 @@ jobs:
       - uses: oxidize-rb/actions/fetch-ci-data@v1
         id: fetch
         with:
+          supported-ruby-platforms: |
+            exclude: [arm-linux]
           stable-ruby-versions: |
             exclude: [head]
 
