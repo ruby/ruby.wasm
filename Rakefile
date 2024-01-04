@@ -8,8 +8,6 @@ require "bundler/gem_tasks"
 require "ruby_wasm/rake_task"
 require "ruby_wasm/packager"
 
-Dir.glob("tasks/**.rake").each { |f| import f }
-
 BUILD_SOURCES = %w[3.3 3.2 head]
 BUILD_PROFILES = %w[full minimal]
 
