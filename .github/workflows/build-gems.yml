@@ -30,13 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
           bundler-cache: true
-          cargo-cache: true
-          cargo-vendor: true
-          cache-version: v0-${{ matrix.ruby-platform }}
 
       - name: Extract rb-sys version
         id: vars
