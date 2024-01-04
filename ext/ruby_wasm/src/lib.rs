@@ -7,6 +7,7 @@ use magnus::{
     wrap, Error, ExceptionClass, RModule, Ruby,
 };
 use wizer::Wizer;
+use structopt::StructOpt;
 
 static RUBY_WASM: value::Lazy<RModule> =
     value::Lazy::new(|ruby| ruby.define_module("RubyWasmExt").unwrap());
@@ -35,6 +36,15 @@ struct WasiVfsInner {
 struct WasiVfs(std::cell::RefCell<WasiVfsInner>);
 
 impl WasiVfs {
+    fn run_cli(args: Vec<String>) -> Result<(), Error> {
+        wasi_vfs_cli::App::from_iter(args).execute().map_err(|e| {
+            Error::new(
+                exception::standard_error(),
+                format!("failed to run wasi vfs cli: {}", e),
+            )
+        })
+    }
+
     fn new() -> Self {
         Self(std::cell::RefCell::new(WasiVfsInner { map_dirs: vec![] }))
     }
@@ -63,6 +73,7 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
 
     let wasi_vfs = module.define_class("WasiVfs", ruby.class_object())?;
     wasi_vfs.define_singleton_method("new", function!(WasiVfs::new, 0))?;
+    wasi_vfs.define_singleton_method("run_cli", function!(WasiVfs::run_cli, 1))?;
     wasi_vfs.define_method("map_dir", method!(WasiVfs::map_dir, 2))?;
     wasi_vfs.define_method("pack", method!(WasiVfs::pack, 1))?;
     Ok(())

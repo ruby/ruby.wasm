@@ -2,8 +2,8 @@
 #
 # Example runs
 # $ ruby vm_deep_call.rb
-# $ RUBY_EXE="wasmtime run --mapdir /::/ head-wasm32-unknown-wasi-minimal/usr/local/bin/ruby --" ruby vm_deep_call.rb
-# $ RUBY_EXE="wasmtime run --env RUBY_FIBER_MACHINE_STACK_SIZE=20971520 --mapdir /::/ head-wasm32-unknown-wasi-minimal/usr/local/bin/ruby --" ruby vm_deep_call.rb
+# $ RUBY_EXE="wasmtime run --dir /::/ head-wasm32-unknown-wasi-minimal/usr/local/bin/ruby --" ruby vm_deep_call.rb
+# $ RUBY_EXE="wasmtime run --env RUBY_FIBER_MACHINE_STACK_SIZE=20971520 --dir /::/ head-wasm32-unknown-wasi-minimal/usr/local/bin/ruby --" ruby vm_deep_call.rb
 
 def vm_rec n
   vm_rec n - 1 if n > 0

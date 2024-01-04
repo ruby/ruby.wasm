@@ -1,7 +1,7 @@
 wasi_vfs = RubyWasm::WasiVfsProduct.new(File.join(Dir.pwd, "build"))
 wasi_sdk = TOOLCHAINS["wasi-sdk"]
 tools = {
-  "WASI_VFS_CLI" => wasi_vfs.cli_bin_path,
+  "WASI_VFS_CLI" => File.expand_path(File.join(__dir__, "..", "exe", "rbwasm")),
   "WASMOPT" => wasi_sdk.wasm_opt
 }
 
@@ -93,7 +93,6 @@ namespace :npm do
 
     desc "Make tarball for npm package #{pkg[:name]}"
     task pkg[:name] do
-      wasi_vfs.install_cli
       wasi_sdk.install_binaryen
       Rake::Task["npm:#{pkg[:name]}:build"].invoke
       sh "npm pack", chdir: pkg_dir
@@ -137,7 +136,6 @@ namespace :standalone do
 
     desc "Build standalone package #{pkg[:name]}"
     task "#{pkg[:name]}" => ["build:#{pkg[:build]}"] do
-      wasi_vfs.install_cli
       wasi_sdk.install_binaryen
       base_dir = Dir.pwd
       sh tools,

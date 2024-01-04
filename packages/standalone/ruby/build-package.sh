@@ -22,5 +22,5 @@ cp -R "$ruby_root" "$workdir/ruby-root"
 (
   cd "$workdir" && \
   "$WASMOPT" --strip-debug ruby-root/usr/local/bin/ruby -o ./ruby-root/ruby.wasm && \
-  "$WASI_VFS_CLI" pack ./ruby-root/ruby.wasm --mapdir /usr::./ruby-root/usr -o "$dist_dir/ruby.wasm"
+  "$WASI_VFS_CLI" pack ./ruby-root/ruby.wasm --dir ./ruby-root/usr::/usr -o "$dist_dir/ruby.wasm"
 )

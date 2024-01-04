@@ -4,6 +4,8 @@ module RubyWasmExt
   class WasiVfs
     def initialize: () -> void
 
+    def self.run_cli: (Array[String] args) -> void
+
     def map_dir: (String guest_path, String host_path) -> void
 
     def pack: (Array[Integer] module_bytes) -> Array[Integer]

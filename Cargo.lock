@@ -1303,6 +1303,7 @@ name = "ruby_wasm"
 version = "0.0.0"
 dependencies = [
  "magnus",
+ "structopt",
  "wasi-cap-std-sync",
  "wasi-vfs-cli",
  "wasmtime-wasi",
