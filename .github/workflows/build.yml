@@ -166,6 +166,10 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
       - run: echo "PREREL_NAME=${{ inputs.prerel_name }}" >> $GITHUB_ENV
       - run: rake "ci:publish[${PREREL_NAME:-$GITHUB_REF_NAME}]"
         env:
