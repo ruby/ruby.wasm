@@ -9,7 +9,7 @@ module RubyWasm
     end
 
     def run(args)
-      available_commands = %w[build]
+      available_commands = %w[build pack]
       parser =
         OptionParser.new do |opts|
           opts.banner = <<~USAGE
@@ -32,6 +32,8 @@ module RubyWasm
       case command
       when "build"
         build(args)
+      when "pack"
+        pack(args)
       else
         @stderr.puts parser
         exit
@@ -141,6 +143,11 @@ module RubyWasm
       end
     end
 
+    def pack(args)
+      self.require_extension
+      RubyWasmExt::WasiVfs.run_cli([$0, "pack", *args])
+    end
+
     private
 
     def build_config(options)
@@ -180,13 +187,7 @@ module RubyWasm
     end
 
     def do_build(executor, tmpdir, packager, options)
-      # Tries to require the extension for the given Ruby version first
-      begin
-        RUBY_VERSION =~ /(\d+\.\d+)/
-        require_relative "#{Regexp.last_match(1)}/ruby_wasm.so"
-      rescue LoadError
-        require_relative "ruby_wasm.so"
-      end
+      self.require_extension
       wasm_bytes = packager.package(executor, tmpdir, options)
       RubyWasm.logger.info "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]
@@ -195,6 +196,16 @@ module RubyWasm
       else
         File.binwrite(options[:output], wasm_bytes.pack("C*"))
         RubyWasm.logger.debug "Wrote #{options[:output]}"
+      end
+    end
+
+    def require_extension
+      # Tries to require the extension for the given Ruby version first
+      begin
+        RUBY_VERSION =~ /(\d+\.\d+)/
+        require_relative "#{Regexp.last_match(1)}/ruby_wasm.so"
+      rescue LoadError
+        require_relative "ruby_wasm.so"
       end
     end
   end

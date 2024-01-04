@@ -1,7 +1,7 @@
 wasi_vfs = RubyWasm::WasiVfsProduct.new(File.join(Dir.pwd, "build"))
 wasi_sdk = TOOLCHAINS["wasi-sdk"]
 tools = {
-  "WASI_VFS_CLI" => wasi_vfs.cli_bin_path,
+  "WASI_VFS_CLI" => File.expand_path(File.join(__dir__, "..", "exe", "rbwasm")),
   "WASMOPT" => wasi_sdk.wasm_opt
 }
 

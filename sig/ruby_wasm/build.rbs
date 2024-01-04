@@ -135,12 +135,8 @@ module RubyWasm
     def initialize: (String build_dir) -> void
     def lib_product_build_dir: -> String
     def lib_wasi_vfs_a: -> String
-    def cli_product_build_dir: -> String
-    def cli_bin_path: -> String
     def name: -> String
     def build: (BuildExecutor executor) -> void
-    def install_cli: -> bool?
-    def cli_download_url: -> String
   end
 
   class CrossRubyExtProduct < BuildProduct

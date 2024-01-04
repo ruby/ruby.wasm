@@ -8,6 +8,7 @@ module RubyWasm
     def initialize: (stdout: IO, stderr: IO) -> void
 
     def build: (Array[String] args) -> void
+    def pack: (Array[String] args) -> void
 
     private
 
@@ -16,6 +17,8 @@ module RubyWasm
     def derive_packager: (Hash[untyped, untyped] options) -> Packager
     def do_print_ruby_cache_key: (Packager) -> void
     def do_build: (BuildExecutor, string tmpdir, Packager, Hash[untyped, untyped] options) -> void
+
+    def require_extension: () -> void
   end
 
   self.@logger: Logger?
