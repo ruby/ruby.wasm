@@ -1,0 +1,24 @@
+PATH
+  remote: ../../..
+  specs:
+    ruby_wasm (2.4.1)
+
+PATH
+  remote: ../../gems/js
+  specs:
+    js (2.4.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  js!
+  ruby_wasm!
+
+BUNDLED WITH
+   2.5.3

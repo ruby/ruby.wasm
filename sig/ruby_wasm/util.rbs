@@ -1,0 +1,5 @@
+module RubyWasm
+  module SizeFormatter
+    def self?.format: (Integer size) -> String
+  end
+end

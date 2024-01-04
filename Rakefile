@@ -5,106 +5,42 @@ require "open-uri"
 $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
 require "ruby_wasm/rake_task"
+require "ruby_wasm/packager"
 
 Dir.glob("tasks/**.rake").each { |f| import f }
 
-BUILD_SOURCES = {
-  "head" => {
-    type: "github",
-    repo: "ruby/ruby",
-    rev: "master",
-    patches: Dir["./patches/*.patch"].map { |p| File.expand_path(p) }
-  },
-  "3.3" => {
-    type: "tarball",
-    url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
-  },
-  "3.2" => {
-    type: "tarball",
-    url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
-  }
-}
-
-# Respect revisions specified in build_manifest.json, which is usually generated on GitHub Actions.
-if File.exist?("build_manifest.json")
-  begin
-    manifest = JSON.parse(File.read("build_manifest.json"))
-    manifest["ruby_revisions"].each do |name, rev|
-      BUILD_SOURCES[name][:rev] = rev
-    end
-  rescue StandardError
-    $stderr.puts "Failed to load build_manifest.json"
-  end
-end
-
-FULL_EXTS =
-  "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
-
-BUILD_PROFILES = {
-  "minimal" => {
-    debug: false,
-    default_exts: "",
-    user_exts: []
-  },
-  "minimal-debug" => {
-    debug: true,
-    default_exts: "",
-    user_exts: []
-  },
-  "full" => {
-    debug: false,
-    default_exts: FULL_EXTS,
-    user_exts: []
-  },
-  "full-debug" => {
-    debug: true,
-    default_exts: FULL_EXTS,
-    user_exts: []
-  },
-  "full-js-debug" => {
-    debug: true,
-    default_exts: FULL_EXTS,
-    user_exts: %w[js witapi]
-  }
-}
+BUILD_SOURCES = %w[3.3 3.2 head]
+BUILD_PROFILES = %w[full minimal]
 
 BUILDS =
-  %w[wasm32-unknown-wasi wasm32-unknown-emscripten]
-    .product(BUILD_SOURCES.keys, BUILD_PROFILES.keys)
-    .select do |target, _, profile_name|
-      if target == "wasm32-unknown-emscripten"
-        # Builds only full for Emscripten since minimal, js, debug
-        # builds are rarely used with Emscripten.
-        next profile_name == "full"
-      end
-      next true
-    end
-    .map { |t, s, p| { src: s, target: t, profile: p } }
+  BUILD_SOURCES
+    .product(BUILD_PROFILES)
+    .map { |src, profile| [src, "wasm32-unknown-wasi", profile] } +
+    BUILD_SOURCES.map { |src| [src, "wasm32-unknown-emscripten", "full"] }
 
 NPM_PACKAGES = [
   {
     name: "ruby-head-wasm-emscripten",
-    build: "head-wasm32-unknown-emscripten-full",
+    ruby_version: "head",
+    gemfile: nil,
     target: "wasm32-unknown-emscripten"
   },
   {
-    name: "ruby-wasm-wasi",
-    build: "head-wasm32-unknown-wasi-full-js-debug",
-    target: "wasm32-unknown-wasi"
-  },
-  {
     name: "ruby-head-wasm-wasi",
-    build: "head-wasm32-unknown-wasi-full-js-debug",
+    ruby_version: "head",
+    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   },
   {
     name: "ruby-3.3-wasm-wasi",
-    build: "3.3-wasm32-unknown-wasi-full-js-debug",
+    ruby_version: "3.3",
+    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   },
   {
     name: "ruby-3.2-wasm-wasi",
-    build: "3.2-wasm32-unknown-wasi-full-js-debug",
+    ruby_version: "3.2",
+    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   }
 ]
@@ -117,46 +53,71 @@ STANDALONE_PACKAGES = [
 LIB_ROOT = File.dirname(__FILE__)
 
 TOOLCHAINS = {}
+BUILDS
+  .map { |_, target, _| target }
+  .uniq
+  .each do |target|
+    build_dir = File.join(LIB_ROOT, "build")
+    toolchain = RubyWasm::Toolchain.get(target, build_dir)
+    TOOLCHAINS[toolchain.name] = toolchain
+  end
+
+class BuildTask < Struct.new(:name, :target, :build_command)
+  def ruby_cache_key
+    return @key if @key
+    require "open3"
+    cmd = build_command + ["--print-ruby-cache-key"]
+    stdout, status = Open3.capture2(*cmd)
+    unless status.success?
+      raise "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+    end
+    require "json"
+    @key = JSON.parse(stdout)
+  end
+
+  def hexdigest
+    ruby_cache_key["hexdigest"]
+  end
+  def artifact
+    ruby_cache_key["artifact"]
+  end
+end
 
 namespace :build do
   BUILD_TASKS =
-    BUILDS.map do |params|
-      name = "#{params[:src]}-#{params[:target]}-#{params[:profile]}"
-      source = BUILD_SOURCES[params[:src]].merge(name: params[:src])
-      profile = BUILD_PROFILES[params[:profile]]
-      options = {
-        src: source,
-        target: params[:target],
-        default_exts: profile[:default_exts]
-      }
-      debug = profile[:debug]
-      RubyWasm::BuildTask.new(name, **options) do |t|
-        if debug
-          t.crossruby.debugflags = %w[-g]
-          t.crossruby.wasmoptflags = %w[-O3 -g]
-          t.crossruby.ldflags = %w[
-            -Xlinker
-            --stack-first
-            -Xlinker
-            -z
-            -Xlinker
-            stack-size=16777216
-          ]
-        else
-          t.crossruby.debugflags = %w[-g0]
-          t.crossruby.ldflags = %w[-Xlinker -zstack-size=16777216]
-        end
+    BUILDS.map do |src, target, profile|
+      name = "#{src}-#{target}-#{profile}"
 
-        toolchain = t.toolchain
-        t.crossruby.user_exts =
-          profile[:user_exts].map do |ext|
-            srcdir = File.join(LIB_ROOT, "ext", ext)
-            RubyWasm::CrossRubyExtProduct.new(srcdir, toolchain)
-          end
-        unless TOOLCHAINS.key? toolchain.name
-          TOOLCHAINS[toolchain.name] = toolchain
+      build_command = [
+        "exe/rbwasm",
+        "build",
+        "--ruby-version",
+        src,
+        "--target",
+        target,
+        "--build-profile",
+        profile,
+        "--disable-gems",
+        "-o",
+        "/dev/null"
+      ]
+      desc "Cross-build Ruby for #{target}"
+      task name do
+        sh *build_command
+      end
+      namespace name do
+        task :remake do
+          sh *build_command, "--remake"
+        end
+        task :reconfigure do
+          sh *build_command, "--reconfigure"
+        end
+        task :clean do
+          sh *build_command, "--clean"
         end
       end
+
+      BuildTask.new(name, target, build_command)
     end
 
   desc "Clean build directories"

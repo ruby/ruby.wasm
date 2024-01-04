@@ -1,0 +1,17 @@
+[package]
+name = "ruby_wasm"
+version = "0.0.0"
+edition = "2021"
+authors = ["Yuta Saito <kateinoigakukun@gmail.com>"]
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+magnus = "0.6.2"
+wizer = "3.0.0"
+wasmtime-wasi = "9.0.4"
+wasi-cap-std-sync = "9.0.4"
+wasi-vfs-cli = { git = "https://github.com/kateinoigakukun/wasi-vfs/", rev = "b1e4e5d9cd6322e8745e67c092b495973835a94f" }

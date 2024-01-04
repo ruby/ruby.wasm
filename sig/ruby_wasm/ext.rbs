@@ -1,0 +1,11 @@
+module RubyWasmExt
+  def self.preinitialize: (Array[Integer] module_bytes) -> Array[Integer]
+
+  class WasiVfs
+    def initialize: () -> void
+
+    def map_dir: (String guest_path, String host_path) -> void
+
+    def pack: (Array[Integer] module_bytes) -> Array[Integer]
+  end
+end

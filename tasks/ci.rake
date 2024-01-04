@@ -1,6 +1,7 @@
 def latest_build_sources
   BUILD_SOURCES
-    .filter_map do |name, src|
+    .filter_map do |name|
+      src = RubyWasm::Packager.build_source_aliases(LIB_ROOT)[name]
       case src[:type]
       when "github"
         url = "repos/#{src[:repo]}/commits/#{src[:rev]}"
@@ -21,7 +22,8 @@ def release_note
 |:-------:|:------:|
 EOS
 
-  BUILD_SOURCES.each do |name, source|
+  BUILD_SOURCES.each do |name|
+    source = RubyWasm::Packager.build_source_aliases(LIB_ROOT)[name]
     case source[:type]
     when "github"
       output +=
@@ -52,11 +54,8 @@ def rake_task_matrix
       {
         task: "build:#{build.name}",
         artifact:
-          Pathname
-            .new(build.crossruby.artifact)
-            .relative_path_from(LIB_ROOT)
-            .to_s,
-        artifact_name: File.basename(build.crossruby.artifact, ".tar.gz"),
+          Pathname.new(build.artifact).relative_path_from(LIB_ROOT).to_s,
+        artifact_name: File.basename(build.artifact, ".tar.gz"),
         builder: build.target,
         rubies_cache_key: ruby_cache_keys[build.name]
       }
@@ -69,7 +68,7 @@ def rake_task_matrix
         artifact: "packages/npm-packages/#{pkg[:name]}/#{pkg[:name]}-*.tgz",
         artifact_name: "npm-#{pkg[:name]}",
         builder: pkg[:target],
-        rubies_cache_key: ruby_cache_keys[pkg[:build]]
+        rubies_cache_key: npm_pkg_rubies_cache_key(pkg)
       }
       # Run tests only if the package has 'test' script
       package_json =

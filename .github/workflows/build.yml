@@ -75,6 +75,10 @@ jobs:
       entries: ${{ steps.set-matrix.outputs.entries }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
       - run: rake ci:pin_build_manifest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -112,18 +116,33 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.2"
-          bundler-cache: true
-      - run: ./bin/setup
+      - name: Setup builder container
+        run: |
+          docker run -dit -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build \
+            -e "ENABLE_GITHUB_ACTIONS_MARKUP=true" \
+            -e "RUBYWASM_UID=$(id -u)" -e "RUBYWASM_GID=$(id -g)" \
+            -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" \
+            --name builder \
+            ${{ steps.builder-image.outputs.imageid }} /bin/sh
+          echo 'docker exec -u me builder "$@"' > ./build-exec
+          chmod +x ./build-exec
+      - run: ./build-exec bundle config set --local without check
+      - run: ./build-exec ./bin/setup
+      - run: ./build-exec bundle exec rake compile
       - name: Pre-release configuration
-        run: rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
+        run: ./build-exec bundle exec rake ${{ matrix.entry.prerelease }}[${{ inputs.prerel_name }}]
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
-        run: docker run -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build -e "ENABLE_GITHUB_ACTIONS_MARKUP=true" -e "RUBYWASM_UID=$(id -u)" -e "RUBYWASM_GID=$(id -g)" -e "GNUMAKEFLAGS=-j$((1 + $(nproc --all)))" ${{ steps.builder-image.outputs.imageid }} rake --verbose ${{ matrix.entry.task }}
+        run: ./build-exec rake --verbose ${{ matrix.entry.task }}
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.entry.test != '' }}
+        with:
+          ruby-version: "3.2"
+          bundler-cache: false
       - name: rake ${{ matrix.entry.test }}
-        run: rake ${{ matrix.entry.test }}
+        run: |
+          bundle install --with=check --without=development
+          rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
       - uses: actions/upload-artifact@v4
         if: ${{ matrix.entry.artifact }}

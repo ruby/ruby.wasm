@@ -1,0 +1,91 @@
+
+class RubyWasm::Packager
+  @definition: untyped
+  @config: Hash[untyped, untyped]
+
+  def initialize: (untyped?, Hash[untyped, untyped]?) -> void
+
+  def package: (RubyWasm::BuildExecutor, string dest_dir, untyped options) -> Array[Integer]
+
+  @ruby_core_build: RubyWasm::Packager::Core?
+  def ruby_core_build: () -> RubyWasm::Packager::Core
+
+  EXCLUDED_GEMS: Array[string]
+
+  def specs: () -> Array[untyped]
+  def support_dynamic_linking?: () -> bool
+
+  def root: () -> string
+
+  type build_source = Hash[Symbol, (String | Array[String])]
+  def self.build_source_aliases: (string root) -> Hash[string, build_source]
+
+  ALL_DEFAULT_EXTS: string
+
+  def build_options: () -> Hash[Symbol, untyped]
+  def full_build_options: () -> Hash[Symbol, untyped]
+
+  class Core
+    include RubyWasm::_Cacheable
+
+    @packager: RubyWasm::Packager
+    def initialize: (RubyWasm::Packager) -> void
+    def build: (RubyWasm::BuildExecutor, untyped options) -> String
+
+    extend Forwardable
+
+    def artifact: () -> string
+
+    private
+
+    @build_strategy: BuildStrategy?
+    def build_strategy: () -> BuildStrategy
+
+    class BuildStrategy
+      @packager: RubyWasm::Packager
+      def initialize: (RubyWasm::Packager) -> void
+      def build: (RubyWasm::BuildExecutor, untyped options) -> String
+      def specs_with_extensions: () -> Array[[untyped, Array[string]]]
+    end
+
+    class DynamicLinking < RubyWasm::Packager::Core::BuildStrategy
+    end
+
+    class StaticLinking < RubyWasm::Packager::Core::BuildStrategy
+      @build: RubyWasm::Build
+      def derive_build: () -> RubyWasm::Build
+      @user_exts: Array[RubyWasm::CrossRubyExtProduct]?
+      def user_exts: (RubyWasm::Build) -> Array[RubyWasm::CrossRubyExtProduct]
+
+      def name: () -> string
+    end
+  end
+
+  class FileSystem
+    @dest_dir: string
+    @packager: RubyWasm::Packager
+    @ruby_root: string
+
+    def initialize: (string dest_dir, RubyWasm::Packager) -> void
+    def package_ruby_root: (String tarball, RubyWasm::BuildExecutor) -> void
+    def remove_stdlib: (RubyWasm::BuildExecutor) -> void
+    def package_gems: () -> void
+
+    def setup_rb_content: () -> String
+
+    def remove_non_runtime_files: (RubyWasm::BuildExecutor) -> void
+
+    def bundle_dir: () -> String
+    def ruby_root: () -> string
+
+    private
+
+    def each_gem_content_path: () { (String, String) -> void } -> void
+    def each_gem_require_path: () { (String, String) -> void } -> void
+    def each_gem_extension_path: () { (String, String) -> void } -> void
+
+    def bundle_relative_path: () -> String
+    def ruby_version: () -> String
+    def rubyarchdir: () -> String
+  end
+end

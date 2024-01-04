@@ -28,9 +28,8 @@
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-head-wasm-wasi",
     "build:static": "npm run build:static:files && npm run build:static:compat",
-    "build:wasm": "../ruby-wasm-wasi/tools/pack-ruby-wasm.sh ../../../rubies/head-wasm32-unknown-wasi-full-js-debug ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
-    "build": "npm run build:deps && npm run build:static && npm run build:wasm && npm run build:rollup && ../ruby-wasm-wasi/tools/post-build.sh ./dist"
+    "build": "npm run build:deps && npm run build:static && npm run build:rollup && ../ruby-wasm-wasi/tools/post-build.sh ./dist"
   },
   "repository": "https://github.com/ruby/ruby.wasm",
   "homepage": "https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-head-wasm-wasi",

@@ -3,5 +3,8 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
-bundle install
+root="$(cd "$(dirname "$0")/.." && pwd)"
+
+env BUNDLE_GEMFILE="$root/Gemfile" bundle install
+env BUNDLE_GEMFILE="$root/packages/npm-packages/ruby-wasm-wasi/Gemfile" bundle install
 npm ci
