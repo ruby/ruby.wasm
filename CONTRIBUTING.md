@@ -9,6 +9,8 @@ This document describes development setup and pointers for diving into this proj
 $ git clone https://github.com/ruby/ruby.wasm
 $ cd ruby.wasm
 $ ./bin/setup
+# Compile extension library
+$ bundle exec rake compile
 $ rake --tasks
 ```
 
