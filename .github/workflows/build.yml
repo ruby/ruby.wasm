@@ -34,10 +34,10 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
       - run: ./bin/setup
-      - run: rake check:type
+      - run: bundle exec rake check:type
       - run: sudo apt-get install clang-format
       - run: ./tools/clang-format-diff.sh
-      - run: rake check:bindgen
+      - run: bundle exec rake check:bindgen
       - run: git diff --exit-code
 
   build-builder-image:
