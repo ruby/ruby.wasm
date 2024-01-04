@@ -93,7 +93,6 @@ namespace :npm do
 
     desc "Make tarball for npm package #{pkg[:name]}"
     task pkg[:name] do
-      wasi_vfs.install_cli
       wasi_sdk.install_binaryen
       Rake::Task["npm:#{pkg[:name]}:build"].invoke
       sh "npm pack", chdir: pkg_dir
@@ -137,7 +136,6 @@ namespace :standalone do
 
     desc "Build standalone package #{pkg[:name]}"
     task "#{pkg[:name]}" => ["build:#{pkg[:build]}"] do
-      wasi_vfs.install_cli
       wasi_sdk.install_binaryen
       base_dir = Dir.pwd
       sh tools,
