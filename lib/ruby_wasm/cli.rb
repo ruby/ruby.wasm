@@ -180,7 +180,13 @@ module RubyWasm
     end
 
     def do_build(executor, tmpdir, packager, options)
-      require_relative "ruby_wasm.so"
+      # Tries to require the extension for the given Ruby version first
+      begin
+        RUBY_VERSION =~ /(\d+\.\d+)/
+        require_relative "#{Regexp.last_match(1)}/ruby_wasm.so"
+      rescue LoadError
+        require_relative "ruby_wasm.so"
+      end
       wasm_bytes = packager.package(executor, tmpdir, options)
       RubyWasm.logger.info "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]
