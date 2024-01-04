@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "../../../lib/ruby_wasm/version"
+require_relative "lib/js/version"
 
 Gem::Specification.new do |spec|
   spec.name = "js"
-  spec.version = RubyWasm::VERSION
+  spec.version = JS::VERSION
   spec.authors = ["Yuta Saito"]
   spec.email = ["kateinoigakukun@gmail.com"]
 
