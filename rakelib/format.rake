@@ -7,7 +7,7 @@ namespace :format do
         "Rakefile",
         "lib/**/*.rb",
         "ext/**/*.rb",
-        "tasks/**/*.rake",
+        "rakelib/**/*.rake",
         "packages/**/*.rb"
       ]
     )
@@ -19,7 +19,7 @@ namespace :format do
   end
 
   task :c do
-    sh "find ./ext -iname *.h -o -iname *.c | xargs clang-format -i"
+    sh "find packages/gems/ ext/ -iname *.h -o -iname *.c | xargs clang-format -i"
   end
 end
 
