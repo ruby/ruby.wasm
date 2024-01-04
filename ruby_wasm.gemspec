@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Yuta Saito"]
   spec.email = ["kateinoigakukun@gmail.com"]
 
-  spec.summary = "Tools for building ruby.wasm"
-  spec.description = "Tools for building ruby.wasm"
+  spec.summary = %q{Ruby to WebAssembly toolkit}
+  spec.description = %q{Ruby to WebAssembly toolkit. This gem takes Ruby code and Gemfile, and packages them with Ruby runtime into a WebAssembly binary.}
   spec.homepage = "https://github.com/ruby/ruby.wasm"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
