@@ -4,6 +4,7 @@ require "open-uri"
 
 $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
+require "bundler/gem_tasks"
 require "ruby_wasm/rake_task"
 require "ruby_wasm/packager"
 

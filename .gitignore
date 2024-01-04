@@ -16,3 +16,4 @@ html
 build_manifest.json
 
 vendor/bundle
+/pkg
