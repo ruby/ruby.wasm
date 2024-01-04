@@ -38,11 +38,17 @@ jobs:
           cargo-vendor: true
           cache-version: v0-${{ matrix.ruby-platform }}
 
+      - name: Extract rb-sys version
+        id: vars
+        run: |
+          echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
+
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
         with:
           platform: ${{ matrix.platform }}
           ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+          tag: ${{ steps.vars.outputs.rb-sys-version }}
 
       - uses: actions/upload-artifact@v4
         with:
