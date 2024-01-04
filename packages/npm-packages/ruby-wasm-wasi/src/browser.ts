@@ -1,5 +1,6 @@
 import { Fd, WASI } from "@bjorn3/browser_wasi_shim";
-import { RubyVM, consolePrinter } from "./index.js";
+import { consolePrinter } from "./console.js";
+import { RubyVM } from "./vm.js";
 
 export const DefaultRubyVM = async (
   rubyModule: WebAssembly.Module,
