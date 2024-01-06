@@ -8,7 +8,13 @@ Gem::Specification.new do |spec|
   spec.authors = ["Yuta Saito"]
   spec.email = ["kateinoigakukun@gmail.com"]
 
-  spec.summary = "JavaScript bindings for ruby.wasm"
+  spec.summary = %q{JavaScript bindings for ruby.wasm}
+  spec.description = %q{JavaScript bindings for ruby.wasm. This gem provides a way to use JavaScript functionalities from Ruby through WebAssembly.}
+  spec.homepage = "https://github.com/ruby/ruby.wasm"
+
+  spec.metadata = {
+    "source_code_uri" => "https://github.com/ruby/ruby.wasm/tree/main/packages/gems/js",
+  }
 
   spec.license = "MIT"
 
