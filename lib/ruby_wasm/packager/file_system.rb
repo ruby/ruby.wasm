@@ -98,6 +98,7 @@ class RubyWasm::Packager::FileSystem
   def each_gem_require_path(&block)
     each_gem_extension_path(&block)
     @packager.specs.each do |spec|
+      # Use raw_require_paths to exclude extensions
       spec.raw_require_paths.each do |require_path|
         source = File.expand_path(require_path, spec.full_gem_path)
         next unless File.exist?(source)
@@ -114,8 +115,7 @@ class RubyWasm::Packager::FileSystem
     @packager.specs.each do |spec|
       next unless File.exist?(spec.full_gem_path)
 
-      Dir
-        .children(spec.full_gem_path)
+      spec.files
         .each do |require_path|
           source = File.expand_path(require_path, spec.full_gem_path)
           next unless File.exist?(source)
