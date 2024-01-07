@@ -35,6 +35,7 @@ module RubyWasm
       when "pack"
         pack(args)
       else
+        @stderr.puts "Unknown command: #{command}"
         @stderr.puts parser
         exit
       end
