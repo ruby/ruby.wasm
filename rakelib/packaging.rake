@@ -6,6 +6,8 @@ tools = {
 }
 
 def npm_pkg_build_command(pkg)
+  # Skip if the package does not require building ruby
+  return nil unless pkg[:ruby_version] && pkg[:target]
   [
     "bundle",
     "exec",
@@ -22,6 +24,7 @@ end
 
 def npm_pkg_rubies_cache_key(pkg)
   build_command = npm_pkg_build_command(pkg)
+  return nil unless build_command
   require "open3"
   cmd = build_command + ["--print-ruby-cache-key"]
   stdout, status = Open3.capture2(*cmd)
@@ -38,10 +41,13 @@ namespace :npm do
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
     namespace pkg[:name] do
-      build_command = npm_pkg_build_command(pkg)
 
       desc "Build ruby for npm package #{pkg[:name]}"
       task "ruby" do
+        build_command = npm_pkg_build_command(pkg)
+        # Skip if the package does not require building ruby
+        next unless build_command
+
         env = {
           # Share ./build and ./rubies in the same workspace
           "RUBY_WASM_ROOT" => base_dir
