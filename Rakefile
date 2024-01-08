@@ -41,6 +41,10 @@ NPM_PACKAGES = [
     ruby_version: "3.2",
     gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
+  },
+  {
+    name: "ruby-wasm-wasi",
+    target: "wasm32-unknown-wasi"
   }
 ]
 
