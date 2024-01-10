@@ -41,7 +41,6 @@ namespace :npm do
     pkg_dir = "#{Dir.pwd}/packages/npm-packages/#{pkg[:name]}"
 
     namespace pkg[:name] do
-
       desc "Build ruby for npm package #{pkg[:name]}"
       task "ruby" do
         build_command = npm_pkg_build_command(pkg)

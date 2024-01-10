@@ -7,6 +7,7 @@ namespace :format do
         "Rakefile",
         "lib/**/*.rb",
         "ext/**/*.rb",
+        "test/**/*.rb",
         "rakelib/**/*.rake",
         "packages/**/*.rb"
       ]
