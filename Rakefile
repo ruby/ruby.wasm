@@ -42,10 +42,7 @@ NPM_PACKAGES = [
     gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasi"
   },
-  {
-    name: "ruby-wasm-wasi",
-    target: "wasm32-unknown-wasi"
-  }
+  { name: "ruby-wasm-wasi", target: "wasm32-unknown-wasi" }
 ]
 
 STANDALONE_PACKAGES = [

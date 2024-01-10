@@ -115,19 +115,20 @@ class RubyWasm::Packager::FileSystem
     @packager.specs.each do |spec|
       next unless File.exist?(spec.full_gem_path)
 
-      spec.files
-        .each do |require_path|
-          source = File.expand_path(require_path, spec.full_gem_path)
-          next unless File.exist?(source)
-          relative =
-            File.join(
-              bundle_relative_path,
-              "gems",
-              spec.full_name,
-              require_path
-            )
-          yield relative, source
-        end
+      # spec.files is only valid before the gem is packaged.
+      if spec.source.path?
+        relative_paths = spec.files
+      else
+        # All files in .gem are required.
+        relative_paths = Dir.children(spec.full_gem_path)
+      end
+      relative_paths.each do |require_path|
+        source = File.expand_path(require_path, spec.full_gem_path)
+        next unless File.exist?(source)
+        relative =
+          File.join(bundle_relative_path, "gems", spec.full_name, require_path)
+        yield relative, source
+      end
     end
   end
 

@@ -126,7 +126,8 @@ jobs:
             ${{ steps.builder-image.outputs.imageid }} /bin/sh
           echo 'docker exec -u me builder "$@"' > ./build-exec
           chmod +x ./build-exec
-      - run: ./build-exec bundle config set --local without check
+          # wait for docker exec to be ready
+          timeout 10 bash -c 'until ./build-exec bundle config set --local without check; do sleep 1; done'
       - run: ./build-exec ./bin/setup
       - run: ./build-exec bundle exec rake compile
       - name: Pre-release configuration
