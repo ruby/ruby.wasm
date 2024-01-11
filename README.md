@@ -137,14 +137,6 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
       <td><code>full</code></td>
       <td>All standard extension libraries</td>
     </tr>
-    <tr>
-      <td><code>*-js</code></td>
-      <td>Enabled JS interoperability, only usable with npm package</td>
-    </tr>
-    <tr>
-      <td><code>*-debug</code></td>
-      <td>With DWARF info and <a href="https://webassembly.github.io/spec/core/appendix/custom.html#name-section" rel="nofollow"><code>name</code> section</a> for debugging</td>
-    </tr>
   </tbody>
 </table>
 

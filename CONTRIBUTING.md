@@ -21,7 +21,7 @@ $ rake --tasks
 $ rake build:download_prebuilt
 
 # Build Ruby (if you need to build Ruby by yourself)
-$ rake build:head-wasm32-unknown-wasi-full-js-debug
+$ rake build:head-wasm32-unknown-wasi-full
 
 # Build npm package
 $ rake npm:ruby-head-wasm-wasi
@@ -55,8 +55,8 @@ $ rake build:head-wasm32-unknown-wasi-full:clean
 $ rake build:head-wasm32-unknown-wasi-full:remake
 
 # Output is in the `rubies` directory
-$ tree -L 3 rubies/head-wasm32-unknown-wasi-full-js
-rubies/head-wasm32-unknown-wasi-full-js/
+$ tree -L 3 rubies/head-wasm32-unknown-wasi-full
+rubies/head-wasm32-unknown-wasi-full/
 ├── usr
 │   └── local
 │       ├── bin
@@ -72,9 +72,9 @@ Please follow the official instructions to install.
 
 ```console
 # Build only a specific combination of ruby version, profile, and target
-$ rake build:head-wasm32-unknown-emscripten-full-js
+$ rake build:head-wasm32-unknown-emscripten-full
 # Output is in the `rubies` directory
-$ tree -L 3 rubies/head-wasm32-unknown-emscripten-full-js
+$ tree -L 3 rubies/head-wasm32-unknown-emscripten-full
 rubies/head-wasm32-unknown-emscripten-full
 └── usr
     └── local
