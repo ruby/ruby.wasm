@@ -1,4 +1,5 @@
 require "rake/tasklib"
+require_relative "./util"
 require_relative "./build"
 
 class RubyWasm::BuildTask < ::Rake::TaskLib
