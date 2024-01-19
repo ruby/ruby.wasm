@@ -98,7 +98,7 @@ class RubyWasm::Packager
       },
       "3.2" => {
         type: "tarball",
-        url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz"
+        url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
       }
     }
     sources.each { |name, source| source[:name] = name }
