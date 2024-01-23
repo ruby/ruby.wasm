@@ -46,7 +46,7 @@ module RubyWasm
                       "-o",
                       tarball_path,
                       "-L",
-                      "https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz"
+                      "https://github.com/madler/zlib/releases/download/v#{ZLIB_VERSION}/zlib-#{ZLIB_VERSION}.tar.gz"
       executor.system "tar",
                       "xzf",
                       tarball_path,
