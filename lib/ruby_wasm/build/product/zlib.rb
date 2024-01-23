@@ -4,7 +4,7 @@ module RubyWasm
   class ZlibProduct < AutoconfProduct
     attr_reader :target
 
-    ZLIB_VERSION = "1.3"
+    ZLIB_VERSION = "1.3.1"
 
     def initialize(build_dir, target, toolchain)
       @build_dir = build_dir
@@ -46,7 +46,7 @@ module RubyWasm
                       "-o",
                       tarball_path,
                       "-L",
-                      "https://zlib.net/zlib-#{ZLIB_VERSION}.tar.gz"
+                      "https://github.com/madler/zlib/releases/download/v#{ZLIB_VERSION}/zlib-#{ZLIB_VERSION}.tar.gz"
       executor.system "tar",
                       "xzf",
                       tarball_path,
