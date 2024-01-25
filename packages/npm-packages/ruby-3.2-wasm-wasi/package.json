@@ -16,6 +16,12 @@
       "umd": "./dist/umd/*.js",
       "import": "./dist/esm/*.js",
       "require": "./dist/cjs/*.js"
+    },
+    "./*.wasm": {
+      "browser": "./*.wasm",
+      "umd": "./*.wasm",
+      "import": "./*.wasm",
+      "require": "./*.wasm"
     }
   },
   "files": [
