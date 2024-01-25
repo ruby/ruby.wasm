@@ -200,6 +200,9 @@ static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
 static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   struct jsvalue *p = check_jsvalue(obj);
   VALUE rv = _rb_js_try_convert(rb_mJS, val);
+  if (rv == Qnil) {
+    rb_raise(rb_eTypeError, "value is not a JS::Object like object");
+  }
   struct jsvalue *v = check_jsvalue(rv);
   rb_js_abi_host_string_t key_abi_str;
   key = rb_obj_as_string(key);
