@@ -298,6 +298,10 @@ module RubyWasm
         args << %Q(WASI_SDK_PATH=#{wasi_sdk_path.wasi_sdk_path})
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
+        env_emcc_ldflags = ENV["RUBY_WASM_EMCC_LDFLAGS"] || ""
+        unless env_emcc_ldflags.empty?
+          ldflags << env_emcc_ldflags
+        end
       else
         raise "unknown target: #{target}"
       end
