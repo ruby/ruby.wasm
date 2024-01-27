@@ -156,6 +156,10 @@ module RubyWasm
       case options[:profile]
       when "full"
         config[:default_exts] = RubyWasm::Packager::ALL_DEFAULT_EXTS
+        env_additional_exts = ENV["RUBY_WASM_ADDITIONAL_EXTS"] || ""
+        unless env_additional_exts.empty?
+          config[:default_exts] += "," + env_additional_exts
+        end
       when "minimal"
         config[:default_exts] = ""
       else
