@@ -35,4 +35,6 @@ task :bump_version, %i[version] do |t, args|
   NPM_PACKAGES.each { |pkg| bump_version_npm_package(pkg[:name], version) }
   # Update ./package-lock.json
   sh "npm install"
+  # Update Gemfile.lock
+  sh "BUNDLE_GEMFILE=packages/npm-packages/ruby-wasm-wasi/Gemfile bundle install"
 end
