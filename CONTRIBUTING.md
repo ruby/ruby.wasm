@@ -109,6 +109,8 @@ $ rake 'bump_version[0.6.0]'
 $ git commit -m"Bump version to 0.6.0"
 $ git tag 0.6.0
 $ git push origin 0.6.0
+$ for pkg in pkg/ruby_wasm-*; do gem push $pkg; done
+$ (cd packages/gems/js/ && gem build && gem push js-*.gem)
 ```
 
 ## Release Channels
