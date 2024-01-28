@@ -20,7 +20,7 @@ $ npm install --save @ruby/wasm-emscripten@latest @ruby/head-wasm-emscripten@lat
 # or if you want the nightly snapshot
 $ npm install --save @ruby/head-wasm-emscripten@next
 # or you can specify the exact snapshot version
-$ npm install --save @ruby/head-wasm-emscripten@2.4.1-2023-12-25-a
+$ npm install --save @ruby/head-wasm-emscripten@2.5.0-2024-01-28-a
 ```
 
 ## Quick Start

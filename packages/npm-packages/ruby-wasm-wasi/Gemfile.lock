@@ -1,12 +1,12 @@
 PATH
   remote: ../../..
   specs:
-    ruby_wasm (2.4.1)
+    ruby_wasm (2.5.0)
 
 PATH
   remote: ../../gems/js
   specs:
-    js (2.4.1)
+    js (2.5.0)
 
 GEM
   remote: https://rubygems.org/
