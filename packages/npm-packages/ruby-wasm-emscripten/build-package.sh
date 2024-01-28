@@ -18,7 +18,7 @@ find_compatible_node() {
     # Find `node` executable (>= 15) in PATH
     IFS=':' read -ra dirs <<< "$PATH"
     for dir in "${dirs[@]}"; do
-        if [ -x "$dir/node" ]; then
+        if [ -f "$dir/node" ] && [ -x "$dir/node" ]; then
             node_version=$("$dir/node" --version)
             if [ "${node_version:1:2}" -ge 15 ]; then
                 echo "$dir/node"
