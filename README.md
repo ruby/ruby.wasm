@@ -35,25 +35,26 @@ Create and save `index.html` page with the following contents:
 
 ## Quick Example: How to package your Ruby application as a WASI application
 
-Dependencies: [wasi-vfs](https://github.com/kateinoigakukun/wasi-vfs), [wasmtime](https://github.com/bytecodealliance/wasmtime)
+Dependencies: [wasmtime](https://github.com/bytecodealliance/wasmtime)
 
 ```console
+$ gem install ruby_wasm
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.2-wasm32-unknown-wasi-full.tar.gz
-$ tar xfz ruby-3.2-wasm32-unknown-wasi-full.tar.gz
+$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.3-wasm32-unknown-wasi-full.tar.gz
+$ tar xfz ruby-3.3-wasm32-unknown-wasi-full.tar.gz
 
 # Extract ruby binary not to pack itself
-$ mv 3.2-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
+$ mv ruby-3.3-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
 
 # Put your app code
 $ mkdir src
 $ echo "puts 'Hello'" > src/my_app.rb
 
 # Pack the whole directory under /usr and your app dir
-$ wasi-vfs pack ruby.wasm --mapdir /src::./src --mapdir /usr::./3.2-wasm32-unknown-wasi-full/usr -o my-ruby-app.wasm
+$ rbwasm pack ruby.wasm --dir ./src::/src --dir ./ruby-3.3-wasm32-unknown-wasi-full/usr::/usr -o my-ruby-app.wasm
 
 # Run the packed scripts
-$ wasmtime my-ruby-app.wasm -- /src/my_app.rb
+$ wasmtime my-ruby-app.wasm /src/my_app.rb
 Hello
 ```
 
