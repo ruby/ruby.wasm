@@ -1,6 +1,6 @@
 {
   "name": "@ruby/3.2-wasm-wasi",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "Ruby 3.2 built on WASI",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -16,6 +16,12 @@
       "umd": "./dist/umd/*.js",
       "import": "./dist/esm/*.js",
       "require": "./dist/cjs/*.js"
+    },
+    "./*.wasm": {
+      "browser": "./*.wasm",
+      "umd": "./*.wasm",
+      "import": "./*.wasm",
+      "require": "./*.wasm"
     }
   },
   "files": [

@@ -80,7 +80,7 @@ module RubyWasm
         raise "unknown source type: #{@params[:type]}"
       end
       (@params[:patches] || []).each do |patch_path|
-        executor.system "patch", "-p1", patch_path, chdir: src_dir
+        executor.system "patch", "-p1", "-i", patch_path, chdir: src_dir
       end
     end
 

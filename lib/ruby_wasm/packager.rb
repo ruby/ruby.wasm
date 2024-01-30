@@ -62,7 +62,7 @@ class RubyWasm::Packager
 
   # Retrieves the root directory of the Ruby project.
   # The root directory contains the following stuff:
-  #  * patches/*.patch
+  #  * patches/{source}/*.patch
   #  * build_manifest.json
   #  * rubies
   #  * build
@@ -84,13 +84,11 @@ class RubyWasm::Packager
 
   # Retrieves the alias definitions for the Ruby sources.
   def self.build_source_aliases(root)
-    patches = Dir[File.join(root, "patches", "*.patch")]
     sources = {
       "head" => {
         type: "github",
         repo: "ruby/ruby",
-        rev: "master",
-        patches: patches.map { |p| File.expand_path(p) }
+        rev: "master"
       },
       "3.3" => {
         type: "tarball",
@@ -101,7 +99,12 @@ class RubyWasm::Packager
         url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
       }
     }
-    sources.each { |name, source| source[:name] = name }
+    sources.each do |name, source|
+      source[:name] = name
+      patches = Dir[File.join(root, "patches", name, "*.patch")]
+        .map { |p| File.expand_path(p) }
+      source[:patches] = patches
+    end
 
     build_manifest = File.join(root, "build_manifest.json")
     if File.exist?(build_manifest)
