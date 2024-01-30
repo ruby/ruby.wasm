@@ -347,7 +347,7 @@ class JS::TestObject < Test::Unit::TestCase
   end
 
   def test_member_set_with_non_js_object
-    assert_raise_message("value is not a JS::Object like object") do
+    assert_raise_message("wrong argument type Object (expected JS::Object like object)") do
       JS.global[:tmp] = Object.new
     end
   end
