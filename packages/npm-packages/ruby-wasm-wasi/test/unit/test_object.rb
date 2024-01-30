@@ -346,6 +346,12 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal 41.to_s, object["bar"].to_s
   end
 
+  def test_member_set_with_non_js_object
+    assert_raise_message("wrong argument type Object (expected JS::Object like object)") do
+      JS.global[:tmp] = Object.new
+    end
+  end
+
   def test_member_set_with_stress_gc
     GC.stress = true
     JS.global[:tmp] = "1"
