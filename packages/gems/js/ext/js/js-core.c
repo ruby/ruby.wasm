@@ -201,7 +201,8 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   struct jsvalue *p = check_jsvalue(obj);
   VALUE rv = _rb_js_try_convert(rb_mJS, val);
   if (rv == Qnil) {
-    rb_raise(rb_eTypeError, "wrong argument type %s (expected JS::Object like object)",
+    rb_raise(rb_eTypeError,
+             "wrong argument type %s (expected JS::Object like object)",
              rb_class2name(rb_obj_class(val)));
   }
   struct jsvalue *v = check_jsvalue(rv);
