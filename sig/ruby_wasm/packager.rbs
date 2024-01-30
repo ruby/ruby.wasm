@@ -17,7 +17,7 @@ class RubyWasm::Packager
 
   def root: () -> string
 
-  type build_source = Hash[Symbol, (String | Array[String])]
+  type build_source = Hash[Symbol, (string | Array[String])]
   def self.build_source_aliases: (string root) -> Hash[string, build_source]
 
   ALL_DEFAULT_EXTS: string

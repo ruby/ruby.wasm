@@ -52,11 +52,11 @@ module RubyWasm
       executor.system "curl",
                       "-o",
                       "#{product_build_dir}/config/config.guess",
-                      "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD"
+                      "https://cdn.jsdelivr.net/gh/gcc-mirror/gcc@master/config.guess"
       executor.system "curl",
                       "-o",
                       "#{product_build_dir}/config/config.sub",
-                      "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD"
+                      "https://cdn.jsdelivr.net/gh/gcc-mirror/gcc@master/config.sub"
 
       executor.system "./configure", *configure_args, chdir: product_build_dir
       executor.system "make",

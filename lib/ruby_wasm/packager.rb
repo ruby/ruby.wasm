@@ -84,6 +84,7 @@ class RubyWasm::Packager
 
   # Retrieves the alias definitions for the Ruby sources.
   def self.build_source_aliases(root)
+    # @type var sources: Hash[string, RubyWasm::Packager::build_source]
     sources = {
       "head" => {
         type: "github",
