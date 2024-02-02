@@ -173,8 +173,12 @@ class JS::Object
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
       self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
-    elsif self[sym].typeof == "function"
-      self.call(sym, *args, &block)
+    elsif self[sym].typeof == "function" # Todo: What do we do when we want to copy functions around?
+      begin
+        self.call(sym, *args, &block)
+      rescue
+        self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
+      end
     elsif self[sym].typeof != "undefined"
       if sym_str.end_with?("=")
         self[sym] = args[0]
