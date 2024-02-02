@@ -168,12 +168,23 @@ class JS::Object
   # * If the JavaScript method name ends with a question mark (?)
   def method_missing(sym, *args, &block)
     sym_str = sym.to_s
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
     if sym_str.end_with?("?")
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
       self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
     elsif self[sym].typeof == "function"
       self.call(sym, *args, &block)
+    elsif self[sym].typeof != "undefined"
+      if sym_str.end_with?("=")
+        self[sym] = args[0]
+      else
+        if self[sym].typeof === "number" 
+          self[sym].to_f # todo, this conversion maybe belongs elsewhere
+        else
+          self[sym]
+        end
+      end
     else
       super
     end
@@ -185,8 +196,8 @@ class JS::Object
   def respond_to_missing?(sym, include_private)
     return true if super
     sym_str = sym.to_s
-    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?")
-    self[sym].typeof == "function"
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
+    self[sym].typeof != "undefined"
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.
