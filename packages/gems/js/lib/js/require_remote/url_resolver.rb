@@ -1,6 +1,6 @@
 module JS
   class RequireRemote
-    ScriptLocation = Data.define(:url, :filename)
+    ScriptLocation = Data.define(:url, :filename, :path)
 
     # When require_relative is called within a running Ruby script,
     # the URL is resolved from a relative file path based on the URL of the running Ruby script.
@@ -15,7 +15,8 @@ module JS
       def get_location(relative_feature)
         filename = filename_from(relative_feature)
         url = resolve(filename)
-        ScriptLocation.new(url, filename)
+        path = JS.global[:URL].new(url, @url_stack.first).pathname.to_s # Get path relative to first call. Supports different urls.
+        ScriptLocation.new(url, filename, path)
       end
 
       def push(url)

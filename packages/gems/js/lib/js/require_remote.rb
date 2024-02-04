@@ -70,7 +70,7 @@ module JS
 
       code = response.text().await.to_s
 
-      evaluate(code, location.filename, final_url)
+      evaluate(code, location.path, final_url)
     end
 
     private
