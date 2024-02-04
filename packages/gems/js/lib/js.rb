@@ -151,6 +151,10 @@ class JS::Object
     Array.new(as_array[:length].to_i) { as_array[_1] }
   end
 
+  def nil?
+    return self === JS::Null
+  end
+
   # Provide a shorthand form for JS::Object#call
   #
   # This method basically calls the JavaScript method with the same
@@ -179,16 +183,26 @@ class JS::Object
       rescue
         self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
       end
-    elsif self[sym].typeof != "undefined"
-      if sym_str.end_with?("=")
-        self[sym] = args[0]
+    elsif sym_str.end_with?("=") 
+      if args[0].respond_to?("to_js")
+        self[sym] = args[0].to_js
       else
+        self[sym] = args[0]
+      end
+    elsif self[sym].typeof != "undefined"
         if self[sym].typeof === "number" 
           self[sym].to_f # todo, this conversion maybe belongs elsewhere
+        elsif self[sym].typeof === "string"
+          self[sym].to_s
+        elsif self[sym].typeof === "boolean"
+          self[sym] === JS::True
+        elsif self[sym].typeof === "symbol" # TODO: check if this works with assingment
+          self[sym].to_sym
+        elsif self[sym].typeof === "bigint" 
+          self[sym].to_i
         else
           self[sym]
         end
-      end
     else
       super
     end
@@ -201,7 +215,7 @@ class JS::Object
     return true if super
     sym_str = sym.to_s
     sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
-    self[sym].typeof != "undefined"
+    self[sym] != JS::Undefined and self[sym] != JS::Null
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.
