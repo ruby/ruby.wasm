@@ -69,15 +69,14 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
   imports["rb-js-abi-host"]["js-value-to-string: func(value: handle<js-abi-value>) -> string"] = function(arg0, arg1) {
     const memory = get_export("memory");
     const realloc = get_export("cabi_realloc");
-    let ret0, ptr0, len0;
-    ret0 = resources0.get(arg0);
+    const ret0 = resources0.get(arg0);
+    let ptr0, len0;
     if (ret0 instanceof ArrayBuffer) {
       ptr0 = realloc(0, 0, 1, ret0.byteLength);
       len0 = ret0.byteLength;
       new Uint8Array(memory.buffer).set(new Uint8Array(ret0), ptr0);
     } else {
-      ret0 = obj.jsValueToString(ret0);
-      ptr0 = utf8_encode(ret0, realloc, memory);
+      ptr0 = utf8_encode(obj.jsValueToString(ret0), realloc, memory);
       len0 = UTF8_ENCODED_LEN;
     }
     data_view(memory).setInt32(arg1 + 4, len0, true);
@@ -284,3 +283,4 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
     obj.dropJsAbiValue(val);
   };
 }
+
