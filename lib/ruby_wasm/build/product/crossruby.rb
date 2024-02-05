@@ -307,6 +307,7 @@ module RubyWasm
       (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
       xldflags << extinit_obj
 
+      cflags = @cflags.dup
       xcflags = @xcflags.dup
       xcflags << "-DWASM_SETJMP_STACK_BUFFER_SIZE=24576"
       xcflags << "-DWASM_FIBER_STACK_BUFFER_SIZE=24576"
@@ -314,6 +315,7 @@ module RubyWasm
 
       args << %Q(LDFLAGS=#{ldflags.join(" ")})
       args << %Q(XLDFLAGS=#{xldflags.join(" ")})
+      args << %Q(CFLAGS=#{cflags.join(" ")})
       args << %Q(XCFLAGS=#{xcflags.join(" ")})
       args << %Q(debugflags=#{@debugflags.join(" ")})
       args << %Q(cppflags=#{@cppflags.join(" ")})
