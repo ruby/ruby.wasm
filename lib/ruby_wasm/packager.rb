@@ -57,7 +57,7 @@ class RubyWasm::Packager
 
   # Checks if dynamic linking is supported.
   def support_dynamic_linking?
-    @ruby_channel == "head"
+    ENV["RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING"] == "1"
   end
 
   # Retrieves the root directory of the Ruby project.
