@@ -191,7 +191,7 @@ module RubyWasm
           "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")} or a local directory)"
         )
       end
-      # Apply user-specified patches in addition to <root>/patches.
+      # Apply user-specified patches in addition to bundled patches.
       source[:patches].concat(options[:patches])
       source
     end
@@ -214,11 +214,15 @@ module RubyWasm
           url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
         }
       }
+
+      # Apply bundled and user-specified `<root>/patches` directories.
       sources.each do |name, source|
         source[:name] = name
-        patches = Dir[File.join(root, "patches", name, "*.patch")]
-          .map { |p| File.expand_path(p) }
-        source[:patches] = patches
+        patches_dirs = [bundled_patches_path, File.join(root, "patches")]
+        source[:patches] = patches_dirs.flat_map do |patches_dir|
+          Dir[File.join(patches_dir, name, "*.patch")]
+            .map { |p| File.expand_path(p) }
+        end
       end
 
       build_manifest = File.join(root, "build_manifest.json")
@@ -255,12 +259,20 @@ module RubyWasm
           end
     end
 
+    # Path to the directory containing the bundled patches, which is shipped
+    # as part of ruby_wasm gem to backport fixes or try experimental features
+    # before landing them to the ruby/ruby repository.
+    def self.bundled_patches_path
+      lib_source_root = File.join(__dir__, "..", "..")
+      File.join(lib_source_root, "patches")
+    end
+
     def derive_packager(options)
       __skip__ =
         if defined?(Bundler) && !options[:disable_gems]
           definition = Bundler.definition
         end
-      RubyWasm::Packager.new(build_config(options), definition)
+      RubyWasm::Packager.new(root, build_config(options), definition)
     end
 
     def do_print_ruby_cache_key(packager)

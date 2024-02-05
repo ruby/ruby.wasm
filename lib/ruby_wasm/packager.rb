@@ -4,7 +4,6 @@ class RubyWasm::Packager
   #
   # @param root [String] The root directory of the Ruby project.
   #   The root directory (will) contain the following files:
-  #    * patches/{source}/*.patch
   #    * build_manifest.json
   #    * rubies
   #    * build
