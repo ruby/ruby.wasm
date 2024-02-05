@@ -1,3 +1,4 @@
+require 'pathname'
 # Package Ruby code into a mountable directory.
 class RubyWasm::Packager::FileSystem
   def initialize(dest_dir, packager)
