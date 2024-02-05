@@ -283,4 +283,3 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
     obj.dropJsAbiValue(val);
   };
 }
-
