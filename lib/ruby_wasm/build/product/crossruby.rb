@@ -72,9 +72,6 @@ module RubyWasm
         # HACK: extout is required to find config.h
         "-e",
         %Q($extout="#{crossruby.build_dir}/.ext"),
-        # HACK: skip have_devel check since ruby is not installed yet
-        "-e",
-        "$have_devel = true",
         # HACK: force static ext build by imitating extmk
         "-e",
         "$static = true; trace_var(:$static) {|v| $static = true }",
