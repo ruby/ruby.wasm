@@ -42,7 +42,7 @@ module RubyWasm
     end
 
     def build(args)
-      # @type var options: Hash[Symbol, untyped]
+      # @type var options: cli_options
       options = {
         save_temps: false,
         optimize: false,
@@ -152,7 +152,8 @@ module RubyWasm
     private
 
     def build_config(options)
-      config = { target: options[:target_triplet], src: options[:ruby_version] }
+      # @type var config: Packager::build_config
+      config = { target: options[:target_triplet], src: compute_build_source(options) }
       case options[:profile]
       when "full"
         config[:default_exts] = RubyWasm::Packager::ALL_DEFAULT_EXTS
@@ -168,6 +169,71 @@ module RubyWasm
       end
       config[:suffix] = "-#{options[:profile]}"
       config
+    end
+
+    def compute_build_source(options)
+      src_name = options[:ruby_version]
+      aliases = self.class.build_source_aliases(root)
+      aliases[src_name] ||
+        raise(
+          "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})"
+        )
+    end
+
+    # Retrieves the alias definitions for the Ruby sources.
+    def self.build_source_aliases(root)
+      # @type var sources: Hash[string, RubyWasm::Packager::build_source]
+      sources = {
+        "head" => {
+          type: "github",
+          repo: "ruby/ruby",
+          rev: "master"
+        },
+        "3.3" => {
+          type: "tarball",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
+        },
+        "3.2" => {
+          type: "tarball",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
+        }
+      }
+      sources.each do |name, source|
+        source[:name] = name
+        patches = Dir[File.join(root, "patches", name, "*.patch")]
+          .map { |p| File.expand_path(p) }
+        source[:patches] = patches
+      end
+
+      build_manifest = File.join(root, "build_manifest.json")
+      if File.exist?(build_manifest)
+        begin
+          manifest = JSON.parse(File.read(build_manifest))
+          manifest["ruby_revisions"].each do |name, rev|
+            sources[name][:rev] = rev
+          end
+        rescue StandardError => e
+          RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
+        end
+      end
+      sources
+    end
+
+    # Retrieves the root directory of the Ruby project.
+    def root
+      __skip__ =
+        @root ||=
+          begin
+            if explicit = ENV["RUBY_WASM_ROOT"]
+              File.expand_path(explicit)
+            elsif defined?(Bundler)
+              Bundler.root
+            else
+              Dir.pwd
+            end
+          rescue Bundler::GemfileNotFound
+            Dir.pwd
+          end
     end
 
     def derive_packager(options)

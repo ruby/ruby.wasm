@@ -1,9 +1,12 @@
 
 class RubyWasm::Packager
-  @definition: untyped
-  @config: Hash[untyped, untyped]
+  type build_source = Hash[Symbol, (string | Array[String])]
+  type build_config = Hash[untyped, untyped]
 
-  def initialize: (untyped?, Hash[untyped, untyped]?) -> void
+  @definition: untyped
+  @config: build_config
+
+  def initialize: (build_config?, untyped?) -> void
 
   def package: (RubyWasm::BuildExecutor, string dest_dir, untyped options) -> Array[Integer]
 
@@ -16,9 +19,6 @@ class RubyWasm::Packager
   def support_dynamic_linking?: () -> bool
 
   def root: () -> string
-
-  type build_source = Hash[Symbol, (string | Array[String])]
-  def self.build_source_aliases: (string root) -> Hash[string, build_source]
 
   ALL_DEFAULT_EXTS: string
 
