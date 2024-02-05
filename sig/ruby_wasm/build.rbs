@@ -274,6 +274,7 @@ module RubyWasm
     def cp_r: (FileUtils::pathlist src, path dest) -> void
     def mv: (FileUtils::pathlist src, path dest) -> void
     def mkdir_p: (FileUtils::pathlist list) -> void
+    def ln_s: (String src, String dest) -> void
     def write: (String path, _ToS data) -> void
 
     def begin_section: (Class klass, String name, String note) -> void

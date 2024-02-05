@@ -128,6 +128,10 @@ module RubyWasm
       FileUtils.mkdir_p(list)
     end
 
+    def ln_s(src, dest)
+      FileUtils.ln_s(src, dest)
+    end
+
     def write(path, data)
       File.write(path, data)
     end

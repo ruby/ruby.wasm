@@ -75,7 +75,7 @@ module RubyWasm
         )
       when "local"
         executor.mkdir_p File.dirname(src_dir)
-        executor.cp_r @params[:path], src_dir
+        executor.ln_s File.expand_path(@params[:path]), src_dir
       else
         raise "unknown source type: #{@params[:type]}"
       end
