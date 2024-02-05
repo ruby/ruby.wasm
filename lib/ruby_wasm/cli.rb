@@ -187,7 +187,11 @@ module RubyWasm
           if options[:patches]
             RubyWasm.logger.warn "Patches specified through --patch are ignored for local sources"
           end
-          return { type: "local", path: src_name }
+          # @type var local_source: RubyWasm::Packager::build_source_local
+          local_source = { type: "local", path: src_name }
+          # @type var local_source: RubyWasm::Packager::build_source
+          local_source = local_source.merge(name: "local", patches: [])
+          return local_source
         end
         # Otherwise, it's an unknown source.
         raise(
