@@ -180,13 +180,16 @@ module RubyWasm
       src_name = options[:ruby_version]
       aliases = self.class.build_source_aliases(root)
       source = aliases[src_name]
-      if source.nil? && File.directory?(src_name)
-        # Treat as a local source if the given name is a source directory.
-        RubyWasm.logger.debug "Using local source: #{src_name}"
-        source = { type: "local", path: src_name }
-      end
-
       if source.nil?
+        if File.directory?(src_name)
+          # Treat as a local source if the given name is a source directory.
+          RubyWasm.logger.debug "Using local source: #{src_name}"
+          if options[:patches]
+            RubyWasm.logger.warn "Patches specified through --patch are ignored for local sources"
+          end
+          return { type: "local", path: src_name }
+        end
+        # Otherwise, it's an unknown source.
         raise(
           "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")} or a local directory)"
         )
