@@ -1,6 +1,23 @@
 
 class RubyWasm::Packager
-  type build_source = Hash[Symbol, (string | Array[String])]
+  type build_source_github = {
+    type: "github",
+    repo: String,
+    rev: String,
+  }
+  type build_source_tarball = {
+    type: "tarball",
+    url: String,
+  }
+  type build_source_local = {
+    type: "local",
+    path: String,
+  }
+  type build_source = (build_source_github | build_source_tarball | build_source_local) & {
+    name: string,
+    patches: Array[String],
+  }
+
   type build_config = Hash[untyped, untyped]
 
   @definition: untyped

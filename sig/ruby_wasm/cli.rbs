@@ -15,8 +15,10 @@ module RubyWasm
       profile: String,
       stdlib: bool,
       disable_gems: bool,
+      patches: Array[String],
       format: String,
     }
+
     DEFAULT_RUBIES_DIR: string
 
     @stdout: IO

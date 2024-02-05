@@ -53,7 +53,8 @@ module RubyWasm
         target_triplet: "wasm32-unknown-wasi",
         profile: "full",
         stdlib: true,
-        disable_gems: false
+        disable_gems: false,
+        patches: [],
       }
       OptionParser
         .new do |opts|
@@ -104,6 +105,10 @@ module RubyWasm
 
           opts.on("--disable-gems", "Disable gems") do
             options[:disable_gems] = true
+          end
+
+          opts.on("-p", "--patch PATCH", "Apply a patch") do |patch|
+            options[:patches] << patch
           end
 
           opts.on("--format FORMAT", "Output format") do |format|
@@ -174,10 +179,15 @@ module RubyWasm
     def compute_build_source(options)
       src_name = options[:ruby_version]
       aliases = self.class.build_source_aliases(root)
-      aliases[src_name] ||
+      source = aliases[src_name]
+      unless source
         raise(
           "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})"
         )
+      end
+      # Apply user-specified patches in addition to <root>/patches.
+      source[:patches].concat(options[:patches])
+      source
     end
 
     # Retrieves the alias definitions for the Ruby sources.
@@ -210,7 +220,10 @@ module RubyWasm
         begin
           manifest = JSON.parse(File.read(build_manifest))
           manifest["ruby_revisions"].each do |name, rev|
-            sources[name][:rev] = rev
+            source = sources[name]
+            next unless source[:type] == "github"
+            # @type var source: RubyWasm::Packager::build_source_github
+            source[:rev] = rev
           end
         rescue StandardError => e
           RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
