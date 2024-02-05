@@ -270,7 +270,9 @@ module RubyWasm
     # as part of ruby_wasm gem to backport fixes or try experimental features
     # before landing them to the ruby/ruby repository.
     def self.bundled_patches_path
-      lib_source_root = File.join(__dir__, "..", "..")
+      dir = __dir__
+      raise "Unexpected directory structure, no __dir__!??" unless dir
+      lib_source_root = File.join(dir, "..", "..")
       File.join(lib_source_root, "patches")
     end
 

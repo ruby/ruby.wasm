@@ -23,7 +23,7 @@ class RubyWasm::Packager
   @definition: untyped
   @config: build_config
 
-  def initialize: (build_config?, untyped?) -> void
+  def initialize: (string root, build_config?, untyped? definition) -> void
 
   def package: (RubyWasm::BuildExecutor, string dest_dir, untyped options) -> Array[Integer]
 
