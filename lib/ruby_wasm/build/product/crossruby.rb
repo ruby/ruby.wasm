@@ -64,6 +64,7 @@ module RubyWasm
       objdir = product_build_dir crossruby
       source = crossruby.source
       extconf_args = [
+        "-C", objdir,
         "--disable=gems",
         # HACK: top_srcdir is required to find ruby headers
         "-e",
@@ -71,9 +72,6 @@ module RubyWasm
         # HACK: extout is required to find config.h
         "-e",
         %Q($extout="#{crossruby.build_dir}/.ext"),
-        # HACK: skip have_devel check since ruby is not installed yet
-        "-e",
-        "$have_devel = true",
         # HACK: force static ext build by imitating extmk
         "-e",
         "$static = true; trace_var(:$static) {|v| $static = true }",
@@ -93,7 +91,6 @@ module RubyWasm
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
                       *extconf_args,
-                      chdir: objdir,
                       env: {
                         "RUBYOPT" => ""
                       }
