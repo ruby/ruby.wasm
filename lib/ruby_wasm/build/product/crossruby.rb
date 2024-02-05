@@ -152,6 +152,10 @@ module RubyWasm
       executor.system "make", "rbconfig.rb", chdir: build_dir
     end
 
+    def need_exts_build?
+      @user_exts.any?
+    end
+
     def build_exts(executor)
       @user_exts.each do |prod|
         executor.begin_section prod.class, prod.name, "Building"
@@ -173,17 +177,20 @@ module RubyWasm
       configure(executor, reconfigure: reconfigure)
       executor.end_section self.class, name
 
-      build_exts(executor)
+      build_exts(executor) if need_exts_build?
 
       executor.begin_section self.class, name, "Building"
-      executor.mkdir_p File.dirname(extinit_obj)
-      executor.system "ruby",
-                      extinit_c_erb,
-                      *@user_exts.map { |ext| ext.feature_name(self) },
-                      "--cc",
-                      toolchain.cc,
-                      "--output",
-                      extinit_obj
+
+      if need_exts_build?
+        executor.mkdir_p File.dirname(extinit_obj)
+        executor.system "ruby",
+                        extinit_c_erb,
+                        *@user_exts.map { |ext| ext.feature_name(self) },
+                        "--cc",
+                        toolchain.cc,
+                        "--output",
+                        extinit_obj
+      end
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
         executor.system "make",
@@ -305,7 +312,7 @@ module RubyWasm
 
       args.concat(self.tools_args)
       (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
-      xldflags << extinit_obj
+      xldflags << extinit_obj if need_exts_build?
 
       cflags = @cflags.dup
       xcflags = @xcflags.dup
