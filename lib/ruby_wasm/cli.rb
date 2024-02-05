@@ -58,7 +58,7 @@ module RubyWasm
       }
       OptionParser
         .new do |opts|
-          opts.banner = "Usage: rbwasm componentize [options]"
+          opts.banner = "Usage: rbwasm build [options]"
           opts.on("-h", "--help", "Prints this help") do
             @stdout.puts opts
             exit
