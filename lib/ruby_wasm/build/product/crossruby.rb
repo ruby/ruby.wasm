@@ -64,6 +64,7 @@ module RubyWasm
       objdir = product_build_dir crossruby
       source = crossruby.source
       extconf_args = [
+        "-C", objdir,
         "--disable=gems",
         # HACK: top_srcdir is required to find ruby headers
         "-e",
@@ -93,7 +94,6 @@ module RubyWasm
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
                       *extconf_args,
-                      chdir: objdir,
                       env: {
                         "RUBYOPT" => ""
                       }
