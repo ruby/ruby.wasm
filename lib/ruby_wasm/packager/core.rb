@@ -61,6 +61,100 @@ class RubyWasm::Packager::Core
   end
 
   class DynamicLinking < BuildStrategy
+    def build(executor, options)
+      build = derive_build
+      force_rebuild =
+        options[:remake] || options[:clean] || options[:reconfigure]
+      if File.exist?(build.crossruby.artifact) && !force_rebuild
+        return build.crossruby.artifact
+      end
+      build.crossruby.clean(executor) if options[:clean]
+
+      do_build =
+        proc do
+          build.crossruby.build(
+            executor,
+            remake: options[:remake],
+            reconfigure: options[:reconfigure]
+          )
+        end
+
+      __skip__ =
+        if defined?(Bundler)
+          Bundler.with_unbundled_env(&do_build)
+        else
+          do_build.call
+        end
+      build.crossruby.artifact
+    end
+
+    def build_exts(build)
+      specs_with_extensions.flat_map do |spec, exts|
+        exts.map do |ext|
+          ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"
+          ext_srcdir = File.join(spec.full_gem_path, ext_feature)
+          ext_relative_path = File.join(spec.full_name, ext_feature)
+          RubyWasm::CrossRubyExtProduct.new(
+            ext_srcdir,
+            build.toolchain,
+            ext_relative_path: ext_relative_path
+          )
+        end
+      end
+    end
+
+    def cache_key(digest)
+      derive_build.cache_key(digest)
+    end
+
+    def artifact
+      derive_build.crossruby.artifact
+    end
+
+    def target
+      RubyWasm::Target.new(@packager.full_build_options[:target], pic: true)
+    end
+
+    def derive_build
+      return @build if @build
+      __skip__ =
+        build ||= RubyWasm::Build.new(
+          name, **@packager.full_build_options,
+          target: target,
+          # NOTE: We don't need linking libwasi_vfs because we use wasi-virt instead.
+          wasi_vfs: nil
+        )
+      build.crossruby.cflags = %w[-fPIC -fvisibility=default]
+      if @packager.full_build_options[:target] != "wasm32-unknown-emscripten"
+        build.crossruby.debugflags = %w[-g]
+        build.crossruby.wasmoptflags = %w[-O3 -g]
+        build.crossruby.ldflags = %w[
+          -Xlinker
+          --stack-first
+          -Xlinker
+          -z
+          -Xlinker
+          stack-size=16777216
+        ]
+        build.crossruby.xldflags = %w[
+          -Xlinker -shared
+          -Xlinker --export-dynamic
+          -Xlinker --export-all
+          -Xlinker --experimental-pic
+          -Xlinker -export-if-defined=__main_argc_argv
+        ]
+      end
+      @build = build
+      build
+    end
+
+    def name
+      require "digest"
+      options = @packager.full_build_options
+      src_channel = options[:src][:name]
+      target_triplet = options[:target]
+      "ruby-#{src_channel}-#{target_triplet}-pic#{options[:suffix]}"
+    end
   end
 
   class StaticLinking < BuildStrategy
@@ -100,7 +194,7 @@ class RubyWasm::Packager::Core
     end
 
     def target
-      RubyWasm::Target.new(@packager.full_build_options[:target], pic: true)
+      RubyWasm::Target.new(@packager.full_build_options[:target])
     end
 
     def derive_build

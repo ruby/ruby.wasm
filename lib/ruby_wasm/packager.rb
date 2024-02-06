@@ -35,7 +35,7 @@ class RubyWasm::Packager
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
 
-    if full_build_options[:target] == "wasm32-unknown-wasi"
+    if full_build_options[:target] == "wasm32-unknown-wasi" && !support_dynamic_linking?
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)

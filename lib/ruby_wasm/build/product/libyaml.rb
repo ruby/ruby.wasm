@@ -58,6 +58,8 @@ module RubyWasm
                       "#{product_build_dir}/config/config.sub",
                       "https://cdn.jsdelivr.net/gh/gcc-mirror/gcc@master/config.sub"
 
+      configure_args = self.configure_args.dup
+      configure_args << "CFLAGS=-fPIC" if target.pic?
       executor.system "./configure", *configure_args, chdir: product_build_dir
       executor.system "make",
                       "install",
