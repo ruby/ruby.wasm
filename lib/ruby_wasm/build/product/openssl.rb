@@ -13,7 +13,7 @@ module RubyWasm
     end
 
     def product_build_dir
-      File.join(@build_dir, target, "openssl-#{OPENSSL_VERSION}")
+      File.join(@build_dir, target.to_s, "openssl-#{OPENSSL_VERSION}")
     end
 
     def destdir
@@ -42,7 +42,7 @@ module RubyWasm
         --libdir=lib
         -Wl,--allow-undefined
       ]
-      if @target == "wasm32-unknown-wasi"
+      if @target.triple == "wasm32-unknown-wasi"
         args.concat %w[
                       -D_WASI_EMULATED_SIGNAL
                       -D_WASI_EMULATED_PROCESS_CLOCKS

@@ -72,7 +72,7 @@ class RubyWasm::Packager
   # Retrieves the build options used for building Ruby itself.
   def build_options
     default = {
-      target: "wasm32-unknown-wasi",
+      target: RubyWasm::Target.new("wasm32-unknown-wasi"),
       default_exts: ALL_DEFAULT_EXTS
     }
     override = @config || {}
