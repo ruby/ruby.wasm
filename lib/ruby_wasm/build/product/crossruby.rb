@@ -221,7 +221,7 @@ module RubyWasm
     end
 
     def cache_key(digest)
-      digest << @params.target
+      @params.target.cache_key(digest)
       digest << @params.default_exts
       @wasmoptflags.each { |f| digest << f }
       @cppflags.each { |f| digest << f }
@@ -234,11 +234,11 @@ module RubyWasm
     end
 
     def build_dir
-      File.join(@build_dir, @params.target, name)
+      File.join(@build_dir, @params.target.to_s, name)
     end
 
     def ext_build_dir
-      File.join(@build_dir, @params.target, name + "-ext")
+      File.join(@build_dir, @params.target.to_s, name + "-ext")
     end
 
     def with_libyaml(libyaml)
@@ -279,7 +279,7 @@ module RubyWasm
     end
 
     def configure_args(build_triple, toolchain)
-      target = @params.target
+      target = @params.target.triple
       default_exts = @params.default_exts
 
       ldflags = @ldflags.dup

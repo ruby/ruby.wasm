@@ -2,6 +2,7 @@ require_relative "build/build_params"
 require_relative "build/product"
 require_relative "build/toolchain"
 require_relative "build/executor"
+require_relative "build/target"
 
 class RubyWasm::Build
   # Source to build from.
@@ -79,7 +80,7 @@ class RubyWasm::Build
     @crossruby.cache_key(digest)
     digest << @build_dir
     digest << @rubies_dir
-    digest << @target
+    @target.cache_key(digest)
     digest << @toolchain.name
     digest << @libyaml.name
     digest << @zlib.name

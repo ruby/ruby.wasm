@@ -13,7 +13,7 @@ module RubyWasm
     end
 
     def product_build_dir
-      File.join(@build_dir, target, "yaml-#{LIBYAML_VERSION}")
+      File.join(@build_dir, target.to_s, "yaml-#{LIBYAML_VERSION}")
     end
 
     def destdir
