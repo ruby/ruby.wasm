@@ -15,7 +15,7 @@ module RubyWasm
     @libyaml: LibYAMLProduct
     @zlib: ZlibProduct
     @openssl: OpenSSLProduct
-    @wasi_vfs: WasiVfsProduct
+    @wasi_vfs: WasiVfsProduct?
     @baseruby: BaseRubyProduct
     @crossruby: CrossRubyProduct
     @source: BuildSource
@@ -29,6 +29,7 @@ module RubyWasm
       toolchain: Toolchain?,
       build_dir: string,
       rubies_dir: string,
+      ?wasi_vfs: :default | WasiVfsProduct?,
       **untyped
     ) -> void
     def crossruby: () -> CrossRubyProduct
@@ -192,7 +193,7 @@ module RubyWasm
     def ext_build_dir: -> String
     def with_libyaml: (LibYAMLProduct libyaml) -> LibYAMLProduct
     def with_zlib: (ZlibProduct zlib) -> ZlibProduct
-    def with_wasi_vfs: (WasiVfsProduct wasi_vfs) -> WasiVfsProduct
+    def with_wasi_vfs: (WasiVfsProduct? wasi_vfs) -> WasiVfsProduct?
     def with_openssl: (OpenSSLProduct openssl) -> OpenSSLProduct
     def dest_dir: -> String
     def artifact: -> String

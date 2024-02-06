@@ -169,6 +169,7 @@ module RubyWasm
       executor.mkdir_p build_dir
       @toolchain.install
       [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each do |prod|
+        next unless prod
         executor.begin_section prod.class, prod.name, "Building"
         prod.build(executor)
         executor.end_section prod.class, prod.name
