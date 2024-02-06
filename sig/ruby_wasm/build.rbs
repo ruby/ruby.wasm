@@ -314,19 +314,9 @@ module RubyWasm
   end
 
   class BuildTask
-    @build_dir: String
-    @rubies_dir: String
-    @openssl: OpenSSLProduct
-
+    @build: Build
     attr_accessor name: String
-    attr_reader source: BuildSource
-    attr_reader target: String
-    attr_reader toolchain: Toolchain
-    attr_reader libyaml: LibYAMLProduct
-    attr_reader zlib: ZlibProduct
-    attr_reader wasi_vfs: WasiVfsProduct
-    attr_reader baseruby: BaseRubyProduct
-    attr_reader crossruby: CrossRubyProduct
+
     def initialize: (String name, target: String, src: untyped, ?toolchain: Toolchain?, ?build_dir: String?, ?rubies_dir: String?, **untyped) -> void
     def hexdigest: -> String
   end

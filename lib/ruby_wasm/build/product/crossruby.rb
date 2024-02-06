@@ -286,7 +286,7 @@ module RubyWasm
       xldflags = @xldflags.dup
 
       args = self.system_triplet_args + ["--build", build_triple]
-      args << "--with-static-linked-ext"
+      args << "--with-static-linked-ext" unless @params.target.pic?
       args << %Q(--with-ext=#{default_exts})
       args << %Q(--with-libyaml-dir=#{@libyaml.install_root})
       args << %Q(--with-zlib-dir=#{@zlib.install_root})

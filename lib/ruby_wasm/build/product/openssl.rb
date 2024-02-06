@@ -52,6 +52,11 @@ module RubyWasm
                       -DHAVE_FORK=0
                     ]
       end
+
+      if @target.pic?
+        args << "-fPIC"
+      end
+
       args + tools_args
     end
 
