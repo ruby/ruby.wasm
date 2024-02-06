@@ -189,7 +189,7 @@ module RubyWasm
         if File.directory?(src_name)
           # Treat as a local source if the given name is a source directory.
           RubyWasm.logger.debug "Using local source: #{src_name}"
-          if options[:patches]
+          if options[:patches].any?
             RubyWasm.logger.warn "Patches specified through --patch are ignored for local sources"
           end
           # @type var local_source: RubyWasm::Packager::build_source_local
