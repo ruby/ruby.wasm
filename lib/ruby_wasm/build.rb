@@ -36,6 +36,7 @@ class RubyWasm::Build
     toolchain:,
     build_dir:,
     rubies_dir:,
+    wasi_vfs: :default,
     **options
   )
     @target = target
@@ -45,7 +46,7 @@ class RubyWasm::Build
 
     @libyaml = RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
     @zlib = RubyWasm::ZlibProduct.new(@build_dir, @target, @toolchain)
-    @wasi_vfs = RubyWasm::WasiVfsProduct.new(@build_dir)
+    @wasi_vfs = wasi_vfs == :default ? RubyWasm::WasiVfsProduct.new(@build_dir) : wasi_vfs
     @source = RubyWasm::BuildSource.new(src, @build_dir)
     @baseruby = RubyWasm::BaseRubyProduct.new(@build_dir, @source)
     @openssl = RubyWasm::OpenSSLProduct.new(@build_dir, @target, @toolchain)
@@ -83,6 +84,8 @@ class RubyWasm::Build
     digest << @libyaml.name
     digest << @zlib.name
     digest << @openssl.name
-    digest << @wasi_vfs.name
+    if wasi_vfs = @wasi_vfs
+      digest << wasi_vfs.name
+    end
   end
 end
