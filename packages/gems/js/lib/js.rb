@@ -151,9 +151,24 @@ class JS::Object
     Array.new(as_array[:length].to_i) { as_array[_1] }
   end
 
-  def nil?
-    return self === JS::Null
+  # todo to rub
+  def to_rb
+    
+    # TODO convert js to numbers integers to 
+    # and change this from the method_missing
+    # make sure to run it in to _a
+    
+    # JS::True
+    # Date to Ruby Date
   end
+
+  # def nil?
+  #   return self === JS::Null
+  # end
+
+  # def undefined?
+  #   return self === JS::Undefined
+  # end
 
   # Provide a shorthand form for JS::Object#call
   #
@@ -176,12 +191,12 @@ class JS::Object
     if sym_str.end_with?("?")
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
-      if self[sym].typeof == "function"
+      if self[sym]&.typeof == "function"
         self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
       else
         self[sym] == JS::True
       end
-    elsif self[sym].typeof == "function" # Todo: What do we do when we want to copy functions around?
+    elsif self[sym]&.typeof == "function" # Todo: What do we do when we want to copy functions around?
       begin
         self.call(sym, *args, &block)
       rescue
@@ -193,7 +208,7 @@ class JS::Object
       else
         self[sym] = args[0]
       end
-    elsif self[sym].typeof != "undefined"
+    elsif self[sym]&.typeof != "undefined"
         if self[sym].typeof === "number" 
           self[sym].to_f # todo, this conversion maybe belongs elsewhere. http status 200 -> 200.0
         elsif self[sym].typeof === "string"
@@ -252,6 +267,28 @@ class JS::Object
     promise = JS.global[:Promise].resolve(self)
     JS.promise_scheduler.await(promise)
   end
+
+  # List the methods the object has with the ones in JS
+  def methods(regular=true)
+    # Get all properties of the document object, including inherited ones   
+    if self.js_class != JS::Null and self.js_class != JS::Undefined
+      props = JS.global[:Object].getOwnPropertyNames(self.js_class.prototype)
+    else
+      props = []
+    end
+    # Filter the properties to get only methods (functions)
+    js_methods = props.to_a.select { |prop| self[prop.to_sym].typeof === 'function' }
+    js_methods + super
+  end
+
+  #public_methods, private_methods, protected_methods, method, public_method
+
+  def js_class
+    #return JS::Null if self.nil? or self === JS::Undefined  # not sure if it can be undefined
+    return self[:constructor]
+  rescue
+      return nil
+  end    
 end
 
 # A wrapper class for JavaScript Error to allow the Error to be thrown in Ruby.
