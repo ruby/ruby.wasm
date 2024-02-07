@@ -125,7 +125,10 @@ module JS
   end
 end
 
+# We treat all JavaScript objects and values as JS::Objects
 class JS::Object
+  include Enumerable # Make it possible to enumerate JS:Objects. Example: JS.global.document.querySelectorAll("div").each do
+
   # Create a JavaScript object with the new method
   #
   # The below examples show typical usage in Ruby
@@ -153,13 +156,28 @@ class JS::Object
 
   # todo to rub
   def to_rb
+    return nil if self[sym] 
+    #case self[sym]
+
     
     # TODO convert js to numbers integers to 
     # and change this from the method_missing
     # make sure to run it in to _a
-    
+
     # JS::True
     # Date to Ruby Date
+  end
+
+  def each(&block)
+    if block_given?
+      if JS.global[:Array].isArray(self)
+        self.to_a.each(&block)
+      else
+        __props.each(&block)
+      end
+    else
+      to_enum(:each)
+    end
   end
 
   # def nil?
@@ -271,11 +289,9 @@ class JS::Object
   # List the methods the object has with the ones in JS
   def methods(regular=true)
     # Get all properties of the document object, including inherited ones   
-    if self.js_class != JS::Null and self.js_class != JS::Undefined
-      props = JS.global[:Object].getOwnPropertyNames(self.js_class.prototype)
-    else
-      props = []
-    end
+    
+    props = __props
+
     # Filter the properties to get only methods (functions)
     js_methods = props.to_a.select { |prop| self[prop.to_sym].typeof === 'function' }
     js_methods + super
@@ -288,7 +304,17 @@ class JS::Object
     return self[:constructor]
   rescue
       return nil
-  end    
+  end
+
+  private
+
+  def __props
+    if self.js_class != JS::Null and self.js_class != JS::Undefined
+      props = JS.global[:Object].getOwnPropertyNames(self.js_class.prototype)
+    else
+      props = []
+    end
+  end
 end
 
 # A wrapper class for JavaScript Error to allow the Error to be thrown in Ruby.
