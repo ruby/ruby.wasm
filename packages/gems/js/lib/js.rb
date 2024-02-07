@@ -160,14 +160,13 @@ class JS::Object
   #   JS.eval("return [1, 2, 3]").to_a.map(&:to_i)    # => [1, 2, 3]
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
   def to_a(convertTypes: true)
-    return self if self.is_a? Array
     as_array = JS.global[:Array].from(self)
-    Array.new(as_array[:length].to_i) { 
+    Array.new(as_array[:length].to_i) {
       item = as_array[_1]
       if convertTypes and item.respond_to?(:to_rb)
-        return item.to_rb
+        item.to_rb
       else 
-        return item
+        item
       end
     }
   end
@@ -358,8 +357,8 @@ class JS::Object
 
     # Filter the properties to get only methods (functions)
     #js_methods = props.to_a.select { |prop| self[prop.to_sym].typeof === 'function' }.map { _1.to_sym }
-    js_methods = props.sort.uniq.filter do |e|
-      self.JS[e].typeof?(:function)
+    js_methods = props.sort.uniq.filter do |prop|
+      self[prop].typeof?(:function)
     end
     js_methods + super
   end
@@ -394,10 +393,10 @@ class JS::Object
 
     begin
       current_props = JS.global[:Object].getOwnPropertyNames(current_obj).to_a
-      p current_props.inspect
       props.concat(current_props)
       current_obj = JS.global[:Object].getPrototypeOf(current_obj)
     end while current_obj != nil
+    return props.map(&:to_sym)
   end
 end
 
