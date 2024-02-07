@@ -2,6 +2,7 @@ require "js.so"
 require_relative "js/hash.rb"
 require_relative "js/array.rb"
 require_relative "js/nil_class.rb"
+require_relative "js/date_time.rb"
 
 # The JS module provides a way to interact with JavaScript from Ruby.
 #
@@ -69,6 +70,15 @@ module JS
   #   end
   True = JS.eval("return true;")
   False = JS.eval("return false;")
+
+
+  #  JS.try_convert_to_rb(obj) -> Ruby Object or JS::Object
+  # 
+  #    Try to convert the given object to a Ruby Datatype using to_rb
+  #   method. Returns the parameter as JS::Object if the object cannot be converted.
+  def try_convert_to_rb(obj)
+    return obj.to_rb
+  end
 
   class PromiseScheduler
     def initialize(loop)
@@ -151,12 +161,45 @@ class JS::Object
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
   def to_a
     as_array = JS.global[:Array].from(self)
-    Array.new(as_array[:length].to_i) { as_array[_1] }
+    Array.new(as_array[:length].to_i) { 
+      item = as_array[_1]
+      item.to_rb if item.respond_to?(:to_rb)
+    }
   end
 
-  # todo to rub
+  # Try to convert JS Objects into Ruby Objects
+  # Todo: make a list of Types that need to remain JS::Objects (array methods?)
   def to_rb
-    return nil if self[sym] 
+    return nil if self == JS::Null
+    case self.typeof
+    when "number"
+      # TODO: HTTP Codes end up as 200.0, check if it could be integer?
+      # In JS all numbers are floating point.
+      # Is there float.to_js? Create tests for number conversion. Check Ruby JSON parser.
+      self.to_f
+    when "string"
+      self.to_s
+    when "boolean"
+      self == JS::True
+    when "symbol" # TODO: check if this works with assingment
+      self.to_sym
+    when "bigint"
+      self.to_i
+    when "object"
+      #if self.call(:instanceof, JS.global[:Date]) and not JS.global.isNaN(self)
+      #  self.toISOString()
+      #elsif JS.global[:Array].isArray(self)
+      if self.isJSArray
+        self.to_a
+      else
+        self
+      end
+    else
+      self
+    end
+    #return self.static_to_rb(self)
+    
+
     #case self[sym]
 
     
@@ -168,9 +211,18 @@ class JS::Object
     # Date to Ruby Date
   end
 
+  def isJSArray()
+    JS.global[:Array].isArray(self) == JS::True
+  end
+
+  def self.static_to_rb(object)
+    return nil if self[sym] == JS::Null
+
+  end
+
   def each(&block)
     if block_given?
-      if JS.global[:Array].isArray(self)
+      if self.isJSArray
         self.to_a.each(&block)
       else
         __props.each(&block)
@@ -221,25 +273,13 @@ class JS::Object
         self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
       end
     elsif sym_str.end_with?("=") 
-      if args[0].respond_to?("to_js")
+      if args[0].respond_to?(:to_js)
         self[sym] = args[0].to_js
       else
         self[sym] = args[0]
       end
-    elsif self[sym]&.typeof != "undefined"
-        if self[sym].typeof === "number" 
-          self[sym].to_f # todo, this conversion maybe belongs elsewhere. http status 200 -> 200.0
-        elsif self[sym].typeof === "string"
-          self[sym].to_s
-        elsif self[sym].typeof === "boolean"
-          self[sym] === JS::True
-        elsif self[sym].typeof === "symbol" # TODO: check if this works with assingment
-          self[sym].to_sym
-        elsif self[sym].typeof === "bigint" 
-          self[sym].to_i
-        else
-          self[sym]
-        end
+    elsif self[sym]&.typeof != "undefined" and self[sym].respond_to?(:to_rb)
+        self[sym].to_rb
     else
       super
     end
