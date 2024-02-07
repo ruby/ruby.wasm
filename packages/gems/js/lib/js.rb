@@ -159,11 +159,15 @@ class JS::Object
   #
   #   JS.eval("return [1, 2, 3]").to_a.map(&:to_i)    # => [1, 2, 3]
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
-  def to_a
+  def to_a(convertTypes: true)
     as_array = JS.global[:Array].from(self)
     Array.new(as_array[:length].to_i) { 
       item = as_array[_1]
-      item.to_rb if item.respond_to?(:to_rb)
+      if convertTypes and item.respond_to?(:to_rb)
+        return item.to_rb
+      else 
+        return item
+      end
     }
   end
 
@@ -211,6 +215,18 @@ class JS::Object
     # Date to Ruby Date
   end
 
+  # Support self == true instead of self == JS:True
+  alias_method :orig_eq, :==
+  def ==(other)
+    if other.equal? true
+      return orig_eq(JS::True)
+    elsif other.equal? false
+      return orig_eq(JS::False)
+    end
+    
+    orig_eq(other)
+  end
+
   def isJSArray()
     JS.global[:Array].isArray(self) == JS::True
   end
@@ -225,7 +241,7 @@ class JS::Object
       if self.isJSArray
         self.to_a.each(&block)
       else
-        __props.each(&block)
+        Array.new(__props).each(&block)
       end
     else
       to_enum(:each)
@@ -261,14 +277,19 @@ class JS::Object
     if sym_str.end_with?("?")
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
-      if self[sym]&.typeof == "function"
+      if self[sym]&.typeof?(:function)
         self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
       else
         self[sym] == JS::True
       end
-    elsif self[sym]&.typeof == "function" # Todo: What do we do when we want to copy functions around?
+    elsif self[sym]&.typeof?(:function) # Todo: What do we do when we want to copy functions around?
       begin
-        self.call(sym, *args, &block)
+        result = self.call(sym, *args, &block)
+        if result.typeof?(:boolean) # fixes if searchParams.has("locations")
+          result == JS::True
+        else
+          result
+        end
       rescue
         self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
       end
@@ -278,7 +299,7 @@ class JS::Object
       else
         self[sym] = args[0]
       end
-    elsif self[sym]&.typeof != "undefined" and self[sym].respond_to?(:to_rb)
+    elsif self[sym]&.typeof?(:undefined) == false and self[sym].respond_to?(:to_rb)
         self[sym].to_rb
     else
       super
@@ -333,27 +354,45 @@ class JS::Object
     props = __props
 
     # Filter the properties to get only methods (functions)
-    js_methods = props.to_a.select { |prop| self[prop.to_sym].typeof === 'function' }
+    #js_methods = props.to_a.select { |prop| self[prop.to_sym].typeof === 'function' }.map { _1.to_sym }
+    js_methods = props.sort.uniq.filter do |e|
+      self.JS[e].typeof?(:function)
+    end
     js_methods + super
   end
 
   #public_methods, private_methods, protected_methods, method, public_method
 
-  def js_class
-    #return JS::Null if self.nil? or self === JS::Undefined  # not sure if it can be undefined
-    return self[:constructor]
-  rescue
-      return nil
+  # def js_class
+  #   #return JS::Null if self.nil? or self === JS::Undefined  # not sure if it can be undefined
+  #   return self[:constructor]
+  # rescue
+  #     return nil
+  # end
+
+  # #private
+
+  # def __props
+  #   if self.js_class != JS::Null and self.js_class != JS::Undefined
+  #     prototype = JS.global[:Object].getPrototypeOf(self)
+  #     props = JS.global[:Object].getOwnPropertyNames(self)
+  #   else
+  #     props = []
+  #   end
+  # end
+
+  def typeof?(type)
+    self.typeof === type.to_s
   end
 
-  private
-
   def __props
-    if self.js_class != JS::Null and self.js_class != JS::Undefined
-      props = JS.global[:Object].getOwnPropertyNames(self.js_class.prototype)
-    else
-      props = []
-    end
+    props = []
+    current_obj = self
+
+    begin
+      props.concat(JS.global[:Object].getOwnPropertyNames(current_obj).to_a)
+      current_obj = JS.global[:Object].getPrototypeOf(current_obj)
+    end while current_obj != nil
   end
 end
 
@@ -366,7 +405,7 @@ class JS::Error
 
   def message
     stack = @exception[:stack]
-    if stack.typeof == "string"
+    if stack.typeof?(:string)
       # Error.stack contains the error message also
       stack.to_s
     else
