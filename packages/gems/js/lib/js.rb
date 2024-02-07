@@ -160,6 +160,7 @@ class JS::Object
   #   JS.eval("return [1, 2, 3]").to_a.map(&:to_i)    # => [1, 2, 3]
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
   def to_a(convertTypes: true)
+    return self if self.is_a? Array
     as_array = JS.global[:Array].from(self)
     Array.new(as_array[:length].to_i) { 
       item = as_array[_1]
@@ -222,6 +223,8 @@ class JS::Object
       return orig_eq(JS::True)
     elsif other.equal? false
       return orig_eq(JS::False)
+    elsif other.equal? nil
+      return orig_eq(JS::Null) || orig_eq(JS::Undefined)
     end
     
     orig_eq(other)
@@ -248,13 +251,13 @@ class JS::Object
     end
   end
 
-  # def nil?
-  #   return self === JS::Null
-  # end
+  def nil?
+    return self == JS::Null
+  end
 
-  # def undefined?
-  #   return self === JS::Undefined
-  # end
+  def undefined?
+    return self == JS::Undefined
+  end
 
   # Provide a shorthand form for JS::Object#call
   #
@@ -390,7 +393,9 @@ class JS::Object
     current_obj = self
 
     begin
-      props.concat(JS.global[:Object].getOwnPropertyNames(current_obj).to_a)
+      current_props = JS.global[:Object].getOwnPropertyNames(current_obj).to_a
+      p current_props.inspect
+      props.concat(current_props)
       current_obj = JS.global[:Object].getPrototypeOf(current_obj)
     end while current_obj != nil
   end
