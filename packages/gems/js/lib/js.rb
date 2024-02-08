@@ -301,6 +301,7 @@ class JS::Object
         if result.typeof?(:boolean) # fixes if searchParams.has("locations")
           return result == JS::True
         else
+          return result.to_rb if result.respond_to?(:to_rb)
           return result
         end
       rescue
