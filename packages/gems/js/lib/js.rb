@@ -356,9 +356,9 @@ class JS::Object
     props = __props
 
     # Filter the properties to get only methods (functions)
-    #js_methods = props.to_a.select { |prop| self[prop.to_sym].typeof === 'function' }.map { _1.to_sym }
     js_methods = props.sort.uniq.filter do |prop|
-      self[prop].typeof?(:function)
+#      self[prop].typeof?(:function)
+        true
     end
     js_methods + super
   end
