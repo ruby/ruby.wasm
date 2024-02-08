@@ -127,9 +127,9 @@ module JS
   def self.__async(future, &block)
     Fiber
       .new do
-        future.resolve block.call
+        future.call(:resolve, block.call)
       rescue => e
-        future.reject JS::Object.wrap(e)
+        future.call(:reject, JS::Object.wrap(e))
       end
       .transfer
   end
@@ -280,31 +280,31 @@ class JS::Object
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
       if self[sym]&.typeof?(:function)
-        self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
+        return self.call(sym, *args, &block) == JS::True
       else
-        self[sym] == JS::True
+        return self[sym] == JS::True
       end
     elsif self[sym]&.typeof?(:function) # Todo: What do we do when we want to copy functions around?
       begin
         result = self.call(sym, *args, &block)
         if result.typeof?(:boolean) # fixes if searchParams.has("locations")
-          result == JS::True
+          return result == JS::True
         else
-          result
+          return result
         end
       rescue
-        self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
+        return self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
       end
     elsif sym_str.end_with?("=") 
       if args[0].respond_to?(:to_js)
-        self[sym] = args[0].to_js
+        return self[sym] = args[0].to_js
       else
-        self[sym] = args[0]
+        return self[sym] = args[0]
       end
     elsif self[sym]&.typeof?(:undefined) == false and self[sym].respond_to?(:to_rb)
-        self[sym].to_rb
+      return self[sym].to_rb
     else
-      super
+      return super
     end
   end
 
@@ -313,9 +313,10 @@ class JS::Object
   # See JS::Object#method_missing for details.
   def respond_to_missing?(sym, include_private)
     return true if super
+    return false if self.typeof === "undefined" # Avoid target is undefined error
     sym_str = sym.to_s
     sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
-    self[sym] != JS::Undefined and self[sym] != JS::Null
+    self[sym].typeof != "undefined"
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.
