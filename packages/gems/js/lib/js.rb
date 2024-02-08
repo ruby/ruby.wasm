@@ -274,6 +274,7 @@ class JS::Object
   # * If the method name is already defined as a Ruby method under JS::Object
   # * If the JavaScript method name ends with a question mark (?)
   def method_missing(sym, *args, &block)
+    return super if self === JS::Null
     sym_str = sym.to_s
     sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
     if sym_str.end_with?("?")
@@ -319,6 +320,7 @@ class JS::Object
   # See JS::Object#method_missing for details.
   def respond_to_missing?(sym, include_private)
     return true if super
+    return false if self === JS::Null
     return false if self.typeof === "undefined" # Avoid target is undefined error
     sym_str = sym.to_s
     sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
@@ -403,7 +405,7 @@ class JS::Object
       props.concat(current_props)
       current_obj = JS.global[:Object].getPrototypeOf(current_obj)
     end while current_obj != nil
-    return props.map(&:to_sym)
+    return props.compact.map(&:to_sym)
   end
 end
 
