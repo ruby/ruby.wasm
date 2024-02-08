@@ -281,10 +281,20 @@ class JS::Object
       # and the return value is converted to a Ruby boolean value automatically.
       if self[sym]&.typeof?(:function)
         return self.call(sym, *args, &block) == JS::True
-      else
-        return self[sym] == JS::True
       end
-    elsif self[sym]&.typeof?(:function) # Todo: What do we do when we want to copy functions around?
+      
+      return self[sym] == JS::True
+    end
+
+    if sym_str.end_with?("=") 
+      if args[0].respond_to?(:to_js)
+        return self[sym] = args[0].to_js
+      end
+      
+      return self[sym] = args[0]
+    end
+    
+    if self[sym]&.typeof?(:function) # Todo: What do we do when we want to copy functions around?
       begin
         result = self.call(sym, *args, &block)
         if result.typeof?(:boolean) # fixes if searchParams.has("locations")
@@ -295,17 +305,13 @@ class JS::Object
       rescue
         return self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
       end
-    elsif sym_str.end_with?("=") 
-      if args[0].respond_to?(:to_js)
-        return self[sym] = args[0].to_js
-      else
-        return self[sym] = args[0]
-      end
-    elsif self[sym]&.typeof?(:undefined) == false and self[sym].respond_to?(:to_rb)
-      return self[sym].to_rb
-    else
-      return super
     end
+
+    if self[sym]&.typeof?(:undefined) == false and self[sym].respond_to?(:to_rb)
+      return self[sym].to_rb
+    end
+    
+    return super
   end
 
   # Check if a JavaScript method exists
