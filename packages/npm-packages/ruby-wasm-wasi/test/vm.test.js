@@ -1,4 +1,4 @@
-const { initRubyVM } = require("./init");
+const { initRubyVM, rubyVersion } = require("./init");
 
 describe("RubyVM", () => {
   test("empty expression", async () => {
@@ -106,11 +106,16 @@ describe("RubyVM", () => {
         foo
         `);
     };
-    expect(throwError)
-      .toThrowError(`eval:9:in \`fizz': fizz raised (RuntimeError)
+    const expectedBacktrace = ((await rubyVersion).isGreaterThanOrEqualTo("3.4.0"))
+      ? `eval:9:in 'Object#fizz': fizz raised (RuntimeError)
+eval:6:in 'Object#bar'
+eval:3:in 'Object#foo'
+eval:11:in '<main>'`
+      : `eval:9:in \`fizz': fizz raised (RuntimeError)
 eval:6:in \`bar'
 eval:3:in \`foo'
-eval:11:in \`<main>'`);
+eval:11:in \`<main>'`
+    expect(throwError).toThrowError(expectedBacktrace);
   });
 
   test("exception while formatting exception backtrace", async () => {

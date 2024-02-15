@@ -46,4 +46,42 @@ const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
   return vm;
 };
 
-module.exports = { initRubyVM };
+class RubyVersion {
+  constructor(version) {
+    this.version = version;
+  }
+
+  toComponents() {
+    const parts = this.version.split(".").map((x) => parseInt(x, 10));
+    // Fill in missing parts with 0 until we have major, minor, and tiny.
+    while (parts.length < 3) {
+      parts.push(0);
+    }
+    return parts;
+  }
+
+  isGreaterThanOrEqualTo(other) {
+    const a = this.toComponents();
+    if (!(other instanceof RubyVersion)) {
+      other = new RubyVersion(other);
+    }
+    const b = other.toComponents();
+    for (let i = 0; i < 3; i++) {
+      if (a[i] > b[i]) {
+        return true;
+      }
+      if (a[i] < b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+const rubyVersion = (async () => {
+  const vm = await initRubyVM({ suppressStderr: true });
+  const result = vm.eval("RUBY_VERSION");
+  return new RubyVersion(result.toString());
+})();
+
+module.exports = { initRubyVM, rubyVersion };
