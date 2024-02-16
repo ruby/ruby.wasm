@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bookworm
 
 ARG WASI_PRESET_ARGS_VERSION=0.1.1
 ARG NODE_MAJOR_VERSION=20

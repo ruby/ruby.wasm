@@ -1,4 +1,4 @@
-FROM emscripten/emsdk:3.1.31
+FROM emscripten/emsdk:3.1.54
 
 ARG NODE_MAJOR_VERSION=20
 
