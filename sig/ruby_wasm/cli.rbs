@@ -15,6 +15,7 @@ module RubyWasm
       profile: String,
       stdlib: bool,
       disable_gems: bool,
+      gemfile: String?,
       patches: Array[String],
       format: String,
     }

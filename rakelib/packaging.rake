@@ -52,7 +52,7 @@ namespace :npm do
           "RUBY_WASM_ROOT" => base_dir
         }
         if gemfile_path = pkg[:gemfile]
-          env["BUNDLE_GEMFILE"] = File.join(base_dir, gemfile_path)
+          build_command.push "--gemfile", gemfile_path
         else
           # Explicitly disable rubygems integration since Bundler finds
           # Gemfile in the repo root directory.
