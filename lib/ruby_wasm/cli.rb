@@ -54,6 +54,7 @@ module RubyWasm
         profile: "full",
         stdlib: true,
         disable_gems: false,
+        gemfile: nil,
         patches: [],
       }
       OptionParser
@@ -113,6 +114,10 @@ module RubyWasm
 
           opts.on("--format FORMAT", "Output format") do |format|
             options[:format] = format
+          end
+
+          opts.on("--gemfile GEMFILE", "Gemfile") do |gemfile|
+            options[:gemfile] = gemfile
           end
 
           opts.on("--print-ruby-cache-key", "Print Ruby cache key") do
@@ -279,7 +284,10 @@ module RubyWasm
     def derive_packager(options)
       __skip__ =
         if defined?(Bundler) && !options[:disable_gems]
-          definition = Bundler.definition
+          if options[:gemfile]
+            Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", options[:gemfile]
+          end
+          definition = Bundler.definition(true) # unlock=true to re-evaluate "BUNDLE_GEMFILE"
         end
       RubyWasm::Packager.new(root, build_config(options), definition)
     end
