@@ -282,13 +282,23 @@ module RubyWasm
     end
 
     def derive_packager(options)
-      __skip__ =
-        if defined?(Bundler) && !options[:disable_gems]
+      definition = nil
+      __skip__ = if defined?(Bundler) && !options[:disable_gems]
+        begin
+          # Silence Bundler UI if --print-ruby-cache-key is specified not to bother the JSON output.
+          level = options[:print_ruby_cache_key] ? :silent : Bundler.ui.level
+          old_level = Bundler.ui.level
+          Bundler.ui.level = level
           if options[:gemfile]
             Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", options[:gemfile]
+            definition = Bundler.definition(true) # unlock=true to re-evaluate "BUNDLE_GEMFILE"
+          else
+            definition = Bundler.definition
           end
-          definition = Bundler.definition(true) # unlock=true to re-evaluate "BUNDLE_GEMFILE"
+        ensure
+          Bundler.ui.level = old_level
         end
+      end
       RubyWasm::Packager.new(root, build_config(options), definition)
     end
 
