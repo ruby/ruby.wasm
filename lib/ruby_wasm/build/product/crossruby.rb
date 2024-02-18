@@ -37,7 +37,6 @@ module RubyWasm
       make_args << "AR=#{@toolchain.ar}"
       make_args << "RANLIB=#{@toolchain.ranlib}"
 
-      make_args << "DESTDIR=#{crossruby.dest_dir}"
       make_args
     end
 
