@@ -122,8 +122,15 @@ module RubyWasm
         end
         .parse!(args)
 
+      __skip__ = Bundler.settings.temporary(force_ruby_platform: true) do
+        do_build_with_force_ruby_platform(options)
+      end
+    end
+
+    def do_build_with_force_ruby_platform(options)
       verbose = RubyWasm.logger.level == :debug
       executor = RubyWasm::BuildExecutor.new(verbose: verbose)
+
       packager = self.derive_packager(options)
 
       if options[:print_ruby_cache_key]
@@ -281,7 +288,7 @@ module RubyWasm
     end
 
     def derive_packager(options)
-      definition = nil
+      __skip__ = definition = nil
       __skip__ = if defined?(Bundler) && !options[:disable_gems]
         begin
           # Silence Bundler UI if --print-ruby-cache-key is specified not to bother the JSON output.
@@ -293,6 +300,7 @@ module RubyWasm
           Bundler.ui.level = old_level
         end
       end
+      RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles}" if definition
       RubyWasm::Packager.new(root, build_config(options), definition)
     end
 

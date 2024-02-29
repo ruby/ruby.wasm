@@ -44,12 +44,14 @@ module RubyWasm
       objdir = product_build_dir crossruby
       executor.mkdir_p objdir
       do_extconf executor, crossruby
+
+      build_target = crossruby.target.pic? ? "install-so" : "static"
       executor.system "make",
                       "-j#{executor.process_count}",
                       "-C",
                       "#{objdir}",
                       *make_args(crossruby),
-                      "static"
+                      build_target
       # A ext can provide link args by link.filelist. It contains only built archive file by default.
       unless File.exist?(linklist(crossruby))
         executor.write(
@@ -62,37 +64,48 @@ module RubyWasm
     def do_extconf(executor, crossruby)
       objdir = product_build_dir crossruby
       source = crossruby.source
-      extconf_args = [
-        "-C", objdir,
-        "--disable=gems",
-        # HACK: top_srcdir is required to find ruby headers
-        "-e",
-        %Q($top_srcdir="#{source.src_dir}"),
-        # HACK: extout is required to find config.h
-        "-e",
-        %Q($extout="#{crossruby.build_dir}/.ext"),
-        # HACK: force static ext build by imitating extmk
-        "-e",
-        "$static = true; trace_var(:$static) {|v| $static = true }",
-        # HACK: $0 should be extconf.rb path due to mkmf source file detection
-        # and we want to insert some hacks before it. But -e and $0 cannot be
-        # used together, so we rewrite $0 in -e.
-        "-e",
-        %Q($0="#{@srcdir}/extconf.rb"),
-        "-e",
-        %Q(require_relative "#{@srcdir}/extconf.rb"),
-        # HACK: extract "$target" from extconf.rb to get a full target name
-        # like "cgi/escape" instead of "escape"
-        "-e",
-        %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
-        "-I#{crossruby.build_dir}"
-      ]
-      # Clear RUBYOPT to avoid loading unrelated bundle setup
-      executor.system crossruby.baseruby_path,
+      extconf_args = ["-C", objdir]
+      # @type var extconf_env: Hash[String, String]
+      extconf_env = {}
+
+      if crossruby.target.pic?
+        extconf_args.concat [
+          "#{@srcdir}/extconf.rb",
+        ]
+        rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
+        raise "rbconfig.rb not found" unless rbconfig_rb
+        extconf_env["MKMF_TARGET_RBCONFIG"] = rbconfig_rb
+      else
+        extconf_args.concat [
+          "--disable=gems",
+          # HACK: top_srcdir is required to find ruby headers
+          "-e",
+          %Q($top_srcdir="#{source.src_dir}"),
+          # HACK: extout is required to find config.h
+          "-e",
+          %Q($extout="#{crossruby.build_dir}/.ext"),
+          # HACK: force static ext build by imitating extmk
+          "-e",
+          "$static = true; trace_var(:$static) {|v| $static = true }",
+          # HACK: $0 should be extconf.rb path due to mkmf source file detection
+          # and we want to insert some hacks before it. But -e and $0 cannot be
+          # used together, so we rewrite $0 in -e.
+          "-e",
+          %Q($0="#{@srcdir}/extconf.rb"),
+          "-e",
+          %Q(require_relative "#{@srcdir}/extconf.rb"),
+          # HACK: extract "$target" from extconf.rb to get a full target name
+          # like "cgi/escape" instead of "escape"
+          "-e",
+          %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
+          "-I#{crossruby.build_dir}"
+        ]
+        # Clear RUBYOPT to avoid loading unrelated bundle setup
+        extconf_env["RUBYOPT"] = ""
+      end
+      executor.system Gem.ruby,
                       *extconf_args,
-                      env: {
-                        "RUBYOPT" => ""
-                      }
+                      env: extconf_env
     end
 
     def do_install_rb(executor, crossruby)
@@ -114,7 +127,7 @@ module RubyWasm
   end
 
   class CrossRubyProduct < AutoconfProduct
-    attr_reader :source, :toolchain
+    attr_reader :target, :source, :toolchain
     attr_accessor :user_exts,
                   :wasmoptflags,
                   :cppflags,
@@ -155,6 +168,10 @@ module RubyWasm
       @user_exts.any?
     end
 
+    def need_extinit_obj?
+      need_exts_build? && !@target.pic?
+    end
+
     def build_exts(executor)
       @user_exts.each do |prod|
         executor.begin_section prod.class, prod.name, "Building"
@@ -181,7 +198,7 @@ module RubyWasm
 
       executor.begin_section self.class, name, "Building"
 
-      if need_exts_build?
+      if need_extinit_obj?
         executor.mkdir_p File.dirname(extinit_obj)
         executor.system "ruby",
                         extinit_c_erb,
@@ -312,7 +329,7 @@ module RubyWasm
 
       args.concat(self.tools_args)
       (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
-      xldflags << extinit_obj if need_exts_build?
+      xldflags << extinit_obj if need_extinit_obj?
 
       cflags = @cflags.dup
       xcflags = @xcflags.dup

@@ -184,6 +184,7 @@ module RubyWasm
     @openssl: OpenSSLProduct
     @wasi_vfs: WasiVfsProduct
 
+    attr_reader target: Target
     attr_reader source: BuildSource
     attr_reader toolchain: Toolchain
     attr_accessor user_exts: Array[CrossRubyExtProduct]
@@ -197,6 +198,7 @@ module RubyWasm
     def initialize: (BuildParams params, String build_dir, String rubies_dir, BaseRubyProduct baseruby, BuildSource source, Toolchain toolchain) -> void
     def configure: (BuildExecutor executor, ?reconfigure: bool) -> void
     def need_exts_build?: -> bool
+    def need_extinit_obj?: -> bool
     def build_exts: (BuildExecutor executor) -> void
     def build: (BuildExecutor executor, ?remake: bool, ?reconfigure: bool) -> void
     def clean: (BuildExecutor executor) -> void
