@@ -209,7 +209,9 @@ class RubyWasm::Packager::Core
       # script of Ruby.
       if @packager.full_build_options[:target] != "wasm32-unknown-emscripten"
         build.crossruby.debugflags = %w[-g]
-        build.crossruby.wasmoptflags = %w[-O3 -g]
+        # We assume that imported functions provided through WASI will not change
+        # asyncify state, so we ignore them.
+        build.crossruby.wasmoptflags = %w[-O3 -g --pass-arg=asyncify-ignore-imports]
         build.crossruby.ldflags = %w[
           -Xlinker
           --stack-first
