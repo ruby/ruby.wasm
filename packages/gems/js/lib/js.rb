@@ -71,9 +71,8 @@ module JS
   True = JS.eval("return true;")
   False = JS.eval("return false;")
 
-
   #  JS.try_convert_to_rb(obj) -> Ruby Object or JS::Object
-  # 
+  #
   #    Try to convert the given object to a Ruby Datatype using to_rb
   #   method. Returns the parameter as JS::Object if the object cannot be converted.
   def try_convert_to_rb(obj)
@@ -161,14 +160,10 @@ class JS::Object
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
   def to_a(convertTypes: true)
     as_array = JS.global[:Array].from(self)
-    Array.new(as_array[:length].to_i) {
+    Array.new(as_array[:length].to_i) do
       item = as_array[_1]
-      if convertTypes and item.respond_to?(:to_rb)
-        item.to_rb
-      else 
-        item
-      end
-    }
+      convertTypes and item.respond_to?(:to_rb) ? item.to_rb : item
+    end
   end
 
   # Try to convert JS Objects into Ruby Objects
@@ -193,21 +188,15 @@ class JS::Object
       #if self.call(:instanceof, JS.global[:Date]) and not JS.global.isNaN(self)
       #  self.toISOString()
       #elsif JS.global[:Array].isArray(self)
-      if self.isJSArray
-        self.to_a
-      else
-        self
-      end
+      self.isJSArray ? self.to_a : self
     else
       self
     end
     #return self.static_to_rb(self)
-    
 
     #case self[sym]
 
-    
-    # TODO convert js to numbers integers to 
+    # TODO convert js to numbers integers to
     # and change this from the method_missing
     # make sure to run it in to _a
 
@@ -225,7 +214,7 @@ class JS::Object
     elsif other.equal? nil
       return orig_eq(JS::Null) || orig_eq(JS::Undefined)
     end
-    
+
     orig_eq(other)
   end
 
@@ -235,16 +224,11 @@ class JS::Object
 
   def self.static_to_rb(object)
     return nil if self[sym] == JS::Null
-
   end
 
   def each(&block)
     if block_given?
-      if self.isJSArray
-        self.to_a.each(&block)
-      else
-        Array.new(__props).each(&block)
-      end
+      self.isJSArray ? self.to_a.each(&block) : Array.new(__props).each(&block)
     else
       to_enum(:each)
     end
@@ -276,25 +260,24 @@ class JS::Object
   def method_missing(sym, *args, &block)
     return super if self === JS::Null
     sym_str = sym.to_s
-    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or
+      sym_str.end_with?("=")
     if sym_str.end_with?("?")
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
       if self[sym]&.typeof?(:function)
         return self.call(sym, *args, &block) == JS::True
       end
-      
+
       return self[sym] == JS::True
     end
 
-    if sym_str.end_with?("=") 
-      if args[0].respond_to?(:to_js)
-        return self[sym] = args[0].to_js
-      end
-      
+    if sym_str.end_with?("=")
+      return self[sym] = args[0].to_js if args[0].respond_to?(:to_js)
+
       return self[sym] = args[0]
     end
-    
+
     if self[sym]&.typeof?(:function) # Todo: What do we do when we want to copy functions around?
       begin
         result = self.call(sym, *args, &block)
@@ -304,7 +287,7 @@ class JS::Object
           return result.to_rb if result.respond_to?(:to_rb)
           return result
         end
-      rescue
+      rescue StandardError
         return self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
       end
     end
@@ -312,7 +295,7 @@ class JS::Object
     if self[sym]&.typeof?(:undefined) == false and self[sym].respond_to?(:to_rb)
       return self[sym].to_rb
     end
-    
+
     return super
   end
 
@@ -324,7 +307,8 @@ class JS::Object
     return false if self === JS::Null
     return false if self.typeof === "undefined" # Avoid target is undefined error
     sym_str = sym.to_s
-    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or sym_str.end_with?("=")
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or
+      sym_str.end_with?("=")
     self[sym].typeof != "undefined"
   end
 
@@ -360,16 +344,17 @@ class JS::Object
   end
 
   # List the methods the object has with the ones in JS
-  def methods(regular=true)
-    # Get all properties of the document object, including inherited ones   
-    
+  def methods(regular = true)
+    # Get all properties of the document object, including inherited ones
+
     props = __props
 
     # Filter the properties to get only methods (functions)
-    js_methods = props.sort.uniq.filter do |prop|
-#      self[prop].typeof?(:function)
+    js_methods =
+      props.sort.uniq.filter do |prop|
+        #      self[prop].typeof?(:function)
         true
-    end
+      end
     js_methods + super
   end
 
