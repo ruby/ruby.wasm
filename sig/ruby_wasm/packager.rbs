@@ -68,6 +68,7 @@ class RubyWasm::Packager
     class DynamicLinking < RubyWasm::Packager::Core::BuildStrategy
       @build: RubyWasm::Build
       def derive_build: () -> RubyWasm::Build
+      def build_exts: (RubyWasm::BuildExecutor, RubyWasm::Build) -> void
       def name: () -> string
     end
 

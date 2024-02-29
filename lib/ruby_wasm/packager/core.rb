@@ -66,6 +66,8 @@ class RubyWasm::Packager::Core
       force_rebuild =
         options[:remake] || options[:clean] || options[:reconfigure]
       if File.exist?(build.crossruby.artifact) && !force_rebuild
+        # Always build extensions because they are usually not expensive to build
+        self.build_exts(executor, build)
         return build.crossruby.artifact
       end
       build.crossruby.clean(executor) if options[:clean]
@@ -85,11 +87,12 @@ class RubyWasm::Packager::Core
         else
           do_build.call
         end
+      self.build_exts(executor, build)
       build.crossruby.artifact
     end
 
-    def build_exts(build)
-      specs_with_extensions.flat_map do |spec, exts|
+    def build_exts(executor, build)
+      exts = specs_with_extensions.flat_map do |spec, exts|
         exts.map do |ext|
           ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"
           ext_srcdir = File.join(spec.full_gem_path, ext_feature)
@@ -100,6 +103,12 @@ class RubyWasm::Packager::Core
             ext_relative_path: ext_relative_path
           )
         end
+      end
+
+      exts.each do |prod|
+        executor.begin_section prod.class, prod.name, "Building"
+        prod.build(executor, build.crossruby)
+        executor.end_section prod.class, prod.name
       end
     end
 

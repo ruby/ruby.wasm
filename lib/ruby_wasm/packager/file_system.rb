@@ -65,12 +65,14 @@ class RubyWasm::Packager::FileSystem
   end
 
   def remove_non_runtime_files(executor)
-    %w[
-      **/*.so
+    patterns = %w[
       usr/local/lib/libruby-static.a
       usr/local/bin/ruby
       usr/local/include
-    ].each do |pattern|
+    ]
+
+    patterns << "**/*.so" unless @packager.support_dynamic_linking?
+    patterns.each do |pattern|
       Dir
         .glob(File.join(@dest_dir, pattern))
         .each do |entry|
