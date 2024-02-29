@@ -136,7 +136,7 @@ class RubyWasm::Packager::Core
       build.crossruby.cflags = %w[-fPIC -fvisibility=default]
       if @packager.full_build_options[:target] != "wasm32-unknown-emscripten"
         build.crossruby.debugflags = %w[-g]
-        build.crossruby.wasmoptflags = %w[-O3 -g]
+        build.crossruby.wasmoptflags = %w[-O3 -g --pass-arg=asyncify-relocatable]
         build.crossruby.ldflags = %w[
           -Xlinker
           --stack-first
