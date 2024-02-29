@@ -16,6 +16,7 @@ class RubyWasm::BuildTask < ::Rake::TaskLib
     **options,
     &block
   )
+    target = Target.new(target)
     @build =
       RubyWasm::Build.new(
         name,

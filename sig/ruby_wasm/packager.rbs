@@ -1,9 +1,29 @@
 
 class RubyWasm::Packager
-  @definition: untyped
-  @config: Hash[untyped, untyped]
+  type build_source_github = {
+    type: "github",
+    repo: String,
+    rev: String,
+  }
+  type build_source_tarball = {
+    type: "tarball",
+    url: String,
+  }
+  type build_source_local = {
+    type: "local",
+    path: String,
+  }
+  type build_source = (build_source_github | build_source_tarball | build_source_local) & {
+    name: string,
+    patches: Array[String],
+  }
 
-  def initialize: (untyped?, Hash[untyped, untyped]?) -> void
+  type build_config = Hash[untyped, untyped]
+
+  @definition: untyped
+  @config: build_config
+
+  def initialize: (string root, build_config?, untyped? definition) -> void
 
   def package: (RubyWasm::BuildExecutor, string dest_dir, untyped options) -> Array[Integer]
 
@@ -16,9 +36,6 @@ class RubyWasm::Packager
   def support_dynamic_linking?: () -> bool
 
   def root: () -> string
-
-  type build_source = Hash[Symbol, (string | Array[String])]
-  def self.build_source_aliases: (string root) -> Hash[string, build_source]
 
   ALL_DEFAULT_EXTS: string
 
@@ -49,6 +66,9 @@ class RubyWasm::Packager
     end
 
     class DynamicLinking < RubyWasm::Packager::Core::BuildStrategy
+      @build: RubyWasm::Build
+      def derive_build: () -> RubyWasm::Build
+      def name: () -> string
     end
 
     class StaticLinking < RubyWasm::Packager::Core::BuildStrategy

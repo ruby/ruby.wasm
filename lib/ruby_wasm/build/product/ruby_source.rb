@@ -19,7 +19,7 @@ module RubyWasm
       when "tarball"
         digest << @params[:url]
       when "local"
-        digest << File.mtime(@params[:src]).to_i.to_s
+        digest << File.mtime(@params[:path]).to_i.to_s
       else
         raise "unknown source type: #{@params[:type]}"
       end
@@ -75,7 +75,7 @@ module RubyWasm
         )
       when "local"
         executor.mkdir_p File.dirname(src_dir)
-        executor.cp_r @params[:src], src_dir
+        executor.ln_s File.expand_path(@params[:path]), src_dir
       else
         raise "unknown source type: #{@params[:type]}"
       end

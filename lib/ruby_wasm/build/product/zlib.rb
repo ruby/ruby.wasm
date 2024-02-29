@@ -13,7 +13,7 @@ module RubyWasm
     end
 
     def product_build_dir
-      File.join(@build_dir, target, "zlib-#{ZLIB_VERSION}")
+      File.join(@build_dir, target.to_s, "zlib-#{ZLIB_VERSION}")
     end
 
     def destdir
@@ -54,6 +54,8 @@ module RubyWasm
                       product_build_dir,
                       "--strip-components=1"
 
+      configure_args = self.configure_args.dup
+      configure_args << "CFLAGS=-fPIC" if target.pic?
       executor.system "env",
                       *configure_args,
                       "./configure",

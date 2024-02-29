@@ -42,7 +42,7 @@ module RubyWasm
     end
 
     def build(args)
-      # @type var options: Hash[Symbol, untyped]
+      # @type var options: cli_options
       options = {
         save_temps: false,
         optimize: false,
@@ -53,11 +53,13 @@ module RubyWasm
         target_triplet: "wasm32-unknown-wasi",
         profile: "full",
         stdlib: true,
-        disable_gems: false
+        disable_gems: false,
+        gemfile: nil,
+        patches: [],
       }
       OptionParser
         .new do |opts|
-          opts.banner = "Usage: rbwasm componentize [options]"
+          opts.banner = "Usage: rbwasm build [options]"
           opts.on("-h", "--help", "Prints this help") do
             @stdout.puts opts
             exit
@@ -106,8 +108,16 @@ module RubyWasm
             options[:disable_gems] = true
           end
 
+          opts.on("-p", "--patch PATCH", "Apply a patch") do |patch|
+            options[:patches] << patch
+          end
+
           opts.on("--format FORMAT", "Output format") do |format|
             options[:format] = format
+          end
+
+          opts.on("--gemfile GEMFILE", "Gemfile") do |gemfile|
+            options[:gemfile] = gemfile
           end
 
           opts.on("--print-ruby-cache-key", "Print Ruby cache key") do
@@ -152,7 +162,8 @@ module RubyWasm
     private
 
     def build_config(options)
-      config = { target: options[:target_triplet], src: options[:ruby_version] }
+      # @type var config: Packager::build_config
+      config = { target: options[:target_triplet], src: compute_build_source(options) }
       case options[:profile]
       when "full"
         config[:default_exts] = RubyWasm::Packager::ALL_DEFAULT_EXTS
@@ -170,12 +181,125 @@ module RubyWasm
       config
     end
 
-    def derive_packager(options)
-      __skip__ =
-        if defined?(Bundler) && !options[:disable_gems]
-          definition = Bundler.definition
+    def compute_build_source(options)
+      src_name = options[:ruby_version]
+      aliases = self.class.build_source_aliases(root)
+      source = aliases[src_name]
+      if source.nil?
+        if File.directory?(src_name)
+          # Treat as a local source if the given name is a source directory.
+          RubyWasm.logger.debug "Using local source: #{src_name}"
+          if options[:patches].any?
+            RubyWasm.logger.warn "Patches specified through --patch are ignored for local sources"
+          end
+          # @type var local_source: RubyWasm::Packager::build_source_local
+          local_source = { type: "local", path: src_name }
+          # @type var local_source: RubyWasm::Packager::build_source
+          local_source = local_source.merge(name: "local", patches: [])
+          return local_source
         end
-      RubyWasm::Packager.new(build_config(options), definition)
+        # Otherwise, it's an unknown source.
+        raise(
+          "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")} or a local directory)"
+        )
+      end
+      # Apply user-specified patches in addition to bundled patches.
+      source[:patches].concat(options[:patches])
+      source
+    end
+
+    # Retrieves the alias definitions for the Ruby sources.
+    def self.build_source_aliases(root)
+      # @type var sources: Hash[string, RubyWasm::Packager::build_source]
+      sources = {
+        "head" => {
+          type: "github",
+          repo: "ruby/ruby",
+          rev: "master"
+        },
+        "3.3" => {
+          type: "tarball",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
+        },
+        "3.2" => {
+          type: "tarball",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
+        }
+      }
+
+      # Apply bundled and user-specified `<root>/patches` directories.
+      sources.each do |name, source|
+        source[:name] = name
+        patches_dirs = [bundled_patches_path, File.join(root, "patches")]
+        source[:patches] = patches_dirs.flat_map do |patches_dir|
+          Dir[File.join(patches_dir, name, "*.patch")]
+            .map { |p| File.expand_path(p) }
+        end
+      end
+
+      build_manifest = File.join(root, "build_manifest.json")
+      if File.exist?(build_manifest)
+        begin
+          manifest = JSON.parse(File.read(build_manifest))
+          manifest["ruby_revisions"].each do |name, rev|
+            source = sources[name]
+            next unless source[:type] == "github"
+            # @type var source: RubyWasm::Packager::build_source_github
+            source[:rev] = rev
+          end
+        rescue StandardError => e
+          RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
+        end
+      end
+      sources
+    end
+
+    # Retrieves the root directory of the Ruby project.
+    def root
+      __skip__ =
+        @root ||=
+          begin
+            if explicit = ENV["RUBY_WASM_ROOT"]
+              File.expand_path(explicit)
+            elsif defined?(Bundler)
+              Bundler.root
+            else
+              Dir.pwd
+            end
+          rescue Bundler::GemfileNotFound
+            Dir.pwd
+          end
+    end
+
+    # Path to the directory containing the bundled patches, which is shipped
+    # as part of ruby_wasm gem to backport fixes or try experimental features
+    # before landing them to the ruby/ruby repository.
+    def self.bundled_patches_path
+      dir = __dir__
+      raise "Unexpected directory structure, no __dir__!??" unless dir
+      lib_source_root = File.join(dir, "..", "..")
+      File.join(lib_source_root, "patches")
+    end
+
+    def derive_packager(options)
+      definition = nil
+      __skip__ = if defined?(Bundler) && !options[:disable_gems]
+        begin
+          # Silence Bundler UI if --print-ruby-cache-key is specified not to bother the JSON output.
+          level = options[:print_ruby_cache_key] ? :silent : Bundler.ui.level
+          old_level = Bundler.ui.level
+          Bundler.ui.level = level
+          if options[:gemfile]
+            Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", options[:gemfile]
+            definition = Bundler.definition(true) # unlock=true to re-evaluate "BUNDLE_GEMFILE"
+          else
+            definition = Bundler.definition
+          end
+        ensure
+          Bundler.ui.level = old_level
+        end
+      end
+      RubyWasm::Packager.new(root, build_config(options), definition)
     end
 
     def do_print_ruby_cache_key(packager)

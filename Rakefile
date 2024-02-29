@@ -7,6 +7,7 @@ $LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 require "bundler/gem_tasks"
 require "ruby_wasm/rake_task"
 require "ruby_wasm/packager"
+require "ruby_wasm/cli"
 
 BUILD_SOURCES = %w[3.3 3.2 head]
 BUILD_PROFILES = %w[full minimal]

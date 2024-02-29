@@ -2,9 +2,15 @@
 class RubyWasm::Packager
   # Initializes a new instance of the RubyWasm::Packager class.
   #
+  # @param root [String] The root directory of the Ruby project.
+  #   The root directory (will) contain the following files:
+  #    * build_manifest.json
+  #    * rubies
+  #    * build
   # @param config [Hash] The build config used for building Ruby.
   # @param definition [Bundler::Definition] The Bundler definition.
-  def initialize(config = nil, definition = nil)
+  def initialize(root, config = nil, definition = nil)
+    @root = root
     @definition = definition
     @config = config
   end
@@ -29,7 +35,7 @@ class RubyWasm::Packager
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
 
-    if full_build_options[:target] == "wasm32-unknown-wasi"
+    if full_build_options[:target] == "wasm32-unknown-wasi" && !support_dynamic_linking?
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)
@@ -57,68 +63,7 @@ class RubyWasm::Packager
 
   # Checks if dynamic linking is supported.
   def support_dynamic_linking?
-    @ruby_channel == "head"
-  end
-
-  # Retrieves the root directory of the Ruby project.
-  # The root directory contains the following stuff:
-  #  * patches/{source}/*.patch
-  #  * build_manifest.json
-  #  * rubies
-  #  * build
-  def root
-    __skip__ =
-      @root ||=
-        begin
-          if explicit = ENV["RUBY_WASM_ROOT"]
-            File.expand_path(explicit)
-          elsif defined?(Bundler)
-            Bundler.root
-          else
-            Dir.pwd
-          end
-        rescue Bundler::GemfileNotFound
-          Dir.pwd
-        end
-  end
-
-  # Retrieves the alias definitions for the Ruby sources.
-  def self.build_source_aliases(root)
-    # @type var sources: Hash[string, RubyWasm::Packager::build_source]
-    sources = {
-      "head" => {
-        type: "github",
-        repo: "ruby/ruby",
-        rev: "master"
-      },
-      "3.3" => {
-        type: "tarball",
-        url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
-      },
-      "3.2" => {
-        type: "tarball",
-        url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
-      }
-    }
-    sources.each do |name, source|
-      source[:name] = name
-      patches = Dir[File.join(root, "patches", name, "*.patch")]
-        .map { |p| File.expand_path(p) }
-      source[:patches] = patches
-    end
-
-    build_manifest = File.join(root, "build_manifest.json")
-    if File.exist?(build_manifest)
-      begin
-        manifest = JSON.parse(File.read(build_manifest))
-        manifest["ruby_revisions"].each do |name, rev|
-          sources[name][:rev] = rev
-        end
-      rescue StandardError => e
-        RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
-      end
-    end
-    sources
+    ENV["RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING"] == "1"
   end
 
   ALL_DEFAULT_EXTS =
@@ -127,8 +72,7 @@ class RubyWasm::Packager
   # Retrieves the build options used for building Ruby itself.
   def build_options
     default = {
-      target: "wasm32-unknown-wasi",
-      src: "3.3",
+      target: RubyWasm::Target.new("wasm32-unknown-wasi"),
       default_exts: ALL_DEFAULT_EXTS
     }
     override = @config || {}
@@ -139,25 +83,14 @@ class RubyWasm::Packager
   # Retrieves the resolved build options
   def full_build_options
     options = build_options
-    build_dir = File.join(root, "build")
-    rubies_dir = File.join(root, "rubies")
+    build_dir = File.join(@root, "build")
+    rubies_dir = File.join(@root, "rubies")
     toolchain = RubyWasm::Toolchain.get(options[:target], build_dir)
-    src =
-      if options[:src].is_a?(Hash)
-        options[:src]
-      else
-        src_name = options[:src]
-        aliases = self.class.build_source_aliases(root)
-        aliases[src_name] ||
-          raise(
-            "Unknown Ruby source: #{src_name} (available: #{aliases.keys.join(", ")})"
-          )
-      end
     options.merge(
       toolchain: toolchain,
       build_dir: build_dir,
       rubies_dir: rubies_dir,
-      src: src
+      src: options[:src]
     )
   end
 end

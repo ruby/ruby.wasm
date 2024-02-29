@@ -37,7 +37,6 @@ module RubyWasm
       make_args << "AR=#{@toolchain.ar}"
       make_args << "RANLIB=#{@toolchain.ranlib}"
 
-      make_args << "DESTDIR=#{crossruby.dest_dir}"
       make_args
     end
 
@@ -64,6 +63,7 @@ module RubyWasm
       objdir = product_build_dir crossruby
       source = crossruby.source
       extconf_args = [
+        "-C", objdir,
         "--disable=gems",
         # HACK: top_srcdir is required to find ruby headers
         "-e",
@@ -71,9 +71,6 @@ module RubyWasm
         # HACK: extout is required to find config.h
         "-e",
         %Q($extout="#{crossruby.build_dir}/.ext"),
-        # HACK: skip have_devel check since ruby is not installed yet
-        "-e",
-        "$have_devel = true",
         # HACK: force static ext build by imitating extmk
         "-e",
         "$static = true; trace_var(:$static) {|v| $static = true }",
@@ -93,7 +90,6 @@ module RubyWasm
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
                       *extconf_args,
-                      chdir: objdir,
                       env: {
                         "RUBYOPT" => ""
                       }
@@ -155,6 +151,10 @@ module RubyWasm
       executor.system "make", "rbconfig.rb", chdir: build_dir
     end
 
+    def need_exts_build?
+      @user_exts.any?
+    end
+
     def build_exts(executor)
       @user_exts.each do |prod|
         executor.begin_section prod.class, prod.name, "Building"
@@ -168,6 +168,7 @@ module RubyWasm
       executor.mkdir_p build_dir
       @toolchain.install
       [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each do |prod|
+        next unless prod
         executor.begin_section prod.class, prod.name, "Building"
         prod.build(executor)
         executor.end_section prod.class, prod.name
@@ -176,17 +177,20 @@ module RubyWasm
       configure(executor, reconfigure: reconfigure)
       executor.end_section self.class, name
 
-      build_exts(executor)
+      build_exts(executor) if need_exts_build?
 
       executor.begin_section self.class, name, "Building"
-      executor.mkdir_p File.dirname(extinit_obj)
-      executor.system "ruby",
-                      extinit_c_erb,
-                      *@user_exts.map { |ext| ext.feature_name(self) },
-                      "--cc",
-                      toolchain.cc,
-                      "--output",
-                      extinit_obj
+
+      if need_exts_build?
+        executor.mkdir_p File.dirname(extinit_obj)
+        executor.system "ruby",
+                        extinit_c_erb,
+                        *@user_exts.map { |ext| ext.feature_name(self) },
+                        "--cc",
+                        toolchain.cc,
+                        "--output",
+                        extinit_obj
+      end
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
         executor.system "make",
@@ -216,7 +220,7 @@ module RubyWasm
     end
 
     def cache_key(digest)
-      digest << @params.target
+      @params.target.cache_key(digest)
       digest << @params.default_exts
       @wasmoptflags.each { |f| digest << f }
       @cppflags.each { |f| digest << f }
@@ -229,11 +233,11 @@ module RubyWasm
     end
 
     def build_dir
-      File.join(@build_dir, @params.target, name)
+      File.join(@build_dir, @params.target.to_s, name)
     end
 
     def ext_build_dir
-      File.join(@build_dir, @params.target, name + "-ext")
+      File.join(@build_dir, @params.target.to_s, name + "-ext")
     end
 
     def with_libyaml(libyaml)
@@ -274,14 +278,14 @@ module RubyWasm
     end
 
     def configure_args(build_triple, toolchain)
-      target = @params.target
+      target = @params.target.triple
       default_exts = @params.default_exts
 
       ldflags = @ldflags.dup
       xldflags = @xldflags.dup
 
       args = self.system_triplet_args + ["--build", build_triple]
-      args << "--with-static-linked-ext"
+      args << "--with-static-linked-ext" unless @params.target.pic?
       args << %Q(--with-ext=#{default_exts})
       args << %Q(--with-libyaml-dir=#{@libyaml.install_root})
       args << %Q(--with-zlib-dir=#{@zlib.install_root})
@@ -308,8 +312,9 @@ module RubyWasm
 
       args.concat(self.tools_args)
       (@user_exts || []).each { |lib| xldflags << "@#{lib.linklist(self)}" }
-      xldflags << extinit_obj
+      xldflags << extinit_obj if need_exts_build?
 
+      cflags = @cflags.dup
       xcflags = @xcflags.dup
       xcflags << "-DWASM_SETJMP_STACK_BUFFER_SIZE=24576"
       xcflags << "-DWASM_FIBER_STACK_BUFFER_SIZE=24576"
@@ -317,6 +322,7 @@ module RubyWasm
 
       args << %Q(LDFLAGS=#{ldflags.join(" ")})
       args << %Q(XLDFLAGS=#{xldflags.join(" ")})
+      args << %Q(CFLAGS=#{cflags.join(" ")})
       args << %Q(XCFLAGS=#{xcflags.join(" ")})
       args << %Q(debugflags=#{@debugflags.join(" ")})
       args << %Q(cppflags=#{@cppflags.join(" ")})
