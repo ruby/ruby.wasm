@@ -45,6 +45,7 @@ module RubyWasm
       executor.mkdir_p objdir
       do_extconf executor, crossruby
 
+      executor.system "make", "-C", objdir, *make_args(crossruby), "clean"
       build_target = crossruby.target.pic? ? "install-so" : "static"
       executor.system "make",
                       "-j#{executor.process_count}",
