@@ -137,8 +137,10 @@ class JS::Object
   #   JS.global[:Date].new(2020, 1, 1)
   #   JS.global[:Error].new("error message")
   #   JS.global[:URLSearchParams].new(JS.global[:location][:search])
+  #   JS.global[:Promise].new ->(resolve, reject) { resolve.call(42) }
   #
-  def new(*args)
+  def new(*args, &block)
+    args = args + [block] if block
     JS.global[:Reflect].construct(self, args.to_js)
   end
 
