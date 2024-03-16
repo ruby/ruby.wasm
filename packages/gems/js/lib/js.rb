@@ -189,6 +189,20 @@ class JS::Object
     self[sym].typeof == "function"
   end
 
+  # Call the receiver (a JavaScript function) with `undefined` as its receiver context. 
+  # This method is similar to JS::Object#call, but it is used to call a function that is not
+  # a method of an object.
+  #   
+  #   floor = JS.global[:Math][:floor]
+  #   floor.apply(3.14) # => 3
+  #   JS.global[:Promise].new do |resolve, reject|
+  #     resolve.apply(42)
+  #   end.await # => 42
+  def apply(*args, &block)
+    args = args + [block] if block
+    JS.global[:Reflect].call(:apply, self, JS::Undefined, args.to_js)
+  end
+
   # Await a JavaScript Promise like `await` in JavaScript.
   # This method looks like a synchronous method, but it actually runs asynchronously using fibers.
   # In other words, the next line to the `await` call at Ruby source will be executed after the
