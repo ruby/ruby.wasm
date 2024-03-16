@@ -79,8 +79,8 @@ module JS
       current = Fiber.current
       promise.call(
         :then,
-        ->(value) { current.transfer(value, :success) },
-        ->(value) { current.transfer(value, :failure) }
+        ->(value) { current.transfer(value, :success); nil },
+        ->(value) { current.transfer(value, :failure); nil }
       )
       if @loop == current
         raise (

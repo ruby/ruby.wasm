@@ -210,7 +210,7 @@ export class RubyVM {
         procToJsFunction: (rawRbAbiValue) => {
           const rbValue = this.rbValueOfPointer(rawRbAbiValue);
           return (...args) => {
-            rbValue.call("call", ...args.map((arg) => this.wrap(arg)));
+            return rbValue.call("call", ...args.map((arg) => this.wrap(arg))).toJS();
           };
         },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
