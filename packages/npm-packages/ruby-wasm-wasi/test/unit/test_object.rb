@@ -357,4 +357,13 @@ class JS::TestObject < Test::Unit::TestCase
     JS.global[:tmp] = "1"
     GC.stress = false
   end
+
+  def test_apply
+    object = JS.eval(<<~JS)
+      return { foo(a, b, c) { return a + b + c; } };
+    JS
+    assert_equal 6, object[:foo].apply(1, 2, 3).to_i
+    floor = JS.global[:Math][:floor]
+    assert_equal 3, floor.apply(3.14).to_i
+  end
 end
