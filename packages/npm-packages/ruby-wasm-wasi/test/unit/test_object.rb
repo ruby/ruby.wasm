@@ -31,6 +31,13 @@ class JS::TestObject < Test::Unit::TestCase
 
     assert_object_eql? false, JS.eval("return 24;"), JS.eval("return 42;")
     assert_object_eql? false, JS.eval("return NaN;"), JS.eval("return NaN;")
+
+    # Compare with JS::Object like object
+    assert_equal true, JS.eval("return 42;") == 42
+    assert_equal true, JS.eval("return 42;").eql?(42)
+    assert_equal false, JS.eval("return 42;") != 42
+    # Compare with non JS::Object like object
+    assert_equal false, JS.eval("return 42;") != Object.new
   end
 
   def assert_object_strictly_eql?(result, a, b)
