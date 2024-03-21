@@ -2,6 +2,7 @@ require "js.so"
 require_relative "js/hash.rb"
 require_relative "js/array.rb"
 require_relative "js/nil_class.rb"
+require_relative "js/date_time.rb"
 
 # The JS module provides a way to interact with JavaScript from Ruby.
 #
@@ -70,6 +71,14 @@ module JS
   True = JS.eval("return true;")
   False = JS.eval("return false;")
 
+  #  JS.try_convert_to_rb(obj) -> Ruby Object or JS::Object
+  #
+  #    Try to convert the given object to a Ruby Datatype using to_rb
+  #   method. Returns the parameter as JS::Object if the object cannot be converted.
+  def try_convert_to_rb(obj)
+    return obj.to_rb
+  end
+
   class PromiseScheduler
     def initialize(loop)
       @loop = loop
@@ -117,15 +126,18 @@ module JS
   def self.__async(future, &block)
     Fiber
       .new do
-        future.resolve block.call
+        future.call(:resolve, block.call)
       rescue => e
-        future.reject JS::Object.wrap(e)
+        future.call(:reject, JS::Object.wrap(e))
       end
       .transfer
   end
 end
 
+# We treat all JavaScript objects and values as JS::Objects
 class JS::Object
+  include Enumerable # Make it possible to enumerate JS:Objects. Example: JS.global.document.querySelectorAll("div").each do
+
   # Create a JavaScript object with the new method
   #
   # The below examples show typical usage in Ruby
@@ -148,9 +160,88 @@ class JS::Object
   #
   #   JS.eval("return [1, 2, 3]").to_a.map(&:to_i)    # => [1, 2, 3]
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
-  def to_a
+  def to_a(convertTypes: true)
     as_array = JS.global[:Array].from(self)
-    Array.new(as_array[:length].to_i) { as_array[_1] }
+    Array.new(as_array[:length].to_i) do
+      item = as_array[_1]
+      convertTypes and item.respond_to?(:to_rb) ? item.to_rb : item
+    end
+  end
+
+  # Try to convert JS Objects into Ruby Objects
+  # Todo: make a list of Types that need to remain JS::Objects (array methods?)
+  def to_rb
+    return nil if self == JS::Null
+    case self.typeof
+    when "number"
+      # TODO: HTTP Codes end up as 200.0, check if it could be integer?
+      # In JS all numbers are floating point.
+      # Is there float.to_js? Create tests for number conversion. Check Ruby JSON parser.
+      self.to_f
+    when "string"
+      self.to_s
+    when "boolean"
+      self == JS::True
+    when "symbol" # TODO: check if this works with assingment
+      self.to_sym
+    when "bigint"
+      self.to_i
+    when "object"
+      #if self.call(:instanceof, JS.global[:Date]) and not JS.global.isNaN(self)
+      #  self.toISOString()
+      #elsif JS.global[:Array].isArray(self)
+      self.isJSArray ? self.to_a : self
+    else
+      self
+    end
+    #return self.static_to_rb(self)
+
+    #case self[sym]
+
+    # TODO convert js to numbers integers to
+    # and change this from the method_missing
+    # make sure to run it in to _a
+
+    # JS::True
+    # Date to Ruby Date
+  end
+
+  # Support self == true instead of self == JS:True
+  alias_method :orig_eq, :==
+  def ==(other)
+    if other.equal? true
+      return orig_eq(JS::True)
+    elsif other.equal? false
+      return orig_eq(JS::False)
+    elsif other.equal? nil
+      return orig_eq(JS::Null) || orig_eq(JS::Undefined)
+    end
+
+    orig_eq(other)
+  end
+
+  def isJSArray()
+    JS.global[:Array].isArray(self) == JS::True
+  end
+
+  def self.static_to_rb(object)
+    return nil if self[sym] == JS::Null
+  end
+
+  def each(&block)
+    if block_given?
+      self.isJSArray ? self.to_a.each(&block) : Array.new(__props).each(&block)
+    else
+      to_enum(:each)
+    end
+  end
+
+  def nil?
+    return self == JS::Null
+  end
+
+  def undefined?
+    return self == JS::Undefined
   end
 
   # Provide a shorthand form for JS::Object#call
@@ -169,16 +260,45 @@ class JS::Object
   # * If the method name is already defined as a Ruby method under JS::Object
   # * If the JavaScript method name ends with a question mark (?)
   def method_missing(sym, *args, &block)
+    return super if self === JS::Null
     sym_str = sym.to_s
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or
+      sym_str.end_with?("=")
     if sym_str.end_with?("?")
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
-      self.call(sym_str[0..-2].to_sym, *args, &block) == JS::True
-    elsif self[sym].typeof == "function"
-      self.call(sym, *args, &block)
-    else
-      super
+      if self[sym]&.typeof?(:function)
+        return self.call(sym, *args, &block) == JS::True
+      end
+
+      return self[sym] == JS::True
     end
+
+    if sym_str.end_with?("=")
+      return self[sym] = args[0].to_js if args[0].respond_to?(:to_js)
+
+      return self[sym] = args[0]
+    end
+
+    if self[sym]&.typeof?(:function) # Todo: What do we do when we want to copy functions around?
+      begin
+        result = self.call(sym, *args, &block)
+        if result.typeof?(:boolean) # fixes if searchParams.has("locations")
+          return result == JS::True
+        else
+          return result.to_rb if result.respond_to?(:to_rb)
+          return result
+        end
+      rescue StandardError
+        return self[sym] # TODO: this is necessary in cases like JS.global[:URLSearchParams]
+      end
+    end
+
+    if self[sym]&.typeof?(:undefined) == false and self[sym].respond_to?(:to_rb)
+      return self[sym].to_rb
+    end
+
+    return super
   end
 
   # Check if a JavaScript method exists
@@ -186,9 +306,12 @@ class JS::Object
   # See JS::Object#method_missing for details.
   def respond_to_missing?(sym, include_private)
     return true if super
+    return false if self === JS::Null
+    return false if self.typeof === "undefined" # Avoid target is undefined error
     sym_str = sym.to_s
-    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?")
-    self[sym].typeof == "function"
+    sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or
+      sym_str.end_with?("=")
+    self[sym].typeof != "undefined"
   end
 
   # Call the receiver (a JavaScript function) with `undefined` as its receiver context. 
@@ -235,6 +358,57 @@ class JS::Object
     promise = JS.global[:Promise].resolve(self)
     JS.promise_scheduler.await(promise)
   end
+
+  # List the methods the object has with the ones in JS
+  def methods(regular = true)
+    # Get all properties of the document object, including inherited ones
+
+    props = __props
+
+    # Filter the properties to get only methods (functions)
+    js_methods =
+      props.sort.uniq.filter do |prop|
+        #      self[prop].typeof?(:function)
+        true
+      end
+    js_methods + super
+  end
+
+  #public_methods, private_methods, protected_methods, method, public_method
+
+  # def js_class
+  #   #return JS::Null if self.nil? or self === JS::Undefined  # not sure if it can be undefined
+  #   return self[:constructor]
+  # rescue
+  #     return nil
+  # end
+
+  # #private
+
+  # def __props
+  #   if self.js_class != JS::Null and self.js_class != JS::Undefined
+  #     prototype = JS.global[:Object].getPrototypeOf(self)
+  #     props = JS.global[:Object].getOwnPropertyNames(self)
+  #   else
+  #     props = []
+  #   end
+  # end
+
+  def typeof?(type)
+    self.typeof === type.to_s
+  end
+
+  def __props
+    props = []
+    current_obj = self
+
+    begin
+      current_props = JS.global[:Object].getOwnPropertyNames(current_obj).to_a
+      props.concat(current_props)
+      current_obj = JS.global[:Object].getPrototypeOf(current_obj)
+    end while current_obj != nil
+    return props.compact.map(&:to_sym)
+  end
 end
 
 # A wrapper class for JavaScript Error to allow the Error to be thrown in Ruby.
@@ -246,7 +420,7 @@ class JS::Error
 
   def message
     stack = @exception[:stack]
-    if stack.typeof == "string"
+    if stack.typeof?(:string)
       # Error.stack contains the error message also
       stack.to_s
     else
