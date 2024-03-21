@@ -34,4 +34,19 @@ class JS::TestJS < Test::Unit::TestCase
     assert_equal "true", JS::True.to_s
     assert_equal "false", JS::False.to_s
   end
+
+  def test_create_promise
+    promise =
+      JS.create_promise do
+        reciever = JS.global[:Object].new
+        reciever[:resolve] = _1
+        reciever.resolve(42)
+      end
+    assert_equal 42, promise.await.to_i
+  end
+
+  def test_create_promise_with_set_timeout_function
+    assert_equal JS::Undefined.to_s,
+                 JS.create_promise { JS.global.setTimeout(_1, 0) }.await.to_s
+  end
 end

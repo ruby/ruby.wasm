@@ -102,6 +102,41 @@ module JS
     @promise_scheduler
   end
 
+  # Initialize the Promise with a block.
+  #
+  # == Example
+  #
+  #   promise = JS.create_promise do |resolve, reject|
+  #     # Calling JavaScript functions from ruby requires a receiver.
+  #     reciever = JS.global[:Object].new
+  #     reciever[:resolve] = resolve
+  #
+  #     # Resolve the promise with the value 42
+  #     reciever.resolve(42)
+  #   end
+  #
+  # This function can be used in combination with the setTimeout function
+  # to stop processing for an arbitrary amount of time.
+  #
+  # == Example
+  #
+  #   promise = JS.create_promise { JS.global.setTimeout(_1, 1000) }
+  #   promise.await # Sleep for 1 second
+  #   puts "Hello, world!"
+  #
+  # Initially, the JS::Object#new method accepts a block to pass a callback function
+  # to the constructor of any JavaScript object.
+  # However, JavaScript objects other than Promise could not prevent nested VM operations
+  # that occur when the callback function is called.
+  # So we defined a function to initialize Promise.
+  def self.create_promise(&executer)
+    unless block_given?
+      raise ArgumentError, "To initialize a Promise, specify a block"
+    end
+
+    JS.global[:Reflect].construct JS.global[:Promise], [executer].to_js
+  end
+
   private
 
   def self.__eval_async_rb(rb_code, future)
