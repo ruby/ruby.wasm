@@ -51,8 +51,9 @@ namespace :npm do
           # Share ./build and ./rubies in the same workspace
           "RUBY_WASM_ROOT" => base_dir
         }
+        cwd = nil
         if gemfile_path = pkg[:gemfile]
-          build_command.push "--gemfile", gemfile_path
+          cwd = File.dirname(gemfile_path)
         else
           # Explicitly disable rubygems integration since Bundler finds
           # Gemfile in the repo root directory.
@@ -61,15 +62,17 @@ namespace :npm do
         dist_dir = File.join(pkg_dir, "dist")
         mkdir_p dist_dir
         if pkg[:target] == "wasm32-unknown-wasi"
-          sh env,
-             *build_command,
-             "--no-stdlib",
-             "-o",
-             File.join(dist_dir, "ruby.wasm")
-          sh env,
-             *build_command,
-             "-o",
-             File.join(dist_dir, "ruby.debug+stdlib.wasm")
+          Dir.chdir(cwd || base_dir) do
+            sh env,
+               *build_command,
+               "--no-stdlib",
+               "-o",
+               File.join(dist_dir, "ruby.wasm")
+            sh env,
+               *build_command,
+               "-o",
+               File.join(dist_dir, "ruby.debug+stdlib.wasm")
+          end
           sh wasi_sdk.wasm_opt,
              "--strip-debug",
              File.join(dist_dir, "ruby.wasm"),
@@ -81,7 +84,9 @@ namespace :npm do
              "-o",
              File.join(dist_dir, "ruby+stdlib.wasm")
         elsif pkg[:target] == "wasm32-unknown-emscripten"
-          sh env, *build_command, "-o", "/dev/null"
+          Dir.chdir(cwd || base_dir) do
+            sh env, *build_command, "-o", "/dev/null"
+          end
         end
       end
 
