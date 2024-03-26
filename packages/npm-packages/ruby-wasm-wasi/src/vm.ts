@@ -602,7 +602,7 @@ class RbExceptionFormatter {
     }
 
     try {
-      message = error.toString();
+      message = error.call("message").toString();
     } catch (e) {
       message = "unknown";
     }
