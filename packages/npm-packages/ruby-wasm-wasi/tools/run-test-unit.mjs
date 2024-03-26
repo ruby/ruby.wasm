@@ -151,7 +151,8 @@ const test = async (instantiate) => {
   await vm.evalAsync(`
     require 'test/unit'
     require_relative '${rootTestFile}'
-    Test::Unit::AutoRunner.run
+    ok = Test::Unit::AutoRunner.run
+    exit(1) unless ok
   `);
 };
 
