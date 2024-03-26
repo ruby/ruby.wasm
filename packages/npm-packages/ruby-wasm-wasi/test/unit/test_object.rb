@@ -37,7 +37,8 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal true, JS.eval("return 42;").eql?(42)
     assert_equal false, JS.eval("return 42;") != 42
     # Compare with non JS::Object like object
-    assert_equal false, JS.eval("return 42;") != Object.new
+    assert_equal false, JS.eval("return 42;") == Object.new
+    assert_equal true, JS.eval("return 42;") != Object.new
   end
 
   def assert_object_strictly_eql?(result, a, b)
