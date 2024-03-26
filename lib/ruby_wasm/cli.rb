@@ -116,10 +116,6 @@ module RubyWasm
             options[:format] = format
           end
 
-          opts.on("--gemfile GEMFILE", "Gemfile") do |gemfile|
-            options[:gemfile] = gemfile
-          end
-
           opts.on("--print-ruby-cache-key", "Print Ruby cache key") do
             options[:print_ruby_cache_key] = true
           end
@@ -289,12 +285,7 @@ module RubyWasm
           level = options[:print_ruby_cache_key] ? :silent : Bundler.ui.level
           old_level = Bundler.ui.level
           Bundler.ui.level = level
-          if options[:gemfile]
-            Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", options[:gemfile]
-            definition = Bundler.definition(true) # unlock=true to re-evaluate "BUNDLE_GEMFILE"
-          else
-            definition = Bundler.definition
-          end
+          definition = Bundler.definition
         ensure
           Bundler.ui.level = old_level
         end
