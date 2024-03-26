@@ -11,6 +11,9 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    power_assert (2.0.3)
+    test-unit (3.6.2)
+      power_assert
 
 PLATFORMS
   ruby
@@ -18,7 +21,9 @@ PLATFORMS
 
 DEPENDENCIES
   js!
+  power_assert
   ruby_wasm!
+  test-unit
 
 BUNDLED WITH
    2.5.3
