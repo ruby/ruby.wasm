@@ -4,3 +4,5 @@ source "https://rubygems.org"
 
 gem "js", path: "../../gems/js"
 gem "ruby_wasm", path: "../../../"
+gem "power_assert"
+gem "test-unit"
