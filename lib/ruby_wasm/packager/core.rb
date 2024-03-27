@@ -37,6 +37,9 @@ class RubyWasm::Packager::Core
       raise NotImplementedError
     end
 
+    def build_and_link_exts(executor, output)
+    end
+
     # Array of paths to extconf.rb files.
     def specs_with_extensions
       @packager.specs.filter_map do |spec|
@@ -67,7 +70,6 @@ class RubyWasm::Packager::Core
         options[:remake] || options[:clean] || options[:reconfigure]
       if File.exist?(build.crossruby.artifact) && !force_rebuild
         # Always build extensions because they are usually not expensive to build
-        self.build_exts(executor, build)
         return build.crossruby.artifact
       end
       build.crossruby.clean(executor) if options[:clean]
@@ -89,6 +91,45 @@ class RubyWasm::Packager::Core
         end
       self.build_exts(executor, build)
       build.crossruby.artifact
+    end
+
+    def build_and_link_exts(executor, output)
+      build = derive_build
+      self.build_exts(executor, build)
+      self.link_exts(executor, build, output)
+    end
+
+    def link_exts(executor, build, output)
+      wasm_tools = ENV["WASM_TOOLS"] || "wasm-tools"
+      ruby_root = build.crossruby.dest_dir
+
+      link_args = %W[component link]
+      link_args << File.join(ruby_root, "usr", "local", "bin", "ruby")
+
+      # TODO: Should be computed from dyinfo of ruby binary
+      wasi_libc_shared_libs = [
+        "libc.so",
+        "libdl.so",
+        "libwasi-emulated-getpid.so",
+        "libwasi-emulated-mman.so",
+        "libwasi-emulated-process-clocks.so",
+        "libwasi-emulated-signal.so",
+      ]
+
+      wasi_libc_shared_libs.each do |lib|
+        wasi_sdk_path = build.toolchain.wasi_sdk_path
+        link_args << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
+      end
+      wasi_adapter = ENV["WASI_COMPONENT_ADAPTER"] or raise "WASI_COMPONENT_ADAPTER is not set"
+      link_args.concat ["--adapt", wasi_adapter]
+      Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so")).each do |so|
+        link_args << "--dl-openable"
+        link_args << "#{so.delete_prefix(ruby_root)}=#{so}"
+      end
+      link_args << "-o"
+      link_args << File.join(ruby_root, "usr", "local", "bin", "ruby.component.wasm")
+
+      executor.system(wasm_tools, *link_args)
     end
 
     def build_exts(executor, build)
