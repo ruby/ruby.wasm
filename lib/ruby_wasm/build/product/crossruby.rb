@@ -75,7 +75,7 @@ module RubyWasm
         ]
         rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
         raise "rbconfig.rb not found" unless rbconfig_rb
-        extconf_env["MKMF_TARGET_RBCONFIG"] = rbconfig_rb
+        extconf_args << "--target-rbconfig=#{rbconfig_rb}"
       else
         extconf_args.concat [
           "--disable=gems",
