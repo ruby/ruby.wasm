@@ -10,4 +10,15 @@ module RubyWasmExt
 
     def pack: (Array[Integer] module_bytes) -> Array[Integer]
   end
+
+  class ComponentLink
+    def initialize: () -> void
+    def library: (String name, Array[Integer] | String module, bool dl_openable) -> void
+    def adapter: (String name, Array[Integer] | String module) -> void
+    def validate: (bool) -> void
+    def stack_size: (Integer) -> void
+    def stub_missing_functions: (bool) -> void
+    def use_built_in_libdl: (bool) -> void
+    def encode: () -> Array[Integer]
+  end
 end

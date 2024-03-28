@@ -12,7 +12,7 @@ class RubyWasm::Packager::Core
 
   extend Forwardable
 
-  def_delegators :build_strategy, :cache_key, :artifact
+  def_delegators :build_strategy, :cache_key, :artifact, :build_and_link_exts
 
   private
 
@@ -37,7 +37,7 @@ class RubyWasm::Packager::Core
       raise NotImplementedError
     end
 
-    def build_and_link_exts(executor, output)
+    def build_and_link_exts(executor)
     end
 
     # Array of paths to extconf.rb files.
@@ -89,27 +89,23 @@ class RubyWasm::Packager::Core
         else
           do_build.call
         end
-      self.build_exts(executor, build)
       build.crossruby.artifact
     end
 
-    def build_and_link_exts(executor, output)
+    def build_and_link_exts(executor)
       build = derive_build
       self.build_exts(executor, build)
-      self.link_exts(executor, build, output)
+      self.link_exts(executor, build)
     end
 
-    def link_exts(executor, build, output)
-      wasm_tools = ENV["WASM_TOOLS"] || "wasm-tools"
+    def link_exts(executor, build)
       ruby_root = build.crossruby.dest_dir
 
-      link_args = %W[component link]
-      link_args << File.join(ruby_root, "usr", "local", "bin", "ruby")
+      libraries = [File.join(ruby_root, "usr", "local", "bin", "ruby")]
 
       # TODO: Should be computed from dyinfo of ruby binary
       wasi_libc_shared_libs = [
         "libc.so",
-        "libdl.so",
         "libwasi-emulated-getpid.so",
         "libwasi-emulated-mman.so",
         "libwasi-emulated-process-clocks.so",
@@ -118,18 +114,47 @@ class RubyWasm::Packager::Core
 
       wasi_libc_shared_libs.each do |lib|
         wasi_sdk_path = build.toolchain.wasi_sdk_path
-        link_args << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
+        libraries << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
       end
       wasi_adapter = ENV["WASI_COMPONENT_ADAPTER"] or raise "WASI_COMPONENT_ADAPTER is not set"
-      link_args.concat ["--adapt", wasi_adapter]
-      Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so")).each do |so|
-        link_args << "--dl-openable"
-        link_args << "#{so.delete_prefix(ruby_root)}=#{so}"
-      end
-      link_args << "-o"
-      link_args << File.join(ruby_root, "usr", "local", "bin", "ruby.component.wasm")
+      adapters = [wasi_adapter]
+      dl_openable_libs = Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so"))
+      linker = RubyWasmExt::ComponentLink.new
+      linker.use_built_in_libdl(true)
+      linker.stub_missing_functions(false)
+      linker.validate(true)
 
-      executor.system(wasm_tools, *link_args)
+      libraries.each do |lib|
+        # Non-DL openable libraries should be referenced as base name
+        lib_name = File.basename(lib)
+        module_bytes = File.binread(lib).unpack("C*")
+        RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
+        linker.library(lib_name, module_bytes, false)
+      end
+
+      filter_libs = [
+        "enc/encdb.so",
+        "stringio.so",
+        "monitor.so",
+        "pathname.so",
+        "strscan.so",
+      ]
+      dl_openable_libs.each do |lib|
+        # DL openable lib_name should be a relative path from ruby_root
+        lib_name = "/" + Pathname.new(lib).relative_path_from(Pathname.new(ruby_root)).to_s
+        # next unless filter_libs.any? { |filter| lib_name.include?(filter) }
+        module_bytes = File.binread(lib).unpack("C*")
+        RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
+        linker.library(lib_name, module_bytes, true)
+      end
+
+      adapters.each do |adapter|
+        adapter_name = File.basename(adapter)
+        # e.g. wasi_snapshot_preview1.command.wasm -> wasi_snapshot_preview1
+        adapter_name = adapter_name.split(".")[0]
+        linker.adapter(adapter_name, File.binread(adapter).unpack("C*"))
+      end
+      return linker.encode()
     end
 
     def build_exts(executor, build)
@@ -273,6 +298,12 @@ class RubyWasm::Packager::Core
       end
       @build = build
       build
+    end
+
+    def build_and_link_exts(executor)
+      build = derive_build
+      ruby_root = build.crossruby.dest_dir
+      File.binread(File.join(ruby_root, "usr", "local", "bin", "ruby"))
     end
 
     def user_exts(build)

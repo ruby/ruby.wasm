@@ -27,9 +27,7 @@ class RubyWasm::Packager
 
     fs = RubyWasm::Packager::FileSystem.new(dest_dir, self)
     fs.package_ruby_root(tarball, executor)
-
-    ruby_wasm_bin = File.expand_path("bin/ruby", fs.ruby_root)
-    wasm_bytes = File.binread(ruby_wasm_bin).bytes
+    wasm_bytes = ruby_core.build_and_link_exts(executor)
 
     fs.package_gems
     fs.remove_non_runtime_files(executor)
