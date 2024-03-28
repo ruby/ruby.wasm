@@ -86,7 +86,7 @@ def rake_task_matrix
         task: "standalone:#{pkg[:name]}",
         artifact: "packages/standalone/#{pkg[:name]}/dist",
         artifact_name: "standalone-#{pkg[:name]}",
-        builder: "wasm32-unknown-wasi",
+        builder: "wasm32-unknown-wasip1",
         rubies_cache_key: ruby_cache_keys[pkg[:build]]
       }
     end
