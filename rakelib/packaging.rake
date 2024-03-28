@@ -61,7 +61,7 @@ namespace :npm do
         end
         dist_dir = File.join(pkg_dir, "dist")
         mkdir_p dist_dir
-        if pkg[:target] == "wasm32-unknown-wasi"
+        if pkg[:target].start_with?("wasm32-unknown-wasi")
           Dir.chdir(cwd || base_dir) do
             sh env,
                *build_command,

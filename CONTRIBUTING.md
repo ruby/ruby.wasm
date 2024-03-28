@@ -21,7 +21,7 @@ $ rake --tasks
 $ rake build:download_prebuilt
 
 # Build Ruby (if you need to build Ruby by yourself)
-$ rake build:head-wasm32-unknown-wasi-full
+$ rake build:head-wasm32-unknown-wasip1-full
 
 # Build npm package
 $ rake npm:ruby-head-wasm-wasi
@@ -48,15 +48,15 @@ To select a build profile, see [profiles section in README](https://github.com/r
 
 ```console
 # Build only a specific combination of ruby version, profile, and target
-$ rake build:head-wasm32-unknown-wasi-full
+$ rake build:head-wasm32-unknown-wasip1-full
 # Clean up the build directory
-$ rake build:head-wasm32-unknown-wasi-full:clean
+$ rake build:head-wasm32-unknown-wasip1-full:clean
 # Force to re-execute "make install"
-$ rake build:head-wasm32-unknown-wasi-full:remake
+$ rake build:head-wasm32-unknown-wasip1-full:remake
 
 # Output is in the `rubies` directory
-$ tree -L 3 rubies/head-wasm32-unknown-wasi-full
-rubies/head-wasm32-unknown-wasi-full/
+$ tree -L 3 rubies/head-wasm32-unknown-wasip1-full
+rubies/head-wasm32-unknown-wasip1-full/
 ├── usr
 │   └── local
 │       ├── bin
