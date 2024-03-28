@@ -111,7 +111,7 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
   <tbody>
     <tr>
       <td><code>wasm32-unknown-wasip1</code></td>
-      <td>Targeting <a href="https://github.com/WebAssembly/WASI/tree/main/legacy/preview1">WASI Preview1</a> compatible environments (e.g. Node.js, browsers with polyfill, <a href="https://github.com/bytecodealliance/wasmtime">wasmtime</a>, and so on)</td>
+      <td>Targeting <a href="https://github.com/WebAssembly/WASI/tree/main/legacy/preview1">WASI Preview1</a> compatible environments <br>(e.g. Node.js, browsers with polyfill, <a href="https://github.com/bytecodealliance/wasmtime">wasmtime</a>, and so on)</td>
     </tr>
     <tr>
       <td><code>wasm32-unknown-emscripten</code></td>
