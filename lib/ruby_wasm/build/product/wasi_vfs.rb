@@ -12,7 +12,7 @@ module RubyWasm
     def lib_product_build_dir
       File.join(
         @build_dir,
-        "wasm32-unknown-wasi",
+        "wasm32-unknown-wasip1",
         "wasi-vfs-#{WASI_VFS_VERSION}"
       )
     end

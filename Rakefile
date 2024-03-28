@@ -15,7 +15,7 @@ BUILD_PROFILES = %w[full minimal]
 BUILDS =
   BUILD_SOURCES
     .product(BUILD_PROFILES)
-    .map { |src, profile| [src, "wasm32-unknown-wasi", profile] } +
+    .map { |src, profile| [src, "wasm32-unknown-wasip1", profile] } +
     BUILD_SOURCES.map { |src| [src, "wasm32-unknown-emscripten", "full"] }
 
 NPM_PACKAGES = [
@@ -29,26 +29,26 @@ NPM_PACKAGES = [
     name: "ruby-head-wasm-wasi",
     ruby_version: "head",
     gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
-    target: "wasm32-unknown-wasi"
+    target: "wasm32-unknown-wasip1"
   },
   {
     name: "ruby-3.3-wasm-wasi",
     ruby_version: "3.3",
     gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
-    target: "wasm32-unknown-wasi"
+    target: "wasm32-unknown-wasip1"
   },
   {
     name: "ruby-3.2-wasm-wasi",
     ruby_version: "3.2",
     gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
-    target: "wasm32-unknown-wasi"
+    target: "wasm32-unknown-wasip1"
   },
-  { name: "ruby-wasm-wasi", target: "wasm32-unknown-wasi" }
+  { name: "ruby-wasm-wasi", target: "wasm32-unknown-wasip1" }
 ]
 
 STANDALONE_PACKAGES = [
-  { name: "ruby", build: "head-wasm32-unknown-wasi-full" },
-  { name: "irb", build: "head-wasm32-unknown-wasi-full" }
+  { name: "ruby", build: "head-wasm32-unknown-wasip1-full" },
+  { name: "irb", build: "head-wasm32-unknown-wasip1-full" }
 ]
 
 LIB_ROOT = File.dirname(__FILE__)

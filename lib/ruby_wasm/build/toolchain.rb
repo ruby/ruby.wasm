@@ -18,7 +18,7 @@ module RubyWasm
 
     def self.get(target, build_dir = nil)
       case target
-      when "wasm32-unknown-wasi"
+      when /^wasm32-unknown-wasi/
         return RubyWasm::WASISDK.new(build_dir: build_dir)
       when "wasm32-unknown-emscripten"
         return RubyWasm::Emscripten.new

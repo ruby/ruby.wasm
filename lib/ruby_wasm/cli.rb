@@ -50,7 +50,7 @@ module RubyWasm
         reconfigure: false,
         clean: false,
         ruby_version: "3.3",
-        target_triplet: "wasm32-unknown-wasi",
+        target_triplet: "wasm32-unknown-wasip1",
         profile: "full",
         stdlib: true,
         disable_gems: false,
