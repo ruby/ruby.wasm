@@ -6,8 +6,8 @@ use magnus::{
     value::{self, InnerValue},
     wrap, Error, ExceptionClass, RModule, Ruby,
 };
-use wizer::Wizer;
 use structopt::StructOpt;
+use wizer::Wizer;
 
 static RUBY_WASM: value::Lazy<RModule> =
     value::Lazy::new(|ruby| ruby.define_module("RubyWasmExt").unwrap());
@@ -64,6 +64,83 @@ impl WasiVfs {
     }
 }
 
+#[wrap(class = "RubyWasmExt::ComponentLink")]
+struct ComponentLink(std::cell::RefCell<Option<wit_component::Linker>>);
+
+impl ComponentLink {
+    fn new() -> Self {
+        Self(std::cell::RefCell::new(Some(wit_component::Linker::default())))
+    }
+    fn linker(&self, body: impl FnOnce(wit_component::Linker) -> Result<wit_component::Linker, Error>) -> Result<(), Error> {
+        let mut linker = self.0.take().ok_or_else(|| {
+            Error::new(
+                exception::standard_error(),
+                "linker is already consumed".to_string(),
+            )
+        })?;
+        linker = body(linker)?;
+        self.0.replace(Some(linker));
+        Ok(())
+    }
+
+    fn library(&self, name: String, module: Vec<u8>, dl_openable: bool) -> Result<(), Error> {
+        self.linker(|linker| {
+            linker.library(&name, &module, dl_openable).map_err(|e| {
+                Error::new(
+                    exception::standard_error(),
+                    format!("failed to link library: {}", e),
+                )
+            })
+        })
+    }
+    fn adapter(&self, name: String, module: Vec<u8>) -> Result<(), Error> {
+        self.linker(|linker| {
+            linker.adapter(&name, &module).map_err(|e| {
+                Error::new(
+                    exception::standard_error(),
+                    format!("failed to link adapter: {}", e),
+                )
+            })
+        })
+    }
+    fn validate(&self, validate: bool) -> Result<(), Error> {
+        self.linker(|linker| {
+            Ok(linker.validate(validate))
+        })
+    }
+    fn stack_size(&self, size: u32) -> Result<(), Error> {
+        self.linker(|linker| {
+            Ok(linker.stack_size(size))
+        })
+    }
+    fn stub_missing_functions(&self, stub: bool) -> Result<(), Error> {
+        self.linker(|linker| {
+            Ok(linker.stub_missing_functions(stub))
+        })
+    }
+    fn use_built_in_libdl(&self, use_libdl: bool) -> Result<(), Error> {
+        self.linker(|linker| {
+            Ok(linker.use_built_in_libdl(use_libdl))
+        })
+    }
+    fn encode(&self) -> Result<Vec<u8>, Error> {
+        // Take the linker out of the cell and consume it
+        let linker = self.0.borrow_mut().take().ok_or_else(|| {
+            Error::new(
+                exception::standard_error(),
+                "linker is already consumed".to_string(),
+            )
+        })?;
+        let encoded = linker.encode().map_err(|e| {
+            Error::new(
+                exception::standard_error(),
+                format!("failed to encode linker: {}", e),
+            )
+        })?;
+        Ok(encoded)
+    }
+}
+
 #[magnus::init]
 fn init(ruby: &Ruby) -> Result<(), Error> {
     let module = RUBY_WASM.get_inner_with(ruby);
@@ -76,5 +153,16 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
     wasi_vfs.define_singleton_method("run_cli", function!(WasiVfs::run_cli, 1))?;
     wasi_vfs.define_method("map_dir", method!(WasiVfs::map_dir, 2))?;
     wasi_vfs.define_method("pack", method!(WasiVfs::pack, 1))?;
+
+    let component_link = module.define_class("ComponentLink", ruby.class_object())?;
+    component_link.define_singleton_method("new", function!(ComponentLink::new, 0))?;
+    component_link.define_method("library", method!(ComponentLink::library, 3))?;
+    component_link.define_method("adapter", method!(ComponentLink::adapter, 2))?;
+    component_link.define_method("validate", method!(ComponentLink::validate, 1))?;
+    component_link.define_method("stack_size", method!(ComponentLink::stack_size, 1))?;
+    component_link.define_method("stub_missing_functions", method!(ComponentLink::stub_missing_functions, 1))?;
+    component_link.define_method("use_built_in_libdl", method!(ComponentLink::use_built_in_libdl, 1))?;
+    component_link.define_method("encode", method!(ComponentLink::encode, 0))?;
+
     Ok(())
 }
