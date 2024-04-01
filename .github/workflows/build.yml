@@ -106,6 +106,7 @@ jobs:
         with:
           name: build-manifest
       - uses: actions/cache@v4.0.2
+        if: ${{ matrix.entry.rubies_cache_key != null }}
         with:
           path: ./rubies
           key: ${{ matrix.entry.rubies_cache_key }}
