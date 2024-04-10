@@ -1905,8 +1905,7 @@ dependencies = [
 [[package]]
 name = "wasm-encoder"
 version = "0.202.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfd106365a7f5f7aa3c1916a98cbb3ad477f5ff96ddb130285a91c6e7429e67a"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=refs/pull/1490/head#984f0cc15133555b11365b4ef653d126b07aa926"
 dependencies = [
  "leb128",
 ]
@@ -1914,8 +1913,7 @@ dependencies = [
 [[package]]
 name = "wasm-metadata"
 version = "0.202.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "094aea3cb90e09f16ee25a4c0e324b3e8c934e7fd838bfa039aef5352f44a917"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=refs/pull/1490/head#984f0cc15133555b11365b4ef653d126b07aa926"
 dependencies = [
  "anyhow",
  "indexmap 2.1.0",
@@ -1950,8 +1948,7 @@ dependencies = [
 [[package]]
 name = "wasmparser"
 version = "0.202.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6998515d3cf3f8b980ef7c11b29a9b1017d4cf86b99ae93b546992df9931413"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=refs/pull/1490/head#984f0cc15133555b11365b4ef653d126b07aa926"
 dependencies = [
  "bitflags 2.4.1",
  "indexmap 2.1.0",
@@ -2574,8 +2571,7 @@ dependencies = [
 [[package]]
 name = "wit-component"
 version = "0.202.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c836b1fd9932de0431c1758d8be08212071b6bba0151f7bac826dbc4312a2a9"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=refs/pull/1490/head#984f0cc15133555b11365b4ef653d126b07aa926"
 dependencies = [
  "anyhow",
  "bitflags 2.4.1",
@@ -2610,8 +2606,7 @@ dependencies = [
 [[package]]
 name = "wit-parser"
 version = "0.202.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "744237b488352f4f27bca05a10acb79474415951c450e52ebd0da784c1df2bcc"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=refs/pull/1490/head#984f0cc15133555b11365b4ef653d126b07aa926"
 dependencies = [
  "anyhow",
  "id-arena",
