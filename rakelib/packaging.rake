@@ -154,3 +154,12 @@ namespace :standalone do
     end
   end
 end
+
+namespace :gem do
+  task :update_component_adapters do
+    ["command", "reactor"].each do |exec_model|
+      sh "curl", "-L", "-o", "lib/ruby_wasm/packager/component_adapter/wasi_snapshot_preview1.#{exec_model}.wasm",
+          "https://github.com/bytecodealliance/wasmtime/releases/download/v19.0.1/wasi_snapshot_preview1.#{exec_model}.wasm"
+    end
+  end
+end
