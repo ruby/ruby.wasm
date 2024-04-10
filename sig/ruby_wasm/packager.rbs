@@ -48,6 +48,7 @@ class RubyWasm::Packager
     @packager: RubyWasm::Packager
     def initialize: (RubyWasm::Packager) -> void
     def build: (RubyWasm::BuildExecutor, untyped options) -> String
+    def build_and_link_exts: (RubyWasm::BuildExecutor) -> Array[Integer]
 
     extend Forwardable
 
@@ -63,6 +64,7 @@ class RubyWasm::Packager
       def initialize: (RubyWasm::Packager) -> void
       def build: (RubyWasm::BuildExecutor, untyped options) -> String
       def specs_with_extensions: () -> Array[[untyped, Array[string]]]
+      def build_and_link_exts: (RubyWasm::BuildExecutor) -> void
     end
 
     class DynamicLinking < RubyWasm::Packager::Core::BuildStrategy
@@ -70,6 +72,8 @@ class RubyWasm::Packager
       def derive_build: () -> RubyWasm::Build
       def build_exts: (RubyWasm::BuildExecutor, RubyWasm::Build) -> void
       def name: () -> string
+
+      private def link_exts: (RubyWasm::BuildExecutor, RubyWasm::Build) -> Array[Integer]
     end
 
     class StaticLinking < RubyWasm::Packager::Core::BuildStrategy
@@ -108,5 +112,9 @@ class RubyWasm::Packager
     def bundle_relative_path: () -> String
     def ruby_version: () -> String
     def rubyarchdir: () -> String
+  end
+
+  module ComponentAdapter
+    def self.wasi_snapshot_preview1: (String exec_model) -> String
   end
 end
