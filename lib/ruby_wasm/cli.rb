@@ -323,9 +323,9 @@ module RubyWasm
       RubyWasm.logger.info "Size: #{SizeFormatter.format(wasm_bytes.size)}"
       case options[:output]
       when "-"
-        @stdout.write wasm_bytes.pack("C*")
+        @stdout.write wasm_bytes
       else
-        File.binwrite(options[:output], wasm_bytes.pack("C*"))
+        File.binwrite(options[:output], wasm_bytes)
         RubyWasm.logger.debug "Wrote #{options[:output]}"
       end
     end

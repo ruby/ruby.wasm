@@ -38,6 +38,7 @@ class RubyWasm::Packager::Core
     end
 
     def build_and_link_exts(executor)
+      raise NotImplementedError
     end
 
     # Array of paths to extconf.rb files.
@@ -129,8 +130,7 @@ class RubyWasm::Packager::Core
       libraries.each do |lib|
         # Non-DL openable libraries should be referenced as base name
         lib_name = File.basename(lib)
-        # @type var module_bytes: Array[Integer]
-        module_bytes = File.binread(lib).unpack("C*")
+        module_bytes = File.binread(lib)
         RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
         linker.library(lib_name, module_bytes, false)
       end
@@ -138,8 +138,7 @@ class RubyWasm::Packager::Core
       dl_openable_libs.each do |lib|
         # DL openable lib_name should be a relative path from ruby_root
         lib_name = "/" + Pathname.new(lib).relative_path_from(Pathname.new(ruby_root)).to_s
-        # @type var module_bytes: Array[Integer]
-        module_bytes = File.binread(lib).unpack("C*")
+        module_bytes = File.binread(lib)
         RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
         linker.library(lib_name, module_bytes, true)
       end
@@ -148,8 +147,7 @@ class RubyWasm::Packager::Core
         adapter_name = File.basename(adapter)
         # e.g. wasi_snapshot_preview1.command.wasm -> wasi_snapshot_preview1
         adapter_name = adapter_name.split(".")[0]
-        # @type var module_bytes: Array[Integer]
-        module_bytes = File.binread(adapter).unpack("C*")
+        module_bytes = File.binread(adapter)
         linker.adapter(adapter_name, module_bytes)
       end
       return linker.encode()
