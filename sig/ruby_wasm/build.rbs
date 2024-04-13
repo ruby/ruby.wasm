@@ -170,6 +170,8 @@ module RubyWasm
     def build: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
     def do_extconf: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
     def do_install_rb: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
+
+    private def do_legacy_extconf: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
   end
 
   class CrossRubyProduct < AutoconfProduct

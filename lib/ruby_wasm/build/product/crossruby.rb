@@ -63,50 +63,56 @@ module RubyWasm
     end
 
     def do_extconf(executor, crossruby)
+      unless crossruby.target.pic?
+        self.do_legacy_extconf(executor, crossruby)
+        return
+      end
       objdir = product_build_dir crossruby
       source = crossruby.source
-      extconf_args = ["-C", objdir]
-      # @type var extconf_env: Hash[String, String]
-      extconf_env = {}
+      rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
+      raise "rbconfig.rb not found" unless rbconfig_rb
+      extconf_args = [
+        "-C", objdir,
+        "#{@srcdir}/extconf.rb",
+        "--target-rbconfig=#{rbconfig_rb}",
+      ]
+      executor.system Gem.ruby, *extconf_args
+    end
 
-      if crossruby.target.pic?
-        extconf_args.concat [
-          "#{@srcdir}/extconf.rb",
-        ]
-        rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
-        raise "rbconfig.rb not found" unless rbconfig_rb
-        extconf_args << "--target-rbconfig=#{rbconfig_rb}"
-      else
-        extconf_args.concat [
-          "--disable=gems",
-          # HACK: top_srcdir is required to find ruby headers
-          "-e",
-          %Q($top_srcdir="#{source.src_dir}"),
-          # HACK: extout is required to find config.h
-          "-e",
-          %Q($extout="#{crossruby.build_dir}/.ext"),
-          # HACK: force static ext build by imitating extmk
-          "-e",
-          "$static = true; trace_var(:$static) {|v| $static = true }",
-          # HACK: $0 should be extconf.rb path due to mkmf source file detection
-          # and we want to insert some hacks before it. But -e and $0 cannot be
-          # used together, so we rewrite $0 in -e.
-          "-e",
-          %Q($0="#{@srcdir}/extconf.rb"),
-          "-e",
-          %Q(require_relative "#{@srcdir}/extconf.rb"),
-          # HACK: extract "$target" from extconf.rb to get a full target name
-          # like "cgi/escape" instead of "escape"
-          "-e",
-          %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
-          "-I#{crossruby.build_dir}"
-        ]
-        # Clear RUBYOPT to avoid loading unrelated bundle setup
-        extconf_env["RUBYOPT"] = ""
-      end
-      executor.system Gem.ruby,
+    def do_legacy_extconf(executor, crossruby)
+      objdir = product_build_dir crossruby
+      source = crossruby.source
+      extconf_args = [
+        "-C", objdir,
+        "--disable=gems",
+        # HACK: top_srcdir is required to find ruby headers
+        "-e",
+        %Q($top_srcdir="#{source.src_dir}"),
+        # HACK: extout is required to find config.h
+        "-e",
+        %Q($extout="#{crossruby.build_dir}/.ext"),
+        # HACK: force static ext build by imitating extmk
+        "-e",
+        "$static = true; trace_var(:$static) {|v| $static = true }",
+        # HACK: $0 should be extconf.rb path due to mkmf source file detection
+        # and we want to insert some hacks before it. But -e and $0 cannot be
+        # used together, so we rewrite $0 in -e.
+        "-e",
+        %Q($0="#{@srcdir}/extconf.rb"),
+        "-e",
+        %Q(require_relative "#{@srcdir}/extconf.rb"),
+        # HACK: extract "$target" from extconf.rb to get a full target name
+        # like "cgi/escape" instead of "escape"
+        "-e",
+        %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
+        "-I#{crossruby.build_dir}"
+      ]
+      # Clear RUBYOPT to avoid loading unrelated bundle setup
+      executor.system crossruby.baseruby_path,
                       *extconf_args,
-                      env: extconf_env
+                      env: {
+                        "RUBYOPT" => ""
+                      }
     end
 
     def do_install_rb(executor, crossruby)
