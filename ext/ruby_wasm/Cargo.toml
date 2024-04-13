@@ -10,8 +10,9 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-magnus = "0.6.2"
+magnus = { version = "0.6.2", features = ["bytes"] }
+bytes = "1"
 wizer = "4.0.0"
 wasi-vfs-cli = { git = "https://github.com/kateinoigakukun/wasi-vfs/", tag = "0.5.2" }
 structopt = "0.3.26"
-wit-component = { git = "https://github.com/bytecodealliance/wasm-tools", rev = "refs/pull/1490/head" }
+wit-component = "0.203.0"

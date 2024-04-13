@@ -12,7 +12,7 @@ use wizer::Wizer;
 static RUBY_WASM: value::Lazy<RModule> =
     value::Lazy::new(|ruby| ruby.define_module("RubyWasmExt").unwrap());
 
-fn preinit(core_module: Vec<u8>) -> Result<Vec<u8>, Error> {
+fn preinit(core_module: bytes::Bytes) -> Result<bytes::Bytes, Error> {
     let rbwasm_error = eval("RubyWasmExt::Error")?;
     let rbwasm_error = ExceptionClass::from_value(rbwasm_error).unwrap();
     let mut wizer = Wizer::new();
@@ -26,6 +26,7 @@ fn preinit(core_module: Vec<u8>) -> Result<Vec<u8>, Error> {
     wizer
         .run(&core_module)
         .map_err(|e| Error::new(rbwasm_error, format!("failed to run wizer: {}", e)))
+        .map(|output| output.into())
 }
 
 struct WasiVfsInner {
@@ -53,14 +54,14 @@ impl WasiVfs {
         self.0.borrow_mut().map_dirs.push((guest_dir.into(), host_dir.into()));
     }
 
-    fn pack(&self, wasm_bytes: Vec<u8>) -> Result<Vec<u8>, Error> {
+    fn pack(&self, wasm_bytes: bytes::Bytes) -> Result<bytes::Bytes, Error> {
         let output_bytes = wasi_vfs_cli::pack(&wasm_bytes, self.0.borrow().map_dirs.clone()).map_err(|e| {
             Error::new(
                 exception::standard_error(),
                 format!("failed to pack wasi vfs: {}", e),
             )
         })?;
-        Ok(output_bytes)
+        Ok(output_bytes.into())
     }
 }
 
@@ -83,7 +84,7 @@ impl ComponentLink {
         Ok(())
     }
 
-    fn library(&self, name: String, module: Vec<u8>, dl_openable: bool) -> Result<(), Error> {
+    fn library(&self, name: String, module: bytes::Bytes, dl_openable: bool) -> Result<(), Error> {
         self.linker(|linker| {
             linker.library(&name, &module, dl_openable).map_err(|e| {
                 Error::new(
@@ -93,7 +94,7 @@ impl ComponentLink {
             })
         })
     }
-    fn adapter(&self, name: String, module: Vec<u8>) -> Result<(), Error> {
+    fn adapter(&self, name: String, module: bytes::Bytes) -> Result<(), Error> {
         self.linker(|linker| {
             linker.adapter(&name, &module).map_err(|e| {
                 Error::new(
@@ -123,7 +124,7 @@ impl ComponentLink {
             Ok(linker.use_built_in_libdl(use_libdl))
         })
     }
-    fn encode(&self) -> Result<Vec<u8>, Error> {
+    fn encode(&self) -> Result<bytes::Bytes, Error> {
         // Take the linker out of the cell and consume it
         let linker = self.0.borrow_mut().take().ok_or_else(|| {
             Error::new(
@@ -137,7 +138,7 @@ impl ComponentLink {
                 format!("failed to encode linker: {}", e),
             )
         })?;
-        Ok(encoded)
+        Ok(encoded.into())
     }
 }
 
