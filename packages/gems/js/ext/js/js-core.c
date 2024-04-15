@@ -240,8 +240,14 @@ static VALUE _rb_js_obj_strictly_eql(VALUE obj, VALUE other) {
  * Performs "==" comparison, a.k.a the "Abstract Equality Comparison"
  * algorithm defined in the ECMAScript.
  * https://262.ecma-international.org/11.0/#sec-abstract-equality-comparison
+ * If the given other object is not a JS::Object, try to convert it to a
+ * JS::Object using JS.try_convert. If the conversion fails, returns false.
  */
 static VALUE _rb_js_obj_eql(VALUE obj, VALUE other) {
+  other = _rb_js_try_convert(rb_mJS, other);
+  if (other == Qnil) {
+    return Qfalse;
+  }
   struct jsvalue *lhs = check_jsvalue(obj);
   struct jsvalue *rhs = check_jsvalue(other);
   bool result = rb_js_abi_host_js_value_equal(lhs->abi, rhs->abi);

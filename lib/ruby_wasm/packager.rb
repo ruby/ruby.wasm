@@ -35,7 +35,7 @@ class RubyWasm::Packager
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
 
-    if full_build_options[:target] == "wasm32-unknown-wasi" && !support_dynamic_linking?
+    if full_build_options[:target] == "wasm32-unknown-wasip1" && !support_dynamic_linking?
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)
@@ -67,12 +67,12 @@ class RubyWasm::Packager
   end
 
   ALL_DEFAULT_EXTS =
-    "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
+    "cgi/escape,continuation,coverage,date,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,json,json/generator,json/parser,objspace,pathname,psych,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl"
 
   # Retrieves the build options used for building Ruby itself.
   def build_options
     default = {
-      target: RubyWasm::Target.new("wasm32-unknown-wasi"),
+      target: RubyWasm::Target.new("wasm32-unknown-wasip1"),
       default_exts: ALL_DEFAULT_EXTS
     }
     override = @config || {}

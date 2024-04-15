@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { target: wasm32-unknown-wasi }
+          - { target: wasm32-unknown-wasip1 }
           - { target: wasm32-unknown-emscripten }
     runs-on: ubuntu-20.04
     steps:
@@ -105,7 +105,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: build-manifest
-      - uses: actions/cache@v4.0.0
+      - uses: actions/cache@v4.0.2
+        if: ${{ matrix.entry.rubies_cache_key != null }}
         with:
           path: ./rubies
           key: ${{ matrix.entry.rubies_cache_key }}

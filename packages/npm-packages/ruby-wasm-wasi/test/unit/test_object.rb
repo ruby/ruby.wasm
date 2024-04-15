@@ -31,6 +31,14 @@ class JS::TestObject < Test::Unit::TestCase
 
     assert_object_eql? false, JS.eval("return 24;"), JS.eval("return 42;")
     assert_object_eql? false, JS.eval("return NaN;"), JS.eval("return NaN;")
+
+    # Compare with JS::Object like object
+    assert_equal true, JS.eval("return 42;") == 42
+    assert_equal true, JS.eval("return 42;").eql?(42)
+    assert_equal false, JS.eval("return 42;") != 42
+    # Compare with non JS::Object like object
+    assert_equal false, JS.eval("return 42;") == Object.new
+    assert_equal true, JS.eval("return 42;") != Object.new
   end
 
   def assert_object_strictly_eql?(result, a, b)
@@ -245,6 +253,27 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "hello", JS.global[:CustomClass].new(js_object)[:option1].to_s
   end
 
+  def test_new_with_block
+    ctor = JS.eval <<~JS
+      return function (a, b, c) {
+        this.ret = c(a, b);
+      }
+    JS
+    new_obj = ctor.new(1, 2) { |a, b| a.to_i + b.to_i }
+    assert_equal 3, new_obj[:ret].to_i
+
+    promise = JS.global[:Promise].new do |resolve, reject|
+      resolve.apply 42
+    end
+    value = promise.await
+    assert_equal 42, value.to_i
+
+    promise = JS.global[:Promise].new do |resolve, reject|
+      JS.global.queueMicrotask(resolve)
+    end
+    promise.await
+  end
+
   def test_to_a
     assert_equal [1, 2, 3], JS.eval("return [1, 2, 3];").to_a.map(&:to_i)
     assert_equal %w[f o o], JS.eval("return 'foo';").to_a.map(&:to_s)
@@ -356,5 +385,14 @@ class JS::TestObject < Test::Unit::TestCase
     GC.stress = true
     JS.global[:tmp] = "1"
     GC.stress = false
+  end
+
+  def test_apply
+    object = JS.eval(<<~JS)
+      return { foo(a, b, c) { return a + b + c; } };
+    JS
+    assert_equal 6, object[:foo].apply(1, 2, 3).to_i
+    floor = JS.global[:Math][:floor]
+    assert_equal 3, floor.apply(3.14).to_i
   end
 end

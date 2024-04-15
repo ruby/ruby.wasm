@@ -88,8 +88,8 @@ module JS
       current = Fiber.current
       promise.call(
         :then,
-        ->(value) { current.transfer(value, :success) },
-        ->(value) { current.transfer(value, :failure) }
+        ->(value) { current.transfer(value, :success); nil },
+        ->(value) { current.transfer(value, :failure); nil }
       )
       if @loop == current
         raise (
@@ -149,8 +149,10 @@ class JS::Object
   #   JS.global[:Date].new(2020, 1, 1)
   #   JS.global[:Error].new("error message")
   #   JS.global[:URLSearchParams].new(JS.global[:location][:search])
+  #   JS.global[:Promise].new ->(resolve, reject) { resolve.call(42) }
   #
-  def new(*args)
+  def new(*args, &block)
+    args = args + [block] if block
     JS.global[:Reflect].construct(self, args.to_js)
   end
 
@@ -310,6 +312,20 @@ class JS::Object
     sym = sym_str[0..-2].to_sym if sym_str.end_with?("?") or
       sym_str.end_with?("=")
     self[sym].typeof != "undefined"
+  end
+
+  # Call the receiver (a JavaScript function) with `undefined` as its receiver context. 
+  # This method is similar to JS::Object#call, but it is used to call a function that is not
+  # a method of an object.
+  #   
+  #   floor = JS.global[:Math][:floor]
+  #   floor.apply(3.14) # => 3
+  #   JS.global[:Promise].new do |resolve, reject|
+  #     resolve.apply(42)
+  #   end.await # => 42
+  def apply(*args, &block)
+    args = args + [block] if block
+    JS.global[:Reflect].call(:apply, self, JS::Undefined, args.to_js)
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.

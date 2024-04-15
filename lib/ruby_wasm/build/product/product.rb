@@ -13,7 +13,7 @@ module RubyWasm
     def system_triplet_args
       args = []
       case @target.triple
-      when "wasm32-unknown-wasi"
+      when /^wasm32-unknown-wasi/
         args.concat(%W[--host wasm32-wasi])
       when "wasm32-unknown-emscripten"
         args.concat(%W[--host wasm32-emscripten])

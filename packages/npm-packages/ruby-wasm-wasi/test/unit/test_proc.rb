@@ -26,4 +26,11 @@ class JS::TestProc < Test::Unit::TestCase
     function_to_call.call(:invoke)
     assert_equal 1, b
   end
+
+  def test_return_value
+    obj = JS.eval(<<~JS)
+      return { check: (callback) => { return callback(1) } }
+    JS
+    assert_equal 4, obj.call(:check, ->(a) { 3 + a.to_i }).to_i
+  end
 end

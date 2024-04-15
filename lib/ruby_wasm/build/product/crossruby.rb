@@ -293,7 +293,7 @@ module RubyWasm
       args << %Q(--with-baseruby=#{baseruby_path})
 
       case target
-      when "wasm32-unknown-wasi"
+      when /^wasm32-unknown-wasi/
         xldflags << @wasi_vfs.lib_wasi_vfs_a if @wasi_vfs
         # TODO: Find a way to force cast or update API
         # @type var wasi_sdk_path: untyped

@@ -137,8 +137,7 @@ export class RubyVM {
         const str = new TextDecoder().decode(
           new Uint8Array(memory.buffer, messagePtr, messageLen),
         );
-        throw new RbFatalError(
-          "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
+        let message = "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
             `(${str})\n` +
             "Nested VM operation means that the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby " +
             "caused by something like `window.rubyVM.eval(\"JS.global[:rubyVM].eval('Fiber.yield')\")`\n" +
@@ -148,8 +147,13 @@ export class RubyVM {
             "     Note that `evalAsync` JS API switches fibers internally\n" +
             "  2. Raising uncaught exceptions\n" +
             "     Please catch all exceptions inside the nested operation\n" +
-            "  3. Calling Continuation APIs\n",
-        );
+            "  3. Calling Continuation APIs\n";
+
+        const error = new RbValue(this.guest.rbErrinfo(), this, this.privateObject());
+        if (error.call("nil?").toString() === "false") {
+          message += "\n" + this.exceptionFormatter.format(error, this, this.privateObject());
+        }
+        throw new RbFatalError(message);
       },
     };
     // NOTE: The GC may collect objects that are still referenced by Wasm
@@ -206,7 +210,7 @@ export class RubyVM {
         procToJsFunction: (rawRbAbiValue) => {
           const rbValue = this.rbValueOfPointer(rawRbAbiValue);
           return (...args) => {
-            rbValue.call("call", ...args.map((arg) => this.wrap(arg)));
+            return rbValue.call("call", ...args.map((arg) => this.wrap(arg))).toJS();
           };
         },
         rbObjectToJsRbValue: (rawRbAbiValue) => {
@@ -598,7 +602,7 @@ class RbExceptionFormatter {
     }
 
     try {
-      message = error.toString();
+      message = error.call("message").toString();
     } catch (e) {
       message = "unknown";
     }

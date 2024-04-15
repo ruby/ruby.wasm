@@ -182,7 +182,7 @@ Call a given method with given arguments
 
 ```javascript
 const ary = vm.eval("[1, 2, 3]");
-ary.call("push", 4);
+ary.call("push", vm.wrap(4));
 console.log(ary.call("sample").toString());
 ```
 

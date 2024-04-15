@@ -12,6 +12,7 @@ RUN set -eux; \
   apt-get update; \
   apt-get install ruby ruby-dev ruby-bundler nodejs \
     bison make autoconf git curl build-essential \
+    pkg-config libssl-dev \
     libyaml-dev zlib1g-dev gosu \
     libclang-13-dev -y; \
   apt-get clean; \

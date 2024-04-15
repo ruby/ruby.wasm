@@ -50,7 +50,7 @@ module RubyWasm
         reconfigure: false,
         clean: false,
         ruby_version: "3.3",
-        target_triplet: "wasm32-unknown-wasi",
+        target_triplet: "wasm32-unknown-wasip1",
         profile: "full",
         stdlib: true,
         disable_gems: false,
@@ -116,10 +116,6 @@ module RubyWasm
             options[:format] = format
           end
 
-          opts.on("--gemfile GEMFILE", "Gemfile") do |gemfile|
-            options[:gemfile] = gemfile
-          end
-
           opts.on("--print-ruby-cache-key", "Print Ruby cache key") do
             options[:print_ruby_cache_key] = true
           end
@@ -166,7 +162,7 @@ module RubyWasm
       config = { target: options[:target_triplet], src: compute_build_source(options) }
       case options[:profile]
       when "full"
-        config[:default_exts] = RubyWasm::Packager::ALL_DEFAULT_EXTS
+        config[:default_exts] = config[:src][:all_default_exts]
         env_additional_exts = ENV["RUBY_WASM_ADDITIONAL_EXTS"] || ""
         unless env_additional_exts.empty?
           config[:default_exts] += "," + env_additional_exts
@@ -215,15 +211,18 @@ module RubyWasm
         "head" => {
           type: "github",
           repo: "ruby/ruby",
-          rev: "master"
+          rev: "master",
+          all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
         },
         "3.3" => {
           type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz"
+          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz",
+          all_default_exts: "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
         },
         "3.2" => {
           type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz"
+          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz",
+          all_default_exts: "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
         }
       }
 
@@ -289,12 +288,7 @@ module RubyWasm
           level = options[:print_ruby_cache_key] ? :silent : Bundler.ui.level
           old_level = Bundler.ui.level
           Bundler.ui.level = level
-          if options[:gemfile]
-            Bundler::SharedHelpers.set_env "BUNDLE_GEMFILE", options[:gemfile]
-            definition = Bundler.definition(true) # unlock=true to re-evaluate "BUNDLE_GEMFILE"
-          else
-            definition = Bundler.definition
-          end
+          definition = Bundler.definition
         ensure
           Bundler.ui.level = old_level
         end
