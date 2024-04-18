@@ -40,18 +40,18 @@ Dependencies: [wasmtime](https://github.com/bytecodealliance/wasmtime)
 ```console
 $ gem install ruby_wasm
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.3-wasm32-unknown-wasip1-full.tar.gz
-$ tar xfz ruby-3.3-wasm32-unknown-wasip1-full.tar.gz
+$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.3-wasm32-unknown-wasi-full.tar.gz
+$ tar xfz ruby-3.3-wasm32-unknown-wasi-full.tar.gz
 
 # Extract ruby binary not to pack itself
-$ mv ruby-3.3-wasm32-unknown-wasip1-full/usr/local/bin/ruby ruby.wasm
+$ mv ruby-3.3-wasm32-unknown-wasi-full/usr/local/bin/ruby ruby.wasm
 
 # Put your app code
 $ mkdir src
 $ echo "puts 'Hello'" > src/my_app.rb
 
 # Pack the whole directory under /usr and your app dir
-$ rbwasm pack ruby.wasm --dir ./src::/src --dir ./ruby-3.3-wasm32-unknown-wasip1-full/usr::/usr -o my-ruby-app.wasm
+$ rbwasm pack ruby.wasm --dir ./src::/src --dir ./ruby-3.3-wasm32-unknown-wasi-full/usr::/usr -o my-ruby-app.wasm
 
 # Run the packed scripts
 $ wasmtime my-ruby-app.wasm /src/my_app.rb
@@ -146,7 +146,6 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
 The current WASI target build does not yet support `Thread` related APIs. Specifically, WASI does not yet have an API for creating and managing threads yet.
 
 Also there is no support for networking. It is one of the goal of WASI to support networking in the future, but it is not yet implemented.
-
 
 ## Contributing
 
