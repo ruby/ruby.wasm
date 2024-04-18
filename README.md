@@ -40,7 +40,7 @@ Dependencies: [wasmtime](https://github.com/bytecodealliance/wasmtime)
 ```console
 $ gem install ruby_wasm
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.3-wasm32-unknown-wasip1-full.tar.gz
+$ curl -LO https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz
 $ tar xfz ruby-3.3-wasm32-unknown-wasip1-full.tar.gz
 
 # Extract ruby binary not to pack itself
