@@ -122,7 +122,11 @@ module RubyWasm
         end
         .parse!(args)
 
-      __skip__ = Bundler.settings.temporary(force_ruby_platform: true) do
+      __skip__ = if defined?(Bundler)
+        Bundler.settings.temporary(force_ruby_platform: true) do
+          do_build_with_force_ruby_platform(options)
+        end
+      else
         do_build_with_force_ruby_platform(options)
       end
     end
