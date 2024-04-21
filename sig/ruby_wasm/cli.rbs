@@ -33,7 +33,7 @@ module RubyWasm
     private
 
     def build_config: (cli_options options) -> Packager::build_config
-    def compute_build_source: (cli_options options) -> Packager::build_source
+    def compute_build_source: (cli_options options) -> [Packager::build_source, String?]
     def self.build_source_aliases: (string root) -> Hash[string, Packager::build_source]
     def self.bundled_patches_path: () -> string
     def root: () -> string

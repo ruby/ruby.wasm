@@ -1,0 +1,12 @@
+class RubyWasm::FeatureSet
+  @features: Hash[Symbol, bool]
+
+  def initialize: (Hash[Symbol, bool]) -> void
+
+  FEATURES: Hash[Symbol, String]
+
+  def self.derive_from_env: () -> RubyWasm::FeatureSet
+
+  def support_dynamic_linking?: () -> bool
+  def support_component_model?: () -> bool
+end

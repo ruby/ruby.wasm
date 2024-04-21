@@ -23,4 +23,14 @@ module RubyWasmExt
     def use_built_in_libdl: (bool) -> void
     def encode: () -> bytes
   end
+
+  class ComponentEncode
+    def initialize: () -> void
+    def validate: (bool) -> void
+    def adapter: (String name, bytes module) -> void
+    def module: (bytes module) -> void
+    def realloc_via_memory_grow: (bool) -> void
+    def import_name_map: (Hash[String, String] map) -> void
+    def encode: () -> bytes
+  end
 end

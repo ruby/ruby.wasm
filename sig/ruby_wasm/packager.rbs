@@ -18,14 +18,20 @@ class RubyWasm::Packager
     patches: Array[String],
   }
 
-  type build_config = Hash[untyped, untyped]
+  type build_config = {
+    target: String,
+    src: RubyWasm::Packager::build_source,
+    default_exts: String,
+    suffix: String,
+  }
 
   type bytes = String
 
   @definition: untyped
   @config: build_config
+  @features: RubyWasm::FeatureSet
 
-  def initialize: (string root, build_config?, untyped? definition) -> void
+  def initialize: (string root, build_config?, untyped? definition, features: RubyWasm::FeatureSet) -> void
 
   def package: (RubyWasm::BuildExecutor, string dest_dir, untyped options) -> bytes
 
@@ -35,7 +41,7 @@ class RubyWasm::Packager
   EXCLUDED_GEMS: Array[string]
 
   def specs: () -> Array[untyped]
-  def support_dynamic_linking?: () -> bool
+  def features: () -> RubyWasm::FeatureSet
 
   def root: () -> string
 

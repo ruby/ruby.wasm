@@ -169,11 +169,12 @@ module RubyWasm
     private
 
     def build_config(options)
+      build_source, all_default_exts = compute_build_source(options)
       # @type var config: Packager::build_config
-      config = { target: options[:target_triplet], src: compute_build_source(options) }
+      config = { target: options[:target_triplet], src: build_source }
       case options[:profile]
       when "full"
-        config[:default_exts] = config[:src][:all_default_exts]
+        config[:default_exts] = all_default_exts || ""
         env_additional_exts = ENV["RUBY_WASM_ADDITIONAL_EXTS"] || ""
         unless env_additional_exts.empty?
           config[:default_exts] += "," + env_additional_exts
@@ -203,7 +204,7 @@ module RubyWasm
           local_source = { type: "local", path: src_name }
           # @type var local_source: RubyWasm::Packager::build_source
           local_source = local_source.merge(name: "local", patches: [])
-          return local_source
+          return [local_source, nil]
         end
         # Otherwise, it's an unknown source.
         raise(
@@ -212,7 +213,9 @@ module RubyWasm
       end
       # Apply user-specified patches in addition to bundled patches.
       source[:patches].concat(options[:patches])
-      source
+      # @type var all_default_exts: String
+      __skip__ = all_default_exts = source[:all_default_exts]
+      [source, all_default_exts]
     end
 
     # Retrieves the alias definitions for the Ruby sources.
@@ -305,7 +308,10 @@ module RubyWasm
         end
       end
       RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles}" if definition
-      RubyWasm::Packager.new(root, build_config(options), definition)
+      RubyWasm::Packager.new(
+        root, build_config(options), definition,
+        features: RubyWasm::FeatureSet.derive_from_env
+      )
     end
 
     def do_print_ruby_cache_key(packager)

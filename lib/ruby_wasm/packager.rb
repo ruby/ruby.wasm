@@ -9,10 +9,12 @@ class RubyWasm::Packager
   #    * build
   # @param config [Hash] The build config used for building Ruby.
   # @param definition [Bundler::Definition] The Bundler definition.
-  def initialize(root, config = nil, definition = nil)
+  # @param features [RubyWasm::FeatureSet] The features used for packaging.
+  def initialize(root, config = nil, definition = nil, features: RubyWasm::FeatureSet.derive_from_env)
     @root = root
     @definition = definition
     @config = config
+    @features = features
   end
 
   # Packages the Ruby code into a Wasm binary. (including extensions)
@@ -33,7 +35,7 @@ class RubyWasm::Packager
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
 
-    if full_build_options[:target] == "wasm32-unknown-wasip1" && !support_dynamic_linking?
+    if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_component_model?
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)
@@ -61,9 +63,8 @@ class RubyWasm::Packager
     @specs
   end
 
-  # Checks if dynamic linking is supported.
-  def support_dynamic_linking?
-    ENV["RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING"] == "1"
+  def features
+    @features
   end
 
   ALL_DEFAULT_EXTS =
