@@ -1,7 +1,10 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use magnus::{
-    eval, exception, function, method, prelude::*, value::{self, InnerValue}, wrap, Error, ExceptionClass, RModule, Ruby
+    eval, exception, function, method,
+    prelude::*,
+    value::{self, InnerValue},
+    wrap, Error, ExceptionClass, RModule, Ruby,
 };
 use structopt::StructOpt;
 use wizer::Wizer;
@@ -48,16 +51,20 @@ impl WasiVfs {
     }
 
     fn map_dir(&self, guest_dir: String, host_dir: String) {
-        self.0.borrow_mut().map_dirs.push((guest_dir.into(), host_dir.into()));
+        self.0
+            .borrow_mut()
+            .map_dirs
+            .push((guest_dir.into(), host_dir.into()));
     }
 
     fn pack(&self, wasm_bytes: bytes::Bytes) -> Result<bytes::Bytes, Error> {
-        let output_bytes = wasi_vfs_cli::pack(&wasm_bytes, self.0.borrow().map_dirs.clone()).map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to pack wasi vfs: {}", e),
-            )
-        })?;
+        let output_bytes = wasi_vfs_cli::pack(&wasm_bytes, self.0.borrow().map_dirs.clone())
+            .map_err(|e| {
+                Error::new(
+                    exception::standard_error(),
+                    format!("failed to pack wasi vfs: {}", e),
+                )
+            })?;
         Ok(output_bytes.into())
     }
 }
@@ -67,9 +74,14 @@ struct ComponentLink(std::cell::RefCell<Option<wit_component::Linker>>);
 
 impl ComponentLink {
     fn new() -> Self {
-        Self(std::cell::RefCell::new(Some(wit_component::Linker::default())))
+        Self(std::cell::RefCell::new(Some(
+            wit_component::Linker::default(),
+        )))
     }
-    fn linker(&self, body: impl FnOnce(wit_component::Linker) -> Result<wit_component::Linker, Error>) -> Result<(), Error> {
+    fn linker(
+        &self,
+        body: impl FnOnce(wit_component::Linker) -> Result<wit_component::Linker, Error>,
+    ) -> Result<(), Error> {
         let mut linker = self.0.take().ok_or_else(|| {
             Error::new(
                 exception::standard_error(),
@@ -102,24 +114,16 @@ impl ComponentLink {
         })
     }
     fn validate(&self, validate: bool) -> Result<(), Error> {
-        self.linker(|linker| {
-            Ok(linker.validate(validate))
-        })
+        self.linker(|linker| Ok(linker.validate(validate)))
     }
     fn stack_size(&self, size: u32) -> Result<(), Error> {
-        self.linker(|linker| {
-            Ok(linker.stack_size(size))
-        })
+        self.linker(|linker| Ok(linker.stack_size(size)))
     }
     fn stub_missing_functions(&self, stub: bool) -> Result<(), Error> {
-        self.linker(|linker| {
-            Ok(linker.stub_missing_functions(stub))
-        })
+        self.linker(|linker| Ok(linker.stub_missing_functions(stub)))
     }
     fn use_built_in_libdl(&self, use_libdl: bool) -> Result<(), Error> {
-        self.linker(|linker| {
-            Ok(linker.use_built_in_libdl(use_libdl))
-        })
+        self.linker(|linker| Ok(linker.use_built_in_libdl(use_libdl)))
     }
     fn encode(&self) -> Result<bytes::Bytes, Error> {
         // Take the linker out of the cell and consume it
@@ -144,10 +148,17 @@ struct ComponentEncode(std::cell::RefCell<Option<wit_component::ComponentEncoder
 
 impl ComponentEncode {
     fn new() -> Self {
-        Self(std::cell::RefCell::new(Some(wit_component::ComponentEncoder::default())))
+        Self(std::cell::RefCell::new(Some(
+            wit_component::ComponentEncoder::default(),
+        )))
     }
 
-    fn encoder(&self, body: impl FnOnce(wit_component::ComponentEncoder) -> Result<wit_component::ComponentEncoder, Error>) -> Result<(), Error> {
+    fn encoder(
+        &self,
+        body: impl FnOnce(
+            wit_component::ComponentEncoder,
+        ) -> Result<wit_component::ComponentEncoder, Error>,
+    ) -> Result<(), Error> {
         let mut encoder = self.0.take().ok_or_else(|| {
             Error::new(
                 exception::standard_error(),
@@ -160,9 +171,7 @@ impl ComponentEncode {
     }
 
     fn validate(&self, validate: bool) -> Result<(), Error> {
-        self.encoder(|encoder| {
-            Ok(encoder.validate(validate))
-        })
+        self.encoder(|encoder| Ok(encoder.validate(validate)))
     }
 
     fn adapter(&self, name: String, module: bytes::Bytes) -> Result<(), Error> {
@@ -188,15 +197,11 @@ impl ComponentEncode {
     }
 
     fn realloc_via_memory_grow(&self, realloc: bool) -> Result<(), Error> {
-        self.encoder(|encoder| {
-            Ok(encoder.realloc_via_memory_grow(realloc))
-        })
+        self.encoder(|encoder| Ok(encoder.realloc_via_memory_grow(realloc)))
     }
 
     fn import_name_map(&self, map: HashMap<String, String>) -> Result<(), Error> {
-        self.encoder(|encoder| {
-            Ok(encoder.import_name_map(map))
-        })
+        self.encoder(|encoder| Ok(encoder.import_name_map(map)))
     }
 
     fn encode(&self) -> Result<bytes::Bytes, Error> {
@@ -236,8 +241,14 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
     component_link.define_method("adapter", method!(ComponentLink::adapter, 2))?;
     component_link.define_method("validate", method!(ComponentLink::validate, 1))?;
     component_link.define_method("stack_size", method!(ComponentLink::stack_size, 1))?;
-    component_link.define_method("stub_missing_functions", method!(ComponentLink::stub_missing_functions, 1))?;
-    component_link.define_method("use_built_in_libdl", method!(ComponentLink::use_built_in_libdl, 1))?;
+    component_link.define_method(
+        "stub_missing_functions",
+        method!(ComponentLink::stub_missing_functions, 1),
+    )?;
+    component_link.define_method(
+        "use_built_in_libdl",
+        method!(ComponentLink::use_built_in_libdl, 1),
+    )?;
     component_link.define_method("encode", method!(ComponentLink::encode, 0))?;
 
     let component_encode = module.define_class("ComponentEncode", ruby.class_object())?;
@@ -245,8 +256,14 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
     component_encode.define_method("validate", method!(ComponentEncode::validate, 1))?;
     component_encode.define_method("adapter", method!(ComponentEncode::adapter, 2))?;
     component_encode.define_method("module", method!(ComponentEncode::module, 1))?;
-    component_encode.define_method("realloc_via_memory_grow", method!(ComponentEncode::realloc_via_memory_grow, 1))?;
-    component_encode.define_method("import_name_map", method!(ComponentEncode::import_name_map, 1))?;
+    component_encode.define_method(
+        "realloc_via_memory_grow",
+        method!(ComponentEncode::realloc_via_memory_grow, 1),
+    )?;
+    component_encode.define_method(
+        "import_name_map",
+        method!(ComponentEncode::import_name_map, 1),
+    )?;
     component_encode.define_method("encode", method!(ComponentEncode::encode, 0))?;
 
     Ok(())
