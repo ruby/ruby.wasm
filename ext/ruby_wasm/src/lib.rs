@@ -1,10 +1,7 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use magnus::{
-    eval, exception, function, method,
-    prelude::*,
-    value::{self, InnerValue},
-    wrap, Error, ExceptionClass, RModule, Ruby,
+    eval, exception, function, method, prelude::*, value::{self, InnerValue}, wrap, Error, ExceptionClass, RModule, Ruby
 };
 use structopt::StructOpt;
 use wizer::Wizer;
@@ -142,6 +139,84 @@ impl ComponentLink {
     }
 }
 
+#[wrap(class = "RubyWasmExt::ComponentEncode")]
+struct ComponentEncode(std::cell::RefCell<Option<wit_component::ComponentEncoder>>);
+
+impl ComponentEncode {
+    fn new() -> Self {
+        Self(std::cell::RefCell::new(Some(wit_component::ComponentEncoder::default())))
+    }
+
+    fn encoder(&self, body: impl FnOnce(wit_component::ComponentEncoder) -> Result<wit_component::ComponentEncoder, Error>) -> Result<(), Error> {
+        let mut encoder = self.0.take().ok_or_else(|| {
+            Error::new(
+                exception::standard_error(),
+                "encoder is already consumed".to_string(),
+            )
+        })?;
+        encoder = body(encoder)?;
+        self.0.replace(Some(encoder));
+        Ok(())
+    }
+
+    fn validate(&self, validate: bool) -> Result<(), Error> {
+        self.encoder(|encoder| {
+            Ok(encoder.validate(validate))
+        })
+    }
+
+    fn adapter(&self, name: String, module: bytes::Bytes) -> Result<(), Error> {
+        self.encoder(|encoder| {
+            encoder.adapter(&name, &module).map_err(|e| {
+                Error::new(
+                    exception::standard_error(),
+                    format!("failed to encode adapter: {}", e),
+                )
+            })
+        })
+    }
+
+    fn module(&self, module: bytes::Bytes) -> Result<(), Error> {
+        self.encoder(|encoder| {
+            encoder.module(&module).map_err(|e| {
+                Error::new(
+                    exception::standard_error(),
+                    format!("failed to encode module: {}", e),
+                )
+            })
+        })
+    }
+
+    fn realloc_via_memory_grow(&self, realloc: bool) -> Result<(), Error> {
+        self.encoder(|encoder| {
+            Ok(encoder.realloc_via_memory_grow(realloc))
+        })
+    }
+
+    fn import_name_map(&self, map: HashMap<String, String>) -> Result<(), Error> {
+        self.encoder(|encoder| {
+            Ok(encoder.import_name_map(map))
+        })
+    }
+
+    fn encode(&self) -> Result<bytes::Bytes, Error> {
+        // Take the encoder out of the cell and consume it
+        let encoder = self.0.borrow_mut().take().ok_or_else(|| {
+            Error::new(
+                exception::standard_error(),
+                "encoder is already consumed".to_string(),
+            )
+        })?;
+        let encoded = encoder.encode().map_err(|e| {
+            Error::new(
+                exception::standard_error(),
+                format!("failed to encode component: {}", e),
+            )
+        })?;
+        Ok(encoded.into())
+    }
+}
+
 #[magnus::init]
 fn init(ruby: &Ruby) -> Result<(), Error> {
     let module = RUBY_WASM.get_inner_with(ruby);
@@ -164,6 +239,15 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
     component_link.define_method("stub_missing_functions", method!(ComponentLink::stub_missing_functions, 1))?;
     component_link.define_method("use_built_in_libdl", method!(ComponentLink::use_built_in_libdl, 1))?;
     component_link.define_method("encode", method!(ComponentLink::encode, 0))?;
+
+    let component_encode = module.define_class("ComponentEncode", ruby.class_object())?;
+    component_encode.define_singleton_method("new", function!(ComponentEncode::new, 0))?;
+    component_encode.define_method("validate", method!(ComponentEncode::validate, 1))?;
+    component_encode.define_method("adapter", method!(ComponentEncode::adapter, 2))?;
+    component_encode.define_method("module", method!(ComponentEncode::module, 1))?;
+    component_encode.define_method("realloc_via_memory_grow", method!(ComponentEncode::realloc_via_memory_grow, 1))?;
+    component_encode.define_method("import_name_map", method!(ComponentEncode::import_name_map, 1))?;
+    component_encode.define_method("encode", method!(ComponentEncode::encode, 0))?;
 
     Ok(())
 }

@@ -71,7 +71,7 @@ class RubyWasm::Packager::FileSystem
       usr/local/include
     ]
 
-    patterns << "**/*.so" unless @packager.support_dynamic_linking?
+    patterns << "**/*.so" unless @packager.features.support_dynamic_linking?
     patterns.each do |pattern|
       Dir
         .glob(File.join(@dest_dir, pattern))

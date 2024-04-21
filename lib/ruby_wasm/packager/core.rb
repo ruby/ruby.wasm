@@ -20,7 +20,7 @@ class RubyWasm::Packager::Core
     @build_strategy ||=
       begin
         has_exts = @packager.specs.any? { |spec| spec.extensions.any? }
-        if @packager.support_dynamic_linking?
+        if @packager.features.support_dynamic_linking?
           DynamicLinking.new(@packager)
         else
           StaticLinking.new(@packager)
@@ -299,7 +299,18 @@ class RubyWasm::Packager::Core
     def build_and_link_exts(executor)
       build = derive_build
       ruby_root = build.crossruby.dest_dir
-      File.binread(File.join(ruby_root, "usr", "local", "bin", "ruby"))
+      module_bytes = File.binread(File.join(ruby_root, "usr", "local", "bin", "ruby"))
+      return module_bytes unless @packager.features.support_component_model?
+
+      linker = RubyWasmExt::ComponentEncode.new
+      linker.validate(true)
+      linker.module(module_bytes)
+      linker.adapter(
+        "wasi_snapshot_preview1",
+        File.binread(RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1("reactor"))
+      )
+
+      linker.encode()
     end
 
     def user_exts(build)
