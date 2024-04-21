@@ -17,7 +17,7 @@ Try ruby.wasm in [TryRuby](https://try.ruby-lang.org/playground#code=puts+RUBY_D
 - [Complete Examples](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example)
 - [Community Showcase](https://github.com/ruby/ruby.wasm/wiki/Showcase)
 
-## Quick Example: Ruby on browser
+## Quick Example: Ruby on Web browser
 
 Create and save `index.html` page with the following contents:
 
@@ -27,7 +27,7 @@ Create and save `index.html` page with the following contents:
   <script type="text/ruby">
     require "js"
 
-    puts RUBY_VERSION # => Hello, world! (printed to the browser console)
+    puts RUBY_VERSION # (Printed to the Web browser console)
     JS.global[:document].write "Hello, world!"
   </script>
 </html>
