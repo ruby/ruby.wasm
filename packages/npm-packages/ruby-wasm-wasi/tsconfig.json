@@ -10,6 +10,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "./src/bindgen/*"],
+  "include": ["src/**/*.ts", "./src/bindgen/**/*"],
   "exclude": ["node_modules", "dist"]
 }
