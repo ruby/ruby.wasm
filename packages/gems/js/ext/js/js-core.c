@@ -303,7 +303,8 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
   if (rb_block_given_p()) {
     VALUE proc = rb_block_proc();
     VALUE rb_proc = _rb_js_try_convert(rb_mJS, proc);
-    abi_args.ptr[function_arguments_count - 1] = borrow_js_value(check_jsvalue(rb_proc)->abi);
+    abi_args.ptr[function_arguments_count - 1] =
+        borrow_js_value(check_jsvalue(rb_proc)->abi);
     rb_ary_push(rv_args, rb_proc);
   }
 
