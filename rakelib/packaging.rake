@@ -27,7 +27,8 @@ def npm_pkg_rubies_cache_key(pkg)
   return nil unless build_command
   require "open3"
   cmd = build_command + ["--print-ruby-cache-key"]
-  stdout, status = Open3.capture2(*cmd)
+  chdir = pkg[:gemfile] ? File.dirname(pkg[:gemfile]) : Dir.pwd
+  stdout, status = Open3.capture2(*cmd, chdir: chdir)
   unless status.success?
     raise "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
   end
