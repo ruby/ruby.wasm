@@ -1,0 +1,45 @@
+package ruby:js;
+
+interface js-runtime {
+
+    resource js-abi-value {}
+
+    variant js-abi-result {
+        success(js-abi-value),
+        failure(js-abi-value),
+    }
+
+    eval-js: func(code: string) -> js-abi-result;
+    is-js: func(value: borrow<js-abi-value>) -> bool;
+    instance-of: func(value: borrow<js-abi-value>, klass: borrow<js-abi-value>) -> bool;
+    global-this: func() -> js-abi-value;
+    int-to-js-number: func(value: s32) -> js-abi-value;
+    float-to-js-number: func(value: float64) -> js-abi-value;
+    string-to-js-string: func(value: string) -> js-abi-value;
+    bool-to-js-bool: func(value: bool) -> js-abi-value;
+    proc-to-js-function: func(value: u32) -> js-abi-value;
+    rb-object-to-js-rb-value: func(raw-rb-abi-value: u32) -> js-abi-value;
+
+    js-value-to-string: func(value: borrow<js-abi-value>) -> string;
+
+    variant raw-integer {
+        float(float64),
+        bignum(string),
+    }
+
+    js-value-to-integer: func(value: borrow<js-abi-value>) -> raw-integer;
+
+    export-js-value-to-host: func(value: borrow<js-abi-value>);
+    import-js-value-from-host: func() -> js-abi-value;
+
+    js-value-typeof: func(value: borrow<js-abi-value>) -> string;
+
+    js-value-equal: func(lhs: borrow<js-abi-value>, rhs: borrow<js-abi-value>) -> bool;
+    js-value-strictly-equal: func(lhs: borrow<js-abi-value>, rhs: borrow<js-abi-value>) -> bool;
+
+    reflect-apply: func(target: borrow<js-abi-value>, this-argument: borrow<js-abi-value>, arguments: list<borrow<js-abi-value>>) -> js-abi-result;
+    reflect-get: func(target: borrow<js-abi-value>, property-key: string) -> js-abi-result;
+    reflect-set: func(target: borrow<js-abi-value>, property-key: string, value: borrow<js-abi-value>) -> js-abi-result;
+
+    throw-prohibit-rewind-exception: func(message: string);
+}

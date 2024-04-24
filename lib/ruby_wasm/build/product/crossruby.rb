@@ -5,11 +5,12 @@ module RubyWasm
   class CrossRubyExtProduct < BuildProduct
     attr_reader :name
 
-    def initialize(srcdir, toolchain, ext_relative_path: nil)
+    def initialize(srcdir, toolchain, features:, ext_relative_path: nil)
       @srcdir, @toolchain = srcdir, toolchain
       # ext_relative_path is relative path from build dir
       # e.g. cgi-0.3.6/ext/cgi/escape
       @ext_relative_path = ext_relative_path || File.basename(srcdir)
+      @features = features
       @name = @ext_relative_path
     end
 
@@ -76,6 +77,7 @@ module RubyWasm
         "#{@srcdir}/extconf.rb",
         "--target-rbconfig=#{rbconfig_rb}",
       ]
+      extconf_args << "--enable-component-model" if @features.support_component_model?
       executor.system Gem.ruby, *extconf_args
     end
 
@@ -105,8 +107,10 @@ module RubyWasm
         # like "cgi/escape" instead of "escape"
         "-e",
         %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
-        "-I#{crossruby.build_dir}"
+        "-I#{crossruby.build_dir}",
+        "--",
       ]
+      extconf_args << "--enable-component-model" if @features.support_component_model?
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
                       *extconf_args,
