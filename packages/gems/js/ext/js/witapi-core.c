@@ -332,6 +332,7 @@ bool rb_abi_guest_rb_set_should_prohibit_rewind(bool value) {
   return old;
 }
 
+#ifdef JS_ENABLE_COMPONENT_MODEL
 // Exported Functions from `ruby:js/ruby-runtime`
 void exports_ruby_js_ruby_runtime_ruby_show_version(void) {
   rb_abi_guest_ruby_show_version();
@@ -391,5 +392,7 @@ bool exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(
     bool new_value) {
   return rb_abi_guest_rb_set_should_prohibit_rewind(new_value);
 }
+
+#endif
 
 void Init_witapi(void) {}
