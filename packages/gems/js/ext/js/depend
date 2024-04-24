@@ -1,10 +1,11 @@
 link.filelist:
 	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
+	echo -mexec-model=reactor >> $@
 
 js.a: link.filelist
 
-js-core.o: $(srcdir)/bindgen/rb-js-abi-host.h
+js-core.o: $(srcdir)/bindgen/legacy/rb-js-abi-host.h
 
-bindgen/%.o: $(srcdir)/bindgen/%.c
+bindgen/legacy/%.o: $(srcdir)/bindgen/legacy/%.c
 	@mkdir -p "$(@D)"
-	$(CC) -c -I$(srcdir)/bindgen -o $@ $<
+	$(CC) -c -I$(srcdir)/bindgen/legacy -o $@ $<

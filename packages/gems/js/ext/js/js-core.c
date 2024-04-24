@@ -2,7 +2,7 @@
 
 #include "ruby.h"
 
-#include "bindgen/rb-js-abi-host.h"
+#include "bindgen/legacy/rb-js-abi-host.h"
 
 // MARK: - Ruby extension
 

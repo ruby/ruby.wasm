@@ -25,5 +25,5 @@ Gem::Specification.new do |spec|
     end
   end
   spec.require_paths = ["lib"]
-  spec.extensions = ["ext/js/extconf.rb", "ext/witapi/extconf.rb"]
+  spec.extensions = ["ext/js/extconf.rb"]
 end
