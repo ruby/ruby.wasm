@@ -1,0 +1,6 @@
+package ruby:js;
+
+world ext {
+  import js-runtime;
+  export ruby-runtime;
+}

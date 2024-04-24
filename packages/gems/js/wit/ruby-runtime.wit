@@ -1,0 +1,36 @@
+package ruby:js;
+
+interface ruby-runtime {
+    use js-runtime.{js-abi-value};
+
+    resource rb-iseq {}
+    resource rb-abi-value {
+        constructor();
+    }
+
+    type rb-errno = s32;
+    type rb-id = u32;
+
+    ruby-show-version: func();
+    ruby-init: func();
+    ruby-sysinit: func(args: list<string>);
+    ruby-options: func(args: list<string>) -> rb-iseq;
+    ruby-script: func(name: string);
+    ruby-init-loadpath: func();
+    rb-eval-string-protect: func(str: string) -> tuple<rb-abi-value, s32>;
+    rb-funcallv-protect: func(recv: borrow<rb-abi-value>, mid: rb-id, args: list<borrow<rb-abi-value>>) -> tuple<rb-abi-value, s32>;
+    rb-intern: func(name: string) -> rb-id;
+    rb-errinfo: func() -> rb-abi-value;
+    rb-clear-errinfo: func();
+
+    rstring-ptr: func(value: borrow<rb-abi-value>) -> string;
+
+    rb-vm-bugreport: func();
+
+    rb-gc-enable: func() -> bool;
+    rb-gc-disable: func() -> bool;
+
+    rb-set-should-prohibit-rewind: func(new-value: bool) -> bool;
+    wrap-js-value: func(value: js-abi-value) -> rb-abi-value;
+    to-js-value: func(value: borrow<rb-abi-value>) -> js-abi-value;
+}

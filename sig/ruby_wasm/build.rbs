@@ -158,9 +158,10 @@ module RubyWasm
     @toolchain: Toolchain
     @srcdir: String
     @ext_relative_path: String
+    @features: RubyWasm::FeatureSet
 
     attr_reader name: String
-    def initialize: (String srcdir, Toolchain toolchain, ?ext_relative_path: String?) -> void
+    def initialize: (String srcdir, Toolchain toolchain, features: RubyWasm::FeatureSet, ?ext_relative_path: String?) -> void
     def product_build_dir: (CrossRubyProduct crossruby) -> String
     def linklist: (CrossRubyProduct crossruby) -> String
     def metadata_json: (CrossRubyProduct crossruby) -> String

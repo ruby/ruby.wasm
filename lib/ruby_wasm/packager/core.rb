@@ -162,6 +162,7 @@ class RubyWasm::Packager::Core
           RubyWasm::CrossRubyExtProduct.new(
             ext_srcdir,
             build.toolchain,
+            features: @packager.features,
             ext_relative_path: ext_relative_path
           )
         end
@@ -323,6 +324,7 @@ class RubyWasm::Packager::Core
             RubyWasm::CrossRubyExtProduct.new(
               ext_srcdir,
               build.toolchain,
+              features: @packager.features,
               ext_relative_path: ext_relative_path
             )
           end
