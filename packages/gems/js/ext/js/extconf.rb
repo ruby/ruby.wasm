@@ -13,4 +13,5 @@ else
 end
 create_makefile("js") do |mk|
   mk << "EXTRA_OBJS = $(srcdir)/bindgen/ext_component_type.o\n" if use_component_model
+  mk
 end

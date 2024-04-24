@@ -2,7 +2,7 @@
 
 #include "ruby.h"
 
-#include "bindgen/legacy/rb-js-abi-host.h"
+#include "types.h"
 
 // MARK: - Ruby extension
 
@@ -57,7 +57,7 @@ static VALUE jsvalue_s_allocate(VALUE klass) {
   return obj;
 }
 
-static VALUE jsvalue_s_new(rb_js_abi_host_js_abi_value_t abi) {
+static VALUE jsvalue_s_new(rb_js_abi_host_own_js_abi_value_t abi) {
   struct jsvalue *p;
   VALUE obj = TypedData_Make_Struct(rb_cJS_Object, struct jsvalue,
                                     &jsvalue_data_type, p);
@@ -379,7 +379,7 @@ static VALUE _rb_js_obj_to_i(VALUE obj) {
   if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_F64) {
     result = rb_dbl2big(ret.val.f64);
   } else {
-    result = rb_cstr2inum(ret.val.bignum.ptr, 10);
+    result = rb_cstr2inum((const char *)ret.val.bignum.ptr, 10);
   }
   rb_js_abi_host_raw_integer_free(&ret);
   return result;
@@ -409,7 +409,7 @@ static VALUE _rb_js_obj_to_f(VALUE obj) {
   if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_F64) {
     result = rb_float_new(ret.val.f64);
   } else {
-    result = DBL2NUM(rb_cstr_to_dbl(ret.val.bignum.ptr, FALSE));
+    result = DBL2NUM(rb_cstr_to_dbl((const char *)ret.val.bignum.ptr, FALSE));
   }
   rb_js_abi_host_raw_integer_free(&ret);
   return result;

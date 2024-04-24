@@ -17,7 +17,7 @@ static VALUE rb_eval_string_value_protect(VALUE str, int *pstate) {
 
 #define TAG_NONE 0
 
-#include "bindgen/legacy/rb-abi-guest.h"
+#include "types.h"
 
 __attribute__((import_module("asyncify"), import_name("start_unwind"))) void
 asyncify_start_unwind(void *buf);
@@ -122,7 +122,7 @@ rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
   {                                                                            \
     new_args = alloca(sizeof(char *) * ((list)->len + 1));                     \
     for (size_t i = 0; i < (list)->len; i++) {                                 \
-      new_args[i] = (list)->ptr[i].ptr;                                        \
+      new_args[i] = (char *)((list)->ptr[i].ptr);                        \
     }                                                                          \
   }
 
@@ -176,6 +176,15 @@ void rb_abi_guest_rb_abi_value_dtor(void *data) {
   assert(state == TAG_NONE && "rb_abi_guest_rb_abi_value_dtor_internal failed");
 }
 
+#ifdef JS_ENABLE_COMPONENT_MODEL
+void exports_ruby_js_ruby_runtime_rb_iseq_destructor(exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {
+}
+
+void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(exports_ruby_js_ruby_runtime_rb_abi_value_t *rep) {
+  rb_abi_guest_rb_abi_value_dtor((void *)rep);
+}
+#endif
+
 // MARK: - Exported functions
 // NOTE: Assume that callers always pass null terminated string by
 // rb_abi_guest_string_t
@@ -209,7 +218,7 @@ rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args) {
 }
 
 void rb_abi_guest_ruby_script(rb_abi_guest_string_t *name) {
-  RB_WASM_LIB_RT(ruby_script(name->ptr))
+  RB_WASM_LIB_RT(ruby_script((const char *)name->ptr))
 }
 
 void rb_abi_guest_ruby_init_loadpath(void) {
@@ -220,7 +229,7 @@ void rb_abi_guest_rb_eval_string_protect(
     rb_abi_guest_string_t *str, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0) {
   VALUE retval;
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: str = %s\n", str->ptr);
-  VALUE utf8_str = rb_utf8_str_new(str->ptr, str->len);
+  VALUE utf8_str = rb_utf8_str_new((const char *)str->ptr, str->len);
   RB_WASM_LIB_RT(retval = rb_eval_string_value_protect(utf8_str, &ret0->f1));
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: retval = %p, state = %d\n",
                     (void *)retval, ret0->f1);
@@ -266,10 +275,10 @@ void rb_abi_guest_rb_funcallv_protect(
 }
 
 rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
-  return rb_intern(name->ptr);
+  return rb_intern((const char *)name->ptr);
 }
 
-rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
+rb_abi_guest_own_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
   VALUE retval;
   RB_WASM_LIB_RT(retval = rb_errinfo());
   rb_abi_lend_object(retval);

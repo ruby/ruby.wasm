@@ -1,3 +1,4 @@
+CLEANFILES += link.filelist
 link.filelist:
 	echo $(foreach obj,$(OBJS),$(abspath $(obj))) > $@
 	echo $(EXTRA_OBJS) >> $@
