@@ -28,7 +28,7 @@ static VALUE rb_cJS_Error;
 static ID i_to_js;
 
 struct jsvalue {
-  rb_js_abi_host_js_abi_value_t abi;
+  rb_js_abi_host_own_js_abi_value_t abi;
 };
 
 static void jsvalue_mark(void *p) {}
@@ -296,14 +296,14 @@ static VALUE _rb_js_obj_call(int argc, VALUE *argv, VALUE obj) {
       rb_raise(rb_eTypeError, "argument %d is not a JS::Object like object",
                1 + i);
     }
-    abi_args.ptr[i - 1] = check_jsvalue(arg)->abi;
+    abi_args.ptr[i - 1] = borrow_js_value(check_jsvalue(arg)->abi);
     rb_ary_push(rv_args, arg);
   }
 
   if (rb_block_given_p()) {
     VALUE proc = rb_block_proc();
     VALUE rb_proc = _rb_js_try_convert(rb_mJS, proc);
-    abi_args.ptr[function_arguments_count - 1] = check_jsvalue(rb_proc)->abi;
+    abi_args.ptr[function_arguments_count - 1] = borrow_js_value(check_jsvalue(rb_proc)->abi);
     rb_ary_push(rv_args, rb_proc);
   }
 
@@ -332,7 +332,7 @@ static VALUE _rb_js_obj_typeof(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   rb_js_abi_host_string_t ret0;
   rb_js_abi_host_js_value_typeof(p->abi, &ret0);
-  return rb_str_new(ret0.ptr, ret0.len);
+  return rb_str_new((const char *)ret0.ptr, ret0.len);
 }
 
 /*
@@ -352,7 +352,7 @@ static VALUE _rb_js_obj_to_s(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   rb_js_abi_host_string_t ret0;
   rb_js_abi_host_js_value_to_string(p->abi, &ret0);
-  return rb_utf8_str_new(ret0.ptr, ret0.len);
+  return rb_utf8_str_new((const char *)ret0.ptr, ret0.len);
 }
 
 /*
