@@ -81,7 +81,6 @@ extern void __wasm_import_ruby_js_js_runtime_throw_prohibit_rewind_exception(uin
 
 
 
-
 __attribute__((__weak__, __export_name__("cabi_post_ruby:js/ruby-runtime#rstring-ptr")))
 void __wasm_export_exports_ruby_js_ruby_runtime_rstring_ptr_post_return(uint8_t * arg0) {
   if ((*((size_t*) (arg0 + 4))) > 0) {
@@ -431,12 +430,6 @@ void ruby_js_js_runtime_reflect_set(ruby_js_js_runtime_borrow_js_abi_value_t tar
 
 void ruby_js_js_runtime_throw_prohibit_rewind_exception(ext_string_t *message) {
   __wasm_import_ruby_js_js_runtime_throw_prohibit_rewind_exception((uint8_t *) (*message).ptr, (*message).len);
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#[constructor]rb-abi-value")))
-int32_t __wasm_export_exports_ruby_js_ruby_runtime_constructor_rb_abi_value(void) {
-  exports_ruby_js_ruby_runtime_own_rb_abi_value_t ret = exports_ruby_js_ruby_runtime_constructor_rb_abi_value();
-  return (ret).__handle;
 }
 
 __attribute__((__export_name__("ruby:js/ruby-runtime#ruby-show-version")))

@@ -109,7 +109,6 @@ extern void ruby_js_js_runtime_reflect_set(ruby_js_js_runtime_borrow_js_abi_valu
 extern void ruby_js_js_runtime_throw_prohibit_rewind_exception(ext_string_t *message);
 
 // Exported Functions from `ruby:js/ruby-runtime`
-exports_ruby_js_ruby_runtime_own_rb_abi_value_t exports_ruby_js_ruby_runtime_constructor_rb_abi_value(void);
 void exports_ruby_js_ruby_runtime_ruby_show_version(void);
 void exports_ruby_js_ruby_runtime_ruby_init(void);
 void exports_ruby_js_ruby_runtime_ruby_sysinit(ext_list_string_t *args);
