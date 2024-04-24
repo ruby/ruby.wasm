@@ -4,9 +4,7 @@ interface ruby-runtime {
     use js-runtime.{js-abi-value};
 
     resource rb-iseq {}
-    resource rb-abi-value {
-        constructor();
-    }
+    resource rb-abi-value {}
 
     type rb-errno = s32;
     type rb-id = u32;
