@@ -332,18 +332,16 @@ bool rb_abi_guest_rb_set_should_prohibit_rewind(bool value) {
   return old;
 }
 
-
 // Exported Functions from `ruby:js/ruby-runtime`
 void exports_ruby_js_ruby_runtime_ruby_show_version(void) {
   rb_abi_guest_ruby_show_version();
 }
-void exports_ruby_js_ruby_runtime_ruby_init(void) {
-  rb_abi_guest_ruby_init();
-}
+void exports_ruby_js_ruby_runtime_ruby_init(void) { rb_abi_guest_ruby_init(); }
 void exports_ruby_js_ruby_runtime_ruby_sysinit(ext_list_string_t *args) {
   rb_abi_guest_ruby_sysinit(args);
 }
-exports_ruby_js_ruby_runtime_own_rb_iseq_t exports_ruby_js_ruby_runtime_ruby_options(ext_list_string_t *args) {
+exports_ruby_js_ruby_runtime_own_rb_iseq_t
+exports_ruby_js_ruby_runtime_ruby_options(ext_list_string_t *args) {
   return rb_abi_guest_ruby_options(args);
 }
 void exports_ruby_js_ruby_runtime_ruby_script(ext_string_t *name) {
@@ -352,22 +350,32 @@ void exports_ruby_js_ruby_runtime_ruby_script(ext_string_t *name) {
 void exports_ruby_js_ruby_runtime_ruby_init_loadpath(void) {
   rb_abi_guest_ruby_init_loadpath();
 }
-void exports_ruby_js_ruby_runtime_rb_eval_string_protect(ext_string_t *str, exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t *ret) {
+void exports_ruby_js_ruby_runtime_rb_eval_string_protect(
+    ext_string_t *str,
+    exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t *ret) {
   rb_abi_guest_rb_eval_string_protect(str, ret);
 }
-void exports_ruby_js_ruby_runtime_rb_funcallv_protect(exports_ruby_js_ruby_runtime_borrow_rb_abi_value_t recv, exports_ruby_js_ruby_runtime_rb_id_t mid, exports_ruby_js_ruby_runtime_list_borrow_rb_abi_value_t *args, exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t *ret) {
+void exports_ruby_js_ruby_runtime_rb_funcallv_protect(
+    exports_ruby_js_ruby_runtime_borrow_rb_abi_value_t recv,
+    exports_ruby_js_ruby_runtime_rb_id_t mid,
+    exports_ruby_js_ruby_runtime_list_borrow_rb_abi_value_t *args,
+    exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t *ret) {
   rb_abi_guest_rb_funcallv_protect(recv, mid, args, ret);
 }
-exports_ruby_js_ruby_runtime_rb_id_t exports_ruby_js_ruby_runtime_rb_intern(ext_string_t *name) {
+exports_ruby_js_ruby_runtime_rb_id_t
+exports_ruby_js_ruby_runtime_rb_intern(ext_string_t *name) {
   return rb_abi_guest_rb_intern(name);
 }
-exports_ruby_js_ruby_runtime_own_rb_abi_value_t exports_ruby_js_ruby_runtime_rb_errinfo(void) {
+exports_ruby_js_ruby_runtime_own_rb_abi_value_t
+exports_ruby_js_ruby_runtime_rb_errinfo(void) {
   return rb_abi_guest_rb_errinfo();
 }
 void exports_ruby_js_ruby_runtime_rb_clear_errinfo(void) {
   rb_abi_guest_rb_clear_errinfo();
 }
-void exports_ruby_js_ruby_runtime_rstring_ptr(exports_ruby_js_ruby_runtime_borrow_rb_abi_value_t value, ext_string_t *ret) {
+void exports_ruby_js_ruby_runtime_rstring_ptr(
+    exports_ruby_js_ruby_runtime_borrow_rb_abi_value_t value,
+    ext_string_t *ret) {
   rb_abi_guest_rstring_ptr(value, ret);
 }
 void exports_ruby_js_ruby_runtime_rb_vm_bugreport(void) {
@@ -379,9 +387,9 @@ bool exports_ruby_js_ruby_runtime_rb_gc_enable(void) {
 bool exports_ruby_js_ruby_runtime_rb_gc_disable(void) {
   return rb_abi_guest_rb_gc_disable();
 }
-bool exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(bool new_value) {
+bool exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(
+    bool new_value) {
   return rb_abi_guest_rb_set_should_prohibit_rewind(new_value);
 }
-
 
 void Init_witapi(void) {}
