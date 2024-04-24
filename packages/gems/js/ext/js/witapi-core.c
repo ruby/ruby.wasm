@@ -55,10 +55,18 @@ void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
 
 static bool rb_should_prohibit_rewind = false;
 
+#ifdef JS_ENABLE_COMPONENT_MODEL
+void rb_wasm_throw_prohibit_rewind_exception(const char *c_msg,
+                                             size_t msg_len) {
+  ext_string_t message = {.ptr = (uint8_t *)c_msg, .len = msg_len};
+  ruby_js_js_runtime_throw_prohibit_rewind_exception(&message);
+}
+#else
 __attribute__((import_module("rb-js-abi-host"),
                import_name("rb_wasm_throw_prohibit_rewind_exception")))
 __attribute__((noreturn)) void
 rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
+#endif
 
 #define RB_WASM_CHECK_REWIND_PROHIBITED(msg)                                   \
   /*                                                                           \
