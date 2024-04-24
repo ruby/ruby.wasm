@@ -376,8 +376,8 @@ static VALUE _rb_js_obj_to_i(VALUE obj) {
   rb_js_abi_host_raw_integer_t ret;
   rb_js_abi_host_js_value_to_integer(p->abi, &ret);
   VALUE result;
-  if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_F64) {
-    result = rb_dbl2big(ret.val.f64);
+  if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_AS_FLOAT) {
+    result = rb_dbl2big(ret.val.as_float);
   } else {
     result = rb_cstr2inum((const char *)ret.val.bignum.ptr, 10);
   }
@@ -406,8 +406,8 @@ static VALUE _rb_js_obj_to_f(VALUE obj) {
   rb_js_abi_host_raw_integer_t ret;
   VALUE result;
   rb_js_abi_host_js_value_to_integer(p->abi, &ret);
-  if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_F64) {
-    result = rb_float_new(ret.val.f64);
+  if (ret.tag == RB_JS_ABI_HOST_RAW_INTEGER_AS_FLOAT) {
+    result = rb_float_new(ret.val.as_float);
   } else {
     result = DBL2NUM(rb_cstr_to_dbl((const char *)ret.val.bignum.ptr, FALSE));
   }

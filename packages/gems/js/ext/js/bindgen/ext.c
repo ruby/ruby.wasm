@@ -331,7 +331,7 @@ void ruby_js_js_runtime_js_value_to_integer(ruby_js_js_runtime_borrow_js_abi_val
   variant.tag = (int32_t) *((uint8_t*) (ptr + 0));
   switch ((int32_t) variant.tag) {
     case 0: {
-      variant.val.float_ = *((double*) (ptr + 8));
+      variant.val.as_float = *((double*) (ptr + 8));
       break;
     }
     case 1: {
