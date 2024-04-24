@@ -17,7 +17,7 @@ static VALUE rb_eval_string_value_protect(VALUE str, int *pstate) {
 
 #define TAG_NONE 0
 
-#include "bindgen/rb-abi-guest.h"
+#include "bindgen/legacy/rb-abi-guest.h"
 
 __attribute__((import_module("asyncify"), import_name("start_unwind"))) void
 asyncify_start_unwind(void *buf);
