@@ -83,8 +83,6 @@ typedef struct exports_ruby_js_ruby_runtime_list_borrow_rb_abi_value_t {
   size_t len;
 } exports_ruby_js_ruby_runtime_list_borrow_rb_abi_value_t;
 
-typedef ruby_js_js_runtime_own_js_abi_value_t exports_ruby_js_ruby_runtime_own_js_abi_value_t;
-
 // Imported Functions from `ruby:js/js-runtime`
 extern void ruby_js_js_runtime_eval_js(ext_string_t *code, ruby_js_js_runtime_js_abi_result_t *ret);
 extern bool ruby_js_js_runtime_is_js(ruby_js_js_runtime_borrow_js_abi_value_t value);
@@ -125,8 +123,6 @@ void exports_ruby_js_ruby_runtime_rb_vm_bugreport(void);
 bool exports_ruby_js_ruby_runtime_rb_gc_enable(void);
 bool exports_ruby_js_ruby_runtime_rb_gc_disable(void);
 bool exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(bool new_value);
-exports_ruby_js_ruby_runtime_own_rb_abi_value_t exports_ruby_js_ruby_runtime_wrap_js_value(exports_ruby_js_ruby_runtime_own_js_abi_value_t value);
-exports_ruby_js_ruby_runtime_own_js_abi_value_t exports_ruby_js_ruby_runtime_to_js_value(exports_ruby_js_ruby_runtime_borrow_rb_abi_value_t value);
 
 // Helper Functions
 

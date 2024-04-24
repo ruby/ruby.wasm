@@ -92,8 +92,6 @@ void __wasm_export_exports_ruby_js_ruby_runtime_rstring_ptr_post_return(uint8_t 
 
 
 
-
-
 // Canonical ABI intrinsics
 
 __attribute__((__weak__, __export_name__("cabi_realloc")))
@@ -537,18 +535,6 @@ __attribute__((__export_name__("ruby:js/ruby-runtime#rb-set-should-prohibit-rewi
 int32_t __wasm_export_exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(int32_t arg) {
   bool ret = exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(arg);
   return ret;
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#wrap-js-value")))
-int32_t __wasm_export_exports_ruby_js_ruby_runtime_wrap_js_value(int32_t arg) {
-  exports_ruby_js_ruby_runtime_own_rb_abi_value_t ret = exports_ruby_js_ruby_runtime_wrap_js_value((exports_ruby_js_ruby_runtime_own_js_abi_value_t) { arg });
-  return (ret).__handle;
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#to-js-value")))
-int32_t __wasm_export_exports_ruby_js_ruby_runtime_to_js_value(int32_t arg) {
-  exports_ruby_js_ruby_runtime_own_js_abi_value_t ret = exports_ruby_js_ruby_runtime_to_js_value(((exports_ruby_js_ruby_runtime_rb_abi_value_t*) arg));
-  return (ret).__handle;
 }
 
 // Ensure that the *_component_type.o object is linked in
