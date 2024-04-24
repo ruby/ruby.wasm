@@ -103,6 +103,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: actions/download-artifact@v4
         with:
           name: build-manifest
@@ -131,6 +133,7 @@ jobs:
           chmod +x ./build-exec
           # wait for docker exec to be ready
           timeout 10 bash -c 'until ./build-exec bundle config set --local without check; do sleep 1; done'
+      - run: ./build-exec rustup target add wasm32-wasi # For jco build
       - run: ./build-exec ./bin/setup
       - run: ./build-exec bundle exec rake compile
       - name: Pre-release configuration

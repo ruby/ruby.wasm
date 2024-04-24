@@ -53,13 +53,14 @@
     "build": "npm run build:rollup && npm run build:tsc && npm run build:static && ./tools/post-build.sh ./dist"
   },
   "devDependencies": {
+    "@bjorn3/browser_wasi_shim": "^0.2.19",
+    "@bytecodealliance/jco": "../../../vendor/jco",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/jest": "^29.5.11",
     "@types/node": "20.12.2",
     "jest": "^29.7.0",
     "prettier": "^3.2.5",
-    "@bjorn3/browser_wasi_shim": "^0.2.19",
     "typescript": "^5.4.3"
   },
   "dependencies": {

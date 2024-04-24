@@ -7,4 +7,12 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 
 env BUNDLE_GEMFILE="$root/Gemfile" bundle install
 env BUNDLE_GEMFILE="$root/packages/npm-packages/ruby-wasm-wasi/Gemfile" bundle install
+
+# Build vendored jco if Rust toolchain is available and submodule is checked out
+if command -v rustc && [ -f vendor/jco/package.json ]; then
+  npm -C vendor/jco install
+  npm -C vendor/jco run build
+else
+  echo "Rust toolchain not found or jco submodule not checked out, skipping jco build"
+fi
 npm ci
