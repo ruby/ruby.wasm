@@ -122,7 +122,7 @@ rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
   {                                                                            \
     new_args = alloca(sizeof(char *) * ((list)->len + 1));                     \
     for (size_t i = 0; i < (list)->len; i++) {                                 \
-      new_args[i] = (char *)((list)->ptr[i].ptr);                        \
+      new_args[i] = (char *)((list)->ptr[i].ptr);                              \
     }                                                                          \
   }
 
@@ -177,10 +177,11 @@ void rb_abi_guest_rb_abi_value_dtor(void *data) {
 }
 
 #ifdef JS_ENABLE_COMPONENT_MODEL
-void exports_ruby_js_ruby_runtime_rb_iseq_destructor(exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {
-}
+void exports_ruby_js_ruby_runtime_rb_iseq_destructor(
+    exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {}
 
-void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(exports_ruby_js_ruby_runtime_rb_abi_value_t *rep) {
+void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(
+    exports_ruby_js_ruby_runtime_rb_abi_value_t *rep) {
   rb_abi_guest_rb_abi_value_dtor((void *)rep);
 }
 #endif
