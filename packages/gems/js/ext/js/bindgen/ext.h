@@ -35,12 +35,12 @@ typedef struct ruby_js_js_runtime_js_abi_result_t {
 typedef struct ruby_js_js_runtime_raw_integer_t {
   uint8_t tag;
   union {
-    double     float_;
+    double     as_float;
     ext_string_t     bignum;
   } val;
 } ruby_js_js_runtime_raw_integer_t;
 
-#define RUBY_JS_JS_RUNTIME_RAW_INTEGER_FLOAT 0
+#define RUBY_JS_JS_RUNTIME_RAW_INTEGER_AS_FLOAT 0
 #define RUBY_JS_JS_RUNTIME_RAW_INTEGER_BIGNUM 1
 
 typedef struct ruby_js_js_runtime_list_borrow_js_abi_value_t {

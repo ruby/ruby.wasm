@@ -23,7 +23,7 @@ interface js-runtime {
     js-value-to-string: func(value: borrow<js-abi-value>) -> string;
 
     variant raw-integer {
-        float(float64),
+        as-float(float64),
         bignum(string),
     }
 

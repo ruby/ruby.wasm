@@ -75,13 +75,13 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
     data_view(memory).setInt32(arg1 + 4, len0, true);
     data_view(memory).setInt32(arg1 + 0, ptr0, true);
   };
-  imports["rb-js-abi-host"]["js-value-to-integer: func(value: handle<js-abi-value>) -> variant { f64(float64), bignum(string) }"] = function(arg0, arg1) {
+  imports["rb-js-abi-host"]["js-value-to-integer: func(value: handle<js-abi-value>) -> variant { as-float(float64), bignum(string) }"] = function(arg0, arg1) {
     const memory = get_export("memory");
     const realloc = get_export("cabi_realloc");
     const ret0 = obj.jsValueToInteger(resources0.get(arg0));
     const variant1 = ret0;
     switch (variant1.tag) {
-      case "f64": {
+      case "as-float": {
         const e = variant1.val;
         data_view(memory).setInt8(arg1 + 0, 0, true);
         data_view(memory).setFloat64(arg1 + 8, +e, true);

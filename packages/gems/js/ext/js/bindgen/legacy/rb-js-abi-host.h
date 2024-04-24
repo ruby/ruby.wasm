@@ -35,11 +35,11 @@ extern "C"
   typedef struct {
     uint8_t tag;
     union {
-      double f64;
+      double as_float;
       rb_js_abi_host_string_t bignum;
     } val;
   } rb_js_abi_host_raw_integer_t;
-  #define RB_JS_ABI_HOST_RAW_INTEGER_F64 0
+  #define RB_JS_ABI_HOST_RAW_INTEGER_AS_FLOAT 0
   #define RB_JS_ABI_HOST_RAW_INTEGER_BIGNUM 1
   void rb_js_abi_host_raw_integer_free(rb_js_abi_host_raw_integer_t *ptr);
   typedef struct {

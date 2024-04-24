@@ -7,9 +7,9 @@ export interface JsAbiResultFailure {
   tag: "failure",
   val: JsAbiValue,
 }
-export type RawInteger = RawIntegerF64 | RawIntegerBignum;
-export interface RawIntegerF64 {
-  tag: "f64",
+export type RawInteger = RawIntegerAsFloat | RawIntegerBignum;
+export interface RawIntegerAsFloat {
+  tag: "as-float",
   val: number,
 }
 export interface RawIntegerBignum {

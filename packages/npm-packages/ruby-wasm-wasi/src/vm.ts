@@ -223,15 +223,15 @@ export class RubyVM {
         },
         jsValueToInteger(value) {
           if (typeof value === "number") {
-            return { tag: "f64", val: value };
+            return { tag: "as-float", val: value };
           } else if (typeof value === "bigint") {
             return { tag: "bignum", val: BigInt(value).toString(10) + "\0" };
           } else if (typeof value === "string") {
             return { tag: "bignum", val: value + "\0" };
           } else if (typeof value === "undefined") {
-            return { tag: "f64", val: 0 };
+            return { tag: "as-float", val: 0 };
           } else {
-            return { tag: "f64", val: Number(value) };
+            return { tag: "as-float", val: Number(value) };
           }
         },
         exportJsValueToHost: (value) => {
