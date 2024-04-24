@@ -29,6 +29,7 @@ interface ruby-runtime {
     rb-gc-disable: func() -> bool;
 
     rb-set-should-prohibit-rewind: func(new-value: bool) -> bool;
-    wrap-js-value: func(value: js-abi-value) -> rb-abi-value;
-    to-js-value: func(value: borrow<rb-abi-value>) -> js-abi-value;
+    // XXX: Do we really need them?
+    // wrap-js-value: func(value: js-abi-value) -> rb-abi-value;
+    // to-js-value: func(value: borrow<rb-abi-value>) -> js-abi-value;
 }
