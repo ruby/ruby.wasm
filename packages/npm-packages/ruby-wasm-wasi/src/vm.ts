@@ -1,3 +1,4 @@
+import { RubyJsRubyRuntime } from "./bindgen/interfaces/ruby-js-ruby-runtime.js";
 import * as RbAbi from "./bindgen/legacy/rb-abi-guest.js";
 import {
   RbJsAbiHost,
@@ -5,6 +6,7 @@ import {
   JsAbiResult,
   JsAbiValue,
 } from "./bindgen/legacy/rb-js-abi-host.js";
+import { Binding, ComponentBinding, LegacyBinding, RbAbiValue } from "./binding.js";
 
 /**
  * A Ruby VM instance
@@ -26,7 +28,7 @@ import {
  *
  */
 export class RubyVM {
-  guest: RbAbi.RbAbiGuest;
+  guest: Binding;
   private instance: WebAssembly.Instance | null = null;
   private transport: JsValueTransport;
   private exceptionFormatter: RbExceptionFormatter;
@@ -34,11 +36,12 @@ export class RubyVM {
     hasJSFrameAfterRbFrame: false,
   };
 
-  constructor() {
+  constructor(binding?: Binding) {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
-    const proxyExports = (exports: RbAbi.RbAbiGuest) => {
-      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = [
+    const proxyExports = (exports: Binding) => {
+      const excludedMethods: (keyof LegacyBinding | keyof Binding)[] = [
+        "setInstance",
         "addToImports",
         "instantiate",
         "rbSetShouldProhibitRewind",
@@ -75,9 +78,14 @@ export class RubyVM {
       }
       return exports;
     };
-    this.guest = proxyExports(new RbAbi.RbAbiGuest());
+    this.guest = proxyExports(binding ?? new LegacyBinding());
     this.transport = new JsValueTransport();
     this.exceptionFormatter = new RbExceptionFormatter();
+  }
+
+  static _instantiate(component: typeof RubyJsRubyRuntime): RubyVM {
+    const binding = new ComponentBinding(component)
+    return new RubyVM(binding);
   }
 
   /**
@@ -104,7 +112,7 @@ export class RubyVM {
    */
   async setInstance(instance: WebAssembly.Instance) {
     this.instance = instance;
-    await this.guest.instantiate(instance);
+    await this.guest.setInstance(instance);
   }
 
   /**
@@ -431,7 +439,7 @@ export class RbValue {
    * @hideconstructor
    */
   constructor(
-    private inner: RbAbi.RbAbiValue,
+    private inner: RbAbiValue,
     private vm: RubyVM,
     private privateObject: RubyVMPrivate,
   ) {}
@@ -702,9 +710,9 @@ function wrapRbOperation<R>(vm: RubyVM, body: () => R): R {
 const callRbMethod = (
   vm: RubyVM,
   privateObject: RubyVMPrivate,
-  recv: RbAbi.RbAbiValue,
+  recv: RbAbiValue,
   callee: string,
-  args: RbAbi.RbAbiValue[],
+  args: RbAbiValue[],
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
   return wrapRbOperation(vm, () => {

@@ -29,7 +29,8 @@ NPM_PACKAGES = [
     name: "ruby-head-wasm-wasi",
     ruby_version: "head",
     gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
-    target: "wasm32-unknown-wasip1"
+    target: "wasm32-unknown-wasip1",
+    enable_component_model: true,
   },
   {
     name: "ruby-3.3-wasm-wasi",
