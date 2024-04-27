@@ -259,6 +259,9 @@ class RubyWasm::Packager::Core
 
     def cache_key(digest)
       derive_build.cache_key(digest)
+      if enabled = @packager.features.support_component_model?
+        digest << enabled.to_s
+      end
     end
 
     def artifact
@@ -340,6 +343,9 @@ class RubyWasm::Packager::Core
       exts = specs_with_extensions.sort
       hash = ::Digest::MD5.new
       specs_with_extensions.each { |spec, _| hash << spec.full_name }
+      if enabled = @packager.features.support_component_model?
+        hash << enabled.to_s
+      end
       exts.empty? ? base : "#{base}-#{hash.hexdigest}"
     end
   end

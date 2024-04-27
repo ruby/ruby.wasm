@@ -75,6 +75,14 @@ namespace :npm do
                *build_command,
                "-o",
                File.join(dist_dir, "ruby.debug+stdlib.wasm")
+            if pkg[:enable_component_model]
+              component_path = File.join(dist_dir, "ruby.component.wasm")
+              sh env.merge("RUBY_WASM_EXPERIMENTAL_COMPONENT_MODEL" => "1"),
+                 *build_command, "-o", component_path
+              sh "npx", "jco", "transpile",
+                "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization", "--tracing",
+                component_path, "-o", File.join(dist_dir, "component")
+            end
           end
           sh wasi_sdk.wasm_opt,
              "--strip-debug",
