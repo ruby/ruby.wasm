@@ -23,8 +23,8 @@ export { JsAbiValue };
 export type RbErrno = number;
 export type RbId = number;
 
-export class RbIseq {
+export class RbAbiValue {
 }
 
-export class RbAbiValue {
+export class RbIseq {
 }

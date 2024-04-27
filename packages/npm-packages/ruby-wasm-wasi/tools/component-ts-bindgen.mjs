@@ -3,7 +3,7 @@
  * in the js gem.
  */
 import { fileURLToPath } from "url";
-import { generateTypes, $init } from "../../../../node_modules/@bytecodealliance/jco/obj/js-component-bindgen-component.js";
+import { types } from "@bytecodealliance/jco";
 import path from "path"
 import fs from "fs/promises"
 
@@ -13,24 +13,21 @@ async function main() {
     selfPath,
     "../../../../gems/js/wit"
   ))
-  await $init
   console.log(`Generating TypeScript bindings from ${witDir}`)
-  const generated = generateTypes("ruby", {
-    wit: {
-      tag: "dir",
-      val: witDir
-    },
-    world: "ext",
-    tlaCompat: true
-  })
   const bindgenDir = path.join(selfPath, "../../src/bindgen")
-  for (const [name, content] of generated) {
+  const generated = await types(witDir, {
+    name: "ruby",
+    world: "ext",
+    tlaCompat: true,
+    outDir: bindgenDir,
+  })
+  for (const [filePath, content] of Object.entries(generated)) {
+    const name = path.basename(filePath)
     if (name == "ruby.d.ts") {
       console.log(`Skipping ${name}`)
       continue;
     }
 
-    const filePath = path.join(bindgenDir, name)
     console.log(`Writing ${filePath}`)
     await fs.mkdir(path.dirname(filePath), { recursive: true })
     await fs.writeFile(filePath, content)
