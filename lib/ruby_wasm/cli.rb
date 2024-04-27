@@ -230,12 +230,12 @@ module RubyWasm
         },
         "3.3" => {
           type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.0.tar.gz",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.1.tar.gz",
           all_default_exts: "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
         },
         "3.2" => {
           type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.4.tar.gz",
           all_default_exts: "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
         }
       }
