@@ -12,12 +12,12 @@ export interface Binding {
   rubyOptions(args: string[]): void;
   rubyScript(name: string): void;
   rubyInitLoadpath(): void;
-  rbEvalStringProtect(str: string): [RbAbi.RbAbiValue, number];
-  rbFuncallvProtect(recv: RbAbi.RbAbiValue, mid: RbAbi.RbId, args: RbAbi.RbAbiValue[]): [RbAbi.RbAbiValue, number];
+  rbEvalStringProtect(str: string): [RbAbiValue, number];
+  rbFuncallvProtect(recv: RbAbiValue, mid: RbAbi.RbId, args: RbAbiValue[]): [RbAbiValue, number];
   rbIntern(name: string): RbAbi.RbId;
-  rbErrinfo(): RbAbi.RbAbiValue;
+  rbErrinfo(): RbAbiValue;
   rbClearErrinfo(): void;
-  rstringPtr(value: RbAbi.RbAbiValue): string;
+  rstringPtr(value: RbAbiValue): string;
   rbVmBugreport(): void;
   rbGcEnable(): boolean;
   rbGcDisable(): boolean;
@@ -26,6 +26,9 @@ export interface Binding {
   setInstance(instance: WebAssembly.Instance): Promise<void>;
   addToImports(imports: WebAssembly.Imports): void;
 }
+
+// Low-level opaque representation of a Ruby value.
+export interface RbAbiValue {}
 
 export class LegacyBinding extends RbAbi.RbAbiGuest implements Binding {
   async setInstance(instance: WebAssembly.Instance): Promise<void> {
@@ -53,40 +56,40 @@ export class ComponentBinding implements Binding {
     this.underlying.rubyOptions(args);
   }
   rubyScript(name: string): void {
-    throw new Error("Method not implemented.");
+    this.underlying.rubyScript(name);
   }
   rubyInitLoadpath(): void {
-    throw new Error("Method not implemented.");
+    this.underlying.rubyInitLoadpath();
   }
-  rbEvalStringProtect(str: string): [RbAbi.RbAbiValue, number] {
-    throw new Error("Method not implemented.");
+  rbEvalStringProtect(str: string): [RbAbiValue, number] {
+    return this.underlying.rbEvalStringProtect(str);
   }
-  rbFuncallvProtect(recv: RbAbi.RbAbiValue, mid: number, args: RbAbi.RbAbiValue[]): [RbAbi.RbAbiValue, number] {
-    throw new Error("Method not implemented.");
+  rbFuncallvProtect(recv: RbAbiValue, mid: number, args: RbAbiValue[]): [RbAbiValue, number] {
+    return this.rbFuncallvProtect(recv, mid, args);
   }
   rbIntern(name: string): number {
-    throw new Error("Method not implemented.");
+    return this.rbIntern(name);
   }
   rbErrinfo(): RbAbi.RbAbiValue {
-    throw new Error("Method not implemented.");
+    return this.rbErrinfo();
   }
   rbClearErrinfo(): void {
-    throw new Error("Method not implemented.");
+    return this.rbClearErrinfo();
   }
   rstringPtr(value: RbAbi.RbAbiValue): string {
-    throw new Error("Method not implemented.");
+    return this.rstringPtr(value);
   }
   rbVmBugreport(): void {
-    throw new Error("Method not implemented.");
+    this.rbVmBugreport();
   }
   rbGcEnable(): boolean {
-    throw new Error("Method not implemented.");
+    return this.rbGcEnable();
   }
   rbGcDisable(): boolean {
-    throw new Error("Method not implemented.");
+    return this.rbGcDisable();
   }
   rbSetShouldProhibitRewind(newValue: boolean): boolean {
-    throw new Error("Method not implemented.");
+    return this.rbSetShouldProhibitRewind(newValue);
   }
 
   async setInstance(instance: WebAssembly.Instance): Promise<void> {

@@ -1,3 +1,4 @@
+import { RubyJsRubyRuntime } from "./bindgen/interfaces/ruby-js-ruby-runtime.js";
 import * as RbAbi from "./bindgen/legacy/rb-abi-guest.js";
 import {
   RbJsAbiHost,
@@ -5,7 +6,7 @@ import {
   JsAbiResult,
   JsAbiValue,
 } from "./bindgen/legacy/rb-js-abi-host.js";
-import { Binding, LegacyBinding } from "./binding.js";
+import { Binding, ComponentBinding, LegacyBinding, RbAbiValue } from "./binding.js";
 
 /**
  * A Ruby VM instance
@@ -35,7 +36,7 @@ export class RubyVM {
     hasJSFrameAfterRbFrame: false,
   };
 
-  constructor() {
+  constructor(binding?: Binding) {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
     const proxyExports = (exports: Binding) => {
@@ -77,9 +78,14 @@ export class RubyVM {
       }
       return exports;
     };
-    this.guest = proxyExports(new LegacyBinding());
+    this.guest = proxyExports(binding ?? new LegacyBinding());
     this.transport = new JsValueTransport();
     this.exceptionFormatter = new RbExceptionFormatter();
+  }
+
+  static _instantiate(component: typeof RubyJsRubyRuntime): RubyVM {
+    const binding = new ComponentBinding(component)
+    return new RubyVM(binding);
   }
 
   /**
@@ -433,7 +439,7 @@ export class RbValue {
    * @hideconstructor
    */
   constructor(
-    private inner: RbAbi.RbAbiValue,
+    private inner: RbAbiValue,
     private vm: RubyVM,
     private privateObject: RubyVMPrivate,
   ) {}
@@ -704,9 +710,9 @@ function wrapRbOperation<R>(vm: RubyVM, body: () => R): R {
 const callRbMethod = (
   vm: RubyVM,
   privateObject: RubyVMPrivate,
-  recv: RbAbi.RbAbiValue,
+  recv: RbAbiValue,
   callee: string,
-  args: RbAbi.RbAbiValue[],
+  args: RbAbiValue[],
 ) => {
   const mid = vm.guest.rbIntern(callee + "\0");
   return wrapRbOperation(vm, () => {
