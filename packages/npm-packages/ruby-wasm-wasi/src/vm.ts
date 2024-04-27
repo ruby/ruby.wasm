@@ -5,6 +5,7 @@ import {
   JsAbiResult,
   JsAbiValue,
 } from "./bindgen/legacy/rb-js-abi-host.js";
+import { Binding, LegacyBinding } from "./binding.js";
 
 /**
  * A Ruby VM instance
@@ -26,7 +27,7 @@ import {
  *
  */
 export class RubyVM {
-  guest: RbAbi.RbAbiGuest;
+  guest: Binding;
   private instance: WebAssembly.Instance | null = null;
   private transport: JsValueTransport;
   private exceptionFormatter: RbExceptionFormatter;
@@ -37,8 +38,9 @@ export class RubyVM {
   constructor() {
     // Wrap exported functions from Ruby VM to prohibit nested VM operation
     // if the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby.
-    const proxyExports = (exports: RbAbi.RbAbiGuest) => {
-      const excludedMethods: (keyof RbAbi.RbAbiGuest)[] = [
+    const proxyExports = (exports: Binding) => {
+      const excludedMethods: (keyof LegacyBinding | keyof Binding)[] = [
+        "setInstance",
         "addToImports",
         "instantiate",
         "rbSetShouldProhibitRewind",
@@ -75,7 +77,7 @@ export class RubyVM {
       }
       return exports;
     };
-    this.guest = proxyExports(new RbAbi.RbAbiGuest());
+    this.guest = proxyExports(new LegacyBinding());
     this.transport = new JsValueTransport();
     this.exceptionFormatter = new RbExceptionFormatter();
   }
@@ -104,7 +106,7 @@ export class RubyVM {
    */
   async setInstance(instance: WebAssembly.Instance) {
     this.instance = instance;
-    await this.guest.instantiate(instance);
+    await this.guest.setInstance(instance);
   }
 
   /**
