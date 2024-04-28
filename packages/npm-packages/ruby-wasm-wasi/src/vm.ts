@@ -90,7 +90,7 @@ export class RubyVM {
     const component = await initComponent({
       ...vm.getImports(),
       throwProhibitRewindException: (message: string) => {
-        throw new RbFatalError(message);
+        vm.throwProhibitRewindException(message);
       },
       JsAbiValue: Object,
     });
@@ -141,25 +141,29 @@ export class RubyVM {
         const str = new TextDecoder().decode(
           new Uint8Array(memory.buffer, messagePtr, messageLen),
         );
-        let message = "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
-            `(${str})\n` +
-            "Nested VM operation means that the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby " +
-            "caused by something like `window.rubyVM.eval(\"JS.global[:rubyVM].eval('Fiber.yield')\")`\n" +
-            "\n" +
-            "Please check your call stack and make sure that you are **not** doing any of the following inside the nested Ruby frame:\n" +
-            "  1. Switching fibers (e.g. Fiber#resume, Fiber.yield, and Fiber#transfer)\n" +
-            "     Note that `evalAsync` JS API switches fibers internally\n" +
-            "  2. Raising uncaught exceptions\n" +
-            "     Please catch all exceptions inside the nested operation\n" +
-            "  3. Calling Continuation APIs\n";
-
-        const error = new RbValue(this.guest.rbErrinfo(), this, this.privateObject());
-        if (error.call("nil?").toString() === "false") {
-          message += "\n" + this.exceptionFormatter.format(error, this, this.privateObject());
-        }
-        throw new RbFatalError(message);
+        this.throwProhibitRewindException(str);
       },
     };
+  private throwProhibitRewindException(str: string) {
+    let message = "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
+        `(${str})\n` +
+        "Nested VM operation means that the call stack has sandwitched JS frames like JS -> Ruby -> JS -> Ruby " +
+        "caused by something like `window.rubyVM.eval(\"JS.global[:rubyVM].eval('Fiber.yield')\")`\n" +
+        "\n" +
+        "Please check your call stack and make sure that you are **not** doing any of the following inside the nested Ruby frame:\n" +
+        "  1. Switching fibers (e.g. Fiber#resume, Fiber.yield, and Fiber#transfer)\n" +
+        "     Note that `evalAsync` JS API switches fibers internally\n" +
+        "  2. Raising uncaught exceptions\n" +
+        "     Please catch all exceptions inside the nested operation\n" +
+        "  3. Calling Continuation APIs\n";
+
+    const error = new RbValue(this.guest.rbErrinfo(), this, this.privateObject());
+    if (error.call("nil?").toString() === "false") {
+      message += "\n" + this.exceptionFormatter.format(error, this, this.privateObject());
+    }
+    throw new RbFatalError(message);
+  }
+
     // NOTE: The GC may collect objects that are still referenced by Wasm
     // locals because Asyncify cannot scan the Wasm stack above the JS frame.
     // So we need to keep track whether the JS frame is sandwitched by Ruby
