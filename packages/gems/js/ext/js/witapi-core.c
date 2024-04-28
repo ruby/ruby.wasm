@@ -340,7 +340,6 @@ bool rb_abi_guest_rb_set_should_prohibit_rewind(bool value) {
   return old;
 }
 
-
 static VALUE rb_abi_export_stage = Qnil;
 static rb_abi_guest_own_rb_abi_value_t rb_abi_export_rb_value_to_js(void) {
   VALUE staged = rb_abi_export_stage;
@@ -350,7 +349,8 @@ static rb_abi_guest_own_rb_abi_value_t rb_abi_export_rb_value_to_js(void) {
 }
 
 void rb_abi_stage_rb_value_to_js(VALUE value) {
-  assert(rb_abi_export_stage == Qnil && "rb_abi_stage_rb_value_to_js: stage is not empty!?");
+  assert(rb_abi_export_stage == Qnil &&
+         "rb_abi_stage_rb_value_to_js: stage is not empty!?");
   rb_abi_export_stage = value;
 }
 
