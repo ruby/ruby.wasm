@@ -340,6 +340,20 @@ bool rb_abi_guest_rb_set_should_prohibit_rewind(bool value) {
   return old;
 }
 
+
+static VALUE rb_abi_export_stage = Qnil;
+static rb_abi_guest_own_rb_abi_value_t rb_abi_export_rb_value_to_js(void) {
+  VALUE staged = rb_abi_export_stage;
+  rb_abi_export_stage = Qnil;
+  rb_abi_lend_object(staged);
+  return rb_abi_guest_rb_abi_value_new((void *)staged);
+}
+
+void rb_abi_stage_rb_value_to_js(VALUE value) {
+  assert(rb_abi_export_stage == Qnil && "rb_abi_stage_rb_value_to_js: stage is not empty!?");
+  rb_abi_export_stage = value;
+}
+
 #ifdef JS_ENABLE_COMPONENT_MODEL
 
 extern void __wasm_call_ctors(void);
@@ -428,7 +442,11 @@ bool exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(
   __wasm_call_ctors_if_needed();
   return rb_abi_guest_rb_set_should_prohibit_rewind(new_value);
 }
-
+exports_ruby_js_ruby_runtime_own_rb_abi_value_t
+exports_ruby_js_ruby_runtime_export_rb_value_to_js(void) {
+  __wasm_call_ctors_if_needed();
+  return rb_abi_export_rb_value_to_js();
+}
 #endif
 
 void Init_witapi(void) {}

@@ -98,6 +98,16 @@ export class RubyVM {
       throwProhibitRewindException: (message: string) => {
         vm.throwProhibitRewindException(message);
       },
+      procToJsFunction: () => {
+        const rbValue = new RbValue(component.exportRbValueToJs(), vm, vm.privateObject());
+        return new JsAbiValue((...args) => {
+          return rbValue.call("call", ...args.map((arg) => vm.wrap(arg))).toJS();
+        });
+      },
+      rbObjectToJsRbValue: () => {
+        const rbValue = new RbValue(component.exportRbValueToJs(), vm, vm.privateObject());
+        return new JsAbiValue(rbValue);
+      },
       JsAbiValue: JsAbiValue as any,
     });
     binding.setUnderlying(component);

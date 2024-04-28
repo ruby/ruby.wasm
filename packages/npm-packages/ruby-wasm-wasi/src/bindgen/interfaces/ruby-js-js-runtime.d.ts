@@ -7,8 +7,8 @@ export namespace RubyJsJsRuntime {
   export function floatToJsNumber(value: number): JsAbiValue;
   export function stringToJsString(value: string): JsAbiValue;
   export function boolToJsBool(value: boolean): JsAbiValue;
-  export function procToJsFunction(value: number): JsAbiValue;
-  export function rbObjectToJsRbValue(rawRbAbiValue: number): JsAbiValue;
+  export function procToJsFunction(): JsAbiValue;
+  export function rbObjectToJsRbValue(): JsAbiValue;
   export function jsValueToString(value: JsAbiValue): string;
   export function jsValueToInteger(value: JsAbiValue): RawInteger;
   export function exportJsValueToHost(value: JsAbiValue): void;

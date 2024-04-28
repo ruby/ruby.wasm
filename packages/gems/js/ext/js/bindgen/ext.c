@@ -30,10 +30,10 @@ __attribute__((__import_module__("ruby:js/js-runtime"), __import_name__("bool-to
 extern int32_t __wasm_import_ruby_js_js_runtime_bool_to_js_bool(int32_t);
 
 __attribute__((__import_module__("ruby:js/js-runtime"), __import_name__("proc-to-js-function")))
-extern int32_t __wasm_import_ruby_js_js_runtime_proc_to_js_function(int32_t);
+extern int32_t __wasm_import_ruby_js_js_runtime_proc_to_js_function(void);
 
 __attribute__((__import_module__("ruby:js/js-runtime"), __import_name__("rb-object-to-js-rb-value")))
-extern int32_t __wasm_import_ruby_js_js_runtime_rb_object_to_js_rb_value(int32_t);
+extern int32_t __wasm_import_ruby_js_js_runtime_rb_object_to_js_rb_value(void);
 
 __attribute__((__import_module__("ruby:js/js-runtime"), __import_name__("js-value-to-string")))
 extern void __wasm_import_ruby_js_js_runtime_js_value_to_string(int32_t, uint8_t *);
@@ -87,6 +87,7 @@ void __wasm_export_exports_ruby_js_ruby_runtime_rstring_ptr_post_return(uint8_t 
     free(*((uint8_t **) (arg0 + 0)));
   }
 }
+
 
 
 
@@ -301,13 +302,13 @@ ruby_js_js_runtime_own_js_abi_value_t ruby_js_js_runtime_bool_to_js_bool(bool va
   return (ruby_js_js_runtime_own_js_abi_value_t) { ret };
 }
 
-ruby_js_js_runtime_own_js_abi_value_t ruby_js_js_runtime_proc_to_js_function(uint32_t value) {
-  int32_t ret = __wasm_import_ruby_js_js_runtime_proc_to_js_function((int32_t) (value));
+ruby_js_js_runtime_own_js_abi_value_t ruby_js_js_runtime_proc_to_js_function(void) {
+  int32_t ret = __wasm_import_ruby_js_js_runtime_proc_to_js_function();
   return (ruby_js_js_runtime_own_js_abi_value_t) { ret };
 }
 
-ruby_js_js_runtime_own_js_abi_value_t ruby_js_js_runtime_rb_object_to_js_rb_value(uint32_t raw_rb_abi_value) {
-  int32_t ret = __wasm_import_ruby_js_js_runtime_rb_object_to_js_rb_value((int32_t) (raw_rb_abi_value));
+ruby_js_js_runtime_own_js_abi_value_t ruby_js_js_runtime_rb_object_to_js_rb_value(void) {
+  int32_t ret = __wasm_import_ruby_js_js_runtime_rb_object_to_js_rb_value();
   return (ruby_js_js_runtime_own_js_abi_value_t) { ret };
 }
 
@@ -535,6 +536,12 @@ __attribute__((__export_name__("ruby:js/ruby-runtime#rb-set-should-prohibit-rewi
 int32_t __wasm_export_exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(int32_t arg) {
   bool ret = exports_ruby_js_ruby_runtime_rb_set_should_prohibit_rewind(arg);
   return ret;
+}
+
+__attribute__((__export_name__("ruby:js/ruby-runtime#export-rb-value-to-js")))
+int32_t __wasm_export_exports_ruby_js_ruby_runtime_export_rb_value_to_js(void) {
+  exports_ruby_js_ruby_runtime_own_rb_abi_value_t ret = exports_ruby_js_ruby_runtime_export_rb_value_to_js();
+  return (ret).__handle;
 }
 
 // Ensure that the *_component_type.o object is linked in
