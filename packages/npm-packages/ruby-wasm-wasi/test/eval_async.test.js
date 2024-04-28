@@ -1,4 +1,5 @@
-const { initRubyVM } = require("./init");
+import { initRubyVM } from "./init";
+import { describe, test, expect } from "vitest"
 
 describe("Async Ruby code evaluation", () => {
   test("async eval over microtasks", async () => {

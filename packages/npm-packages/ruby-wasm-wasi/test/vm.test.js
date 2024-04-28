@@ -1,4 +1,5 @@
-const { initRubyVM, rubyVersion } = require("./init");
+import { initRubyVM, rubyVersion } from "./init";
+import { describe, test, expect, vi } from "vitest"
 
 describe("RubyVM", () => {
   test("empty expression", async () => {
@@ -170,26 +171,15 @@ eval:11:in \`<main>'`
       const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`);
       setVM.call("call", vm.wrap(vm));
 
-      // HACK: We need to capture all promises to avoid unhandled promise rejection
-      const promises = [];
-      const _Promise = global.Promise;
-      const spy = jest.spyOn(global, "Promise").mockImplementation((future) => {
-        const promise = new _Promise(future);
-        promises.push(promise);
-        return promise;
-      });
-
-      vm.evalAsync(code);
-
       const rejections = [];
-      for (const promise of promises) {
-        try {
-          await promise;
-        } catch (e) {
+      const _evalAsync = vm.evalAsync;
+      const spy = vi.spyOn(vm, "evalAsync").mockImplementation((code) => {
+        const promise = _evalAsync.call(vm, code).catch((e) => {
           rejections.push(e);
-        }
-      }
-
+        });
+        return promise
+      })
+      await vm.evalAsync(code)
       spy.mockReset();
 
       expect(rejections[0].message).toMatch(

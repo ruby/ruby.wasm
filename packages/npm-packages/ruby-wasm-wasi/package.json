@@ -39,8 +39,8 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test:run": "npm run test:unit && npm run test:jest && npm run test:e2e",
-    "test:jest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" jest --coverage",
+    "test:run": "npm run test:unit && npm run test:vitest && npm run test:e2e",
+    "test:vitest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" vitest run --pool=forks --testTimeout 300000 ./test/",
     "test:unit": "./tools/run-test-unit.mjs",
     "test:e2e": "playwright install && npm run test:e2e:examples && npm run test:e2e:integrations",
     "test:e2e:examples": "playwright test -c test-e2e/playwright.examples.config.ts",
@@ -57,11 +57,10 @@
     "@bytecodealliance/jco": "../../../vendor/jco",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@types/jest": "^29.5.11",
     "@types/node": "20.12.2",
-    "jest": "^29.7.0",
     "prettier": "^3.2.5",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "vitest": "^1.5.2"
   },
   "dependencies": {
     "tslib": "^2.6.1"

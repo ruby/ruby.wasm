@@ -24,9 +24,14 @@ const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
   if (process.env.RUBY_ROOT) {
     preopens["/usr"] = path.join(process.env.RUBY_ROOT, "./usr");
   }
+  let stderrFd = 2;
+  if (suppressStderr) {
+    const devNullFd = await fs.open("/dev/null", "w");
+    stderrFd = devNullFd.fd;
+  }
   const wasi = new WASI({
     args: ["ruby.wasm"].concat(process.argv.slice(2)),
-    stderr: suppressStderr ? 0 : 2,
+    stderr: stderrFd,
     preopens,
   });
 

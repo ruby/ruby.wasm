@@ -1,4 +1,5 @@
-const { initRubyVM } = require("./init");
+import { initRubyVM } from "./init";
+import { describe, test, expect } from "vitest"
 
 describe("GC integration", () => {
   test("Wrapped Ruby object should live until wrapper will be released", async () => {
