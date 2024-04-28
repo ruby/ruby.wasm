@@ -80,7 +80,7 @@ namespace :npm do
               sh env.merge("RUBY_WASM_EXPERIMENTAL_COMPONENT_MODEL" => "1"),
                  *build_command, "-o", component_path
               sh "npx", "jco", "transpile",
-                "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization", "--tracing",
+                "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization",
                 component_path, "-o", File.join(dist_dir, "component")
               # ./component/package.json is required to be an ES module
               File.write(File.join(dist_dir, "component", "package.json"), '{ "type": "module" }')
