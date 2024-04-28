@@ -438,9 +438,14 @@ static VALUE _rb_js_import_from_js(VALUE obj) {
  *  Returns +obj+ wrapped by JS class RbValue.
  */
 static VALUE _rb_js_obj_wrap(VALUE obj, VALUE wrapping) {
+#if JS_ENABLE_COMPONENT_MODEL
+  rb_abi_stage_rb_value_to_js(wrapping);
+  return jsvalue_s_new(rb_js_abi_host_rb_object_to_js_rb_value());
+#else
   rb_abi_lend_object(wrapping);
   return jsvalue_s_new(
       rb_js_abi_host_rb_object_to_js_rb_value((uint32_t)wrapping));
+#endif
 }
 
 /*
@@ -506,8 +511,13 @@ static VALUE _rb_js_false_to_js(VALUE obj) {
  *  Returns +self+ as a JS::Object.
  */
 static VALUE _rb_js_proc_to_js(VALUE obj) {
+#if JS_ENABLE_COMPONENT_MODEL
+  rb_abi_stage_rb_value_to_js(obj);
+  return jsvalue_s_new(ruby_js_js_runtime_proc_to_js_function());
+#else
   rb_abi_lend_object(obj);
   return jsvalue_s_new(rb_js_abi_host_proc_to_js_function((uint32_t)obj));
+#endif
 }
 
 /*

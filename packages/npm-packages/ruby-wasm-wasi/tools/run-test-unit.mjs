@@ -2,6 +2,7 @@
 ":" //# ; exec /usr/bin/env node --experimental-wasi-unstable-preview1 "$0" "$@"
 
 import * as browserWasi from "@bjorn3/browser_wasi_shim";
+import * as preview2Shim from "@bytecodealliance/preview2-shim"
 import fs from "fs/promises";
 import path from "path";
 import * as nodeWasi from "wasi";
@@ -19,6 +20,57 @@ const deriveRubySetup = () => {
     throw new Error("RUBY_ROOT or RUBY_NPM_PACKAGE_ROOT must be set");
   }
   return { binaryPath, preopens };
+}
+
+const instantiateComponent = async (rootTestFile) => {
+  const pkgPath = process.env.RUBY_NPM_PACKAGE_ROOT
+  if (!pkgPath) {
+    throw new Error("RUBY_NPM_PACKAGE_ROOT must be set");
+  }
+  const componentJsPath = path.resolve(pkgPath, "dist/component/ruby.component.js");
+  const { instantiate } = await import(componentJsPath);
+  const getCoreModule = async (relativePath) => {
+    const coreModulePath = path.resolve(pkgPath, "dist/component", relativePath);
+    const buffer = await fs.readFile(coreModulePath);
+    return WebAssembly.compile(buffer);
+  }
+  const vm = await RubyVM._instantiate(async (jsRuntime) => {
+    const { cli, clocks, filesystem, io, random, sockets } = preview2Shim;
+    const dirname = path.dirname(new URL(import.meta.url).pathname);
+    filesystem._setPreopens({
+      "/__root__": path.join(dirname, ".."),
+      "/usr": path.join(process.env.RUBY_BUILD_ROOT, "usr"),
+      "/bundle": path.join(process.env.RUBY_BUILD_ROOT, "bundle"),
+    })
+    cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
+    cli._setCwd("/")
+    const root = await instantiate(getCoreModule, {
+      "ruby:js/js-runtime": jsRuntime,
+      "wasi:cli/environment": cli.environment,
+      "wasi:cli/exit": cli.exit,
+      "wasi:cli/stderr": cli.stderr,
+      "wasi:cli/stdin": cli.stdin,
+      "wasi:cli/stdout": cli.stdout,
+      "wasi:cli/terminal-input": cli.terminalInput,
+      "wasi:cli/terminal-output": cli.terminalOutput,
+      "wasi:cli/terminal-stderr": cli.terminalStderr,
+      "wasi:cli/terminal-stdin": cli.terminalStdin,
+      "wasi:cli/terminal-stdout": cli.terminalStdout,
+      "wasi:clocks/monotonic-clock": clocks.monotonicClock,
+      "wasi:clocks/wall-clock": clocks.wallClock,
+      "wasi:filesystem/preopens": filesystem.preopens,
+      "wasi:filesystem/types": filesystem.types,
+      "wasi:io/error": io.error,
+      "wasi:io/poll": io.poll,
+      "wasi:io/streams": io.streams,
+      "wasi:random/random": random.random,
+      "wasi:sockets/tcp": sockets.tcp,
+    })
+    return root.rubyRuntime;
+  }, {
+    args: ["ruby.wasm", rootTestFile],
+  })
+  return { vm };
 }
 
 const instantiateNodeWasi = async (rootTestFile) => {
@@ -55,7 +107,7 @@ const instantiateNodeWasi = async (rootTestFile) => {
   return { instance, vm, wasi };
 };
 
-const instantiateWasmerWasi = async (rootTestFile) => {
+const instantiateBrowserWasi = async (rootTestFile) => {
   const walk = async (dir) => {
     const names = await fs.readdir(dir);
     const files = await Promise.all(names.map(async name => {
@@ -164,7 +216,10 @@ const test = async (instantiate) => {
 const main = async () => {
   await test(instantiateNodeWasi);
   if (!process.env.RUBY_ROOT) {
-    await test(instantiateWasmerWasi);
+    await test(instantiateBrowserWasi);
+    if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
+      await test(instantiateComponent);
+    }
   }
 };
 

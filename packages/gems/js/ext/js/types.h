@@ -55,8 +55,6 @@ typedef ext_list_string_t rb_abi_guest_list_string_t;
     ruby_js_js_runtime_string_to_js_string(val)
 #  define rb_js_abi_host_bool_to_js_bool(val)                                  \
     ruby_js_js_runtime_bool_to_js_bool(val)
-#  define rb_js_abi_host_proc_to_js_function(val)                              \
-    ruby_js_js_runtime_proc_to_js_function(val)
 #  define rb_js_abi_host_import_js_value_from_host()                           \
     ruby_js_js_runtime_import_js_value_from_host()
 #  define rb_js_abi_host_js_value_to_string(value, ret)                        \
@@ -87,6 +85,8 @@ typedef ext_list_string_t rb_abi_guest_list_string_t;
     RUBY_JS_JS_RUNTIME_RAW_INTEGER_AS_FLOAT
 #  define RB_JS_ABI_HOST_JS_ABI_RESULT_FAILURE                                 \
     RUBY_JS_JS_RUNTIME_JS_ABI_RESULT_FAILURE
+
+void rb_abi_stage_rb_value_to_js(VALUE value);
 
 #else
 #  include "bindgen/legacy/rb-abi-guest.h"

@@ -274,8 +274,10 @@ class RubyWasm::Packager::Core
 
     def derive_build
       return @build if @build
-      __skip__ =
-        build ||= RubyWasm::Build.new(name, **@packager.full_build_options, target: target)
+      __skip__ = build ||= RubyWasm::Build.new(
+        name, **@packager.full_build_options, target: target,
+        wasi_vfs: @packager.features.support_component_model? ? nil : :default
+      )
       build.crossruby.user_exts = user_exts(build)
       # Emscripten uses --global-base=1024 by default, but it conflicts with
       # --stack-first and -z stack-size since global-base 1024 is smaller than

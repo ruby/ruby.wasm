@@ -39,7 +39,9 @@ export class LegacyBinding extends RbAbi.RbAbiGuest implements Binding {
 export class ComponentBinding implements Binding {
   underlying: typeof RubyJsRubyRuntime;
 
-  constructor(underlying: typeof RubyJsRubyRuntime) {
+  constructor() {}
+
+  setUnderlying(underlying: typeof RubyJsRubyRuntime): void {
     this.underlying = underlying;
   }
 
@@ -65,31 +67,31 @@ export class ComponentBinding implements Binding {
     return this.underlying.rbEvalStringProtect(str);
   }
   rbFuncallvProtect(recv: RbAbiValue, mid: number, args: RbAbiValue[]): [RbAbiValue, number] {
-    return this.rbFuncallvProtect(recv, mid, args);
+    return this.underlying.rbFuncallvProtect(recv, mid, args);
   }
   rbIntern(name: string): number {
-    return this.rbIntern(name);
+    return this.underlying.rbIntern(name);
   }
-  rbErrinfo(): RbAbi.RbAbiValue {
-    return this.rbErrinfo();
+  rbErrinfo(): RbAbiValue {
+    return this.underlying.rbErrinfo();
   }
   rbClearErrinfo(): void {
-    return this.rbClearErrinfo();
+    return this.underlying.rbClearErrinfo();
   }
-  rstringPtr(value: RbAbi.RbAbiValue): string {
-    return this.rstringPtr(value);
+  rstringPtr(value: RbAbiValue): string {
+    return this.underlying.rstringPtr(value);
   }
   rbVmBugreport(): void {
-    this.rbVmBugreport();
+    this.underlying.rbVmBugreport();
   }
   rbGcEnable(): boolean {
-    return this.rbGcEnable();
+    return this.underlying.rbGcEnable();
   }
   rbGcDisable(): boolean {
-    return this.rbGcDisable();
+    return this.underlying.rbGcDisable();
   }
   rbSetShouldProhibitRewind(newValue: boolean): boolean {
-    return this.rbSetShouldProhibitRewind(newValue);
+    return this.underlying.rbSetShouldProhibitRewind(newValue);
   }
 
   async setInstance(instance: WebAssembly.Instance): Promise<void> {

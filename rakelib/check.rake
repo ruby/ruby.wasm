@@ -26,7 +26,7 @@ namespace :check do
          "--export",
          "packages/gems/js/ext/js/bindgen/legacy/rb-js-abi-host.wit",
          "--out-dir",
-         "packages/npm-packages/ruby-wasm-wasi/src/bindgen"
+         "packages/npm-packages/ruby-wasm-wasi/src/bindgen/legacy"
        ]
   end
 

@@ -15,6 +15,18 @@ export namespace RubyJsRubyRuntime {
   export function rbGcEnable(): boolean;
   export function rbGcDisable(): boolean;
   export function rbSetShouldProhibitRewind(newValue: boolean): boolean;
+  /**
+   * XXX: Do we really need them?
+   * wrap-js-value: func(value: js-abi-value) -> rb-abi-value;
+   * to-js-value: func(value: borrow<rb-abi-value>) -> js-abi-value;
+   * Transfer the value from Ruby to JS
+   * 
+   * 1. Ruby side registers the value in the stage
+   * 2. Ruby side calls JS's `import-rb-value-from-rb()`
+   * 3. `import-rb-value-from-rb()` calls `export-rb-value-to-js()`
+   * 4. `export-rb-value-to-js()` returns the staged value
+   */
+  export function exportRbValueToJs(): RbAbiValue;
   export { RbIseq };
   export { RbAbiValue };
 }
