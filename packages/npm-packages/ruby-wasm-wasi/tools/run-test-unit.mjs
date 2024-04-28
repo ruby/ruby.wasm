@@ -68,17 +68,22 @@ const instantiateWasmerWasi = async (rootTestFile) => {
     return files.flat();
   };
 
-  const __root__ = new browserWasi.Directory({});
+  const __root__ = new browserWasi.Directory(new Map());
   const writeMemFs = (guestPath, contents) => {
     const dirname = path.dirname(guestPath);
     const parts = dirname.split('/');
     let current = __root__;
     for (let i = 1; i < parts.length; i++) {
-      const dir = current.create_entry_for_path(parts[i], /* is_dir */ true);
-      current = dir;
+      const existing = current.contents.get(parts[i]);
+      if (existing) {
+        current = existing;
+      } else {
+        const { entry: created } = current.create_entry_for_path(parts[i], /* is_dir */ true);
+        current = created;
+      }
     }
     const basename = path.basename(guestPath);
-    const file = current.create_entry_for_path(basename, /* is_dir */ false)
+    const { entry: file } = current.create_entry_for_path(basename, /* is_dir */ false)
     file.data = contents;
   };
   const loadToMemFs = async (guestPath, hostPath) => {

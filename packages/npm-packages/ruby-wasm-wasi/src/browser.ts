@@ -22,7 +22,7 @@ export const DefaultRubyVM = async (
     new OpenFile(new File([])),
     new OpenFile(new File([])),
     new OpenFile(new File([])),
-    new PreopenDirectory("/", {}),
+    new PreopenDirectory("/", new Map()),
   ];
   const wasi = new WASI(args, env, fds, { debug: false });
   const vm = new RubyVM();
