@@ -1,8 +1,8 @@
 import * as path from "path";
 import * as fs from "fs/promises";
 import { WASI } from "wasi";
-import { RubyVM } from "../dist/esm/index";
-import { DefaultRubyVM } from "../dist/esm/node";
+import { RubyVM } from "../src/index";
+import { DefaultRubyVM } from "../src/node";
 import { describe, test, expect } from "vitest"
 
 const initRubyVM = async (rubyModule, args) => {
