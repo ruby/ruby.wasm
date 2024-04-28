@@ -89,12 +89,16 @@ export class RubyVM {
   }): Promise<RubyVM> {
     const binding = new ComponentBinding()
     const vm = new RubyVM(binding);
+    class JsAbiValue {
+      constructor(public readonly underlying: any) {}
+    }
+    const imports = vm.getImports((from) => new JsAbiValue(from), (to) => to.underlying);
     const component = await initComponent({
-      ...vm.getImports(),
+      ...imports,
       throwProhibitRewindException: (message: string) => {
         vm.throwProhibitRewindException(message);
       },
-      JsAbiValue: Object,
+      JsAbiValue: JsAbiValue as any,
     });
     binding.setUnderlying(component);
     vm.initialize(options.args);
@@ -147,6 +151,16 @@ export class RubyVM {
         this.throwProhibitRewindException(str);
       },
     };
+
+    addRbJsAbiHostToImports(
+      imports,
+      this.getImports((value) => value, (value) => value),
+      (name) => {
+        return this.instance.exports[name];
+      },
+    );
+  }
+
   private throwProhibitRewindException(str: string) {
     let message = "Ruby APIs that may rewind the VM stack are prohibited under nested VM operation " +
         `(${str})\n` +
@@ -167,6 +181,7 @@ export class RubyVM {
     throw new RbFatalError(message);
   }
 
+  private getImports(toJSAbiValue: (_: any) => any, fromJSAbiValue: (_: any) => any): RbJsAbiHost {
     // NOTE: The GC may collect objects that are still referenced by Wasm
     // locals because Asyncify cannot scan the Wasm stack above the JS frame.
     // So we need to keep track whether the JS frame is sandwitched by Ruby
@@ -185,17 +200,6 @@ export class RubyVM {
       }
       return imports;
     };
-
-    addRbJsAbiHostToImports(
-      imports,
-      proxyImports(this.getImports()),
-      (name) => {
-        return this.instance.exports[name];
-      },
-    );
-  }
-
-  private getImports(): RbJsAbiHost {
     function wrapTry(f: (...args: any[]) => JsAbiValue): () => JsAbiResult {
       return (...args) => {
         try {
@@ -206,13 +210,13 @@ export class RubyVM {
             // can be already in an inconsistent state.
             throw e;
           }
-          return { tag: "failure", val: e };
+          return { tag: "failure", val: toJSAbiValue(e) };
         }
       };
     }
-    return {
+    return proxyImports({
       evalJs: wrapTry((code) => {
-        return Function(code)();
+        return toJSAbiValue(Function(code)());
       }),
       isJs: (value) => {
         // Just for compatibility with the old JS API
@@ -220,41 +224,43 @@ export class RubyVM {
       },
       globalThis: () => {
         if (typeof globalThis !== "undefined") {
-          return globalThis;
+          return toJSAbiValue(globalThis);
         } else if (typeof global !== "undefined") {
-          return global;
+          return toJSAbiValue(global);
         } else if (typeof window !== "undefined") {
-          return window;
+          return toJSAbiValue(window);
         }
         throw new Error("unable to locate global object");
       },
       intToJsNumber: (value) => {
-        return value;
+        return toJSAbiValue(value);
       },
       floatToJsNumber: (value) => {
-        return value;
+        return toJSAbiValue(value);
       },
       stringToJsString: (value) => {
-        return value;
+        return toJSAbiValue(value);
       },
       boolToJsBool: (value) => {
-        return value;
+        return toJSAbiValue(value);
       },
       procToJsFunction: (rawRbAbiValue) => {
         const rbValue = this.rbValueOfPointer(rawRbAbiValue);
-        return (...args) => {
+        return toJSAbiValue((...args) => {
           return rbValue.call("call", ...args.map((arg) => this.wrap(arg))).toJS();
-        };
+        });
       },
       rbObjectToJsRbValue: (rawRbAbiValue) => {
-        return this.rbValueOfPointer(rawRbAbiValue);
+        return toJSAbiValue(this.rbValueOfPointer(rawRbAbiValue));
       },
       jsValueToString: (value) => {
+        value = fromJSAbiValue(value)
         // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
         // `String(value)` always returns a string.
         return String(value);
       },
       jsValueToInteger(value) {
+        value = fromJSAbiValue(value)
         if (typeof value === "number") {
           return { tag: "as-float", val: value };
         } else if (typeof value === "bigint") {
@@ -269,10 +275,10 @@ export class RubyVM {
       },
       exportJsValueToHost: (value) => {
         // See `JsValueExporter` for the reason why we need to do this
-        this.transport.takeJsValue(value);
+        this.transport.takeJsValue(fromJSAbiValue(value));
       },
       importJsValueFromHost: () => {
-        return this.transport.consumeJsValue();
+        return toJSAbiValue(this.transport.consumeJsValue());
       },
       instanceOf: (value, klass) => {
         if (typeof klass === "function") {
@@ -282,16 +288,17 @@ export class RubyVM {
         }
       },
       jsValueTypeof(value) {
-        return typeof value;
+        return typeof fromJSAbiValue(value);
       },
       jsValueEqual(lhs, rhs) {
-        return lhs == rhs;
+        return fromJSAbiValue(lhs) == fromJSAbiValue(rhs);
       },
       jsValueStrictlyEqual(lhs, rhs) {
-        return lhs === rhs;
+        return fromJSAbiValue(lhs) === fromJSAbiValue(rhs);
       },
       reflectApply: wrapTry((target, thisArgument, args) => {
-        return Reflect.apply(target as any, thisArgument, args);
+        const jsArgs = args.map((arg) => fromJSAbiValue(arg));
+        return toJSAbiValue(Reflect.apply(fromJSAbiValue(target as any), fromJSAbiValue(thisArgument), jsArgs));
       }),
       reflectConstruct: function (target, args) {
         throw new Error("Function not implemented.");
@@ -300,7 +307,7 @@ export class RubyVM {
         throw new Error("Function not implemented.");
       },
       reflectGet: wrapTry((target, propertyKey) => {
-        return target[propertyKey];
+        return toJSAbiValue(fromJSAbiValue(target)[propertyKey]);
       }),
       reflectGetOwnPropertyDescriptor: function (
         target,
@@ -324,12 +331,12 @@ export class RubyVM {
         throw new Error("Function not implemented.");
       },
       reflectSet: wrapTry((target, propertyKey, value) => {
-        return Reflect.set(target, propertyKey, value);
+        return toJSAbiValue(Reflect.set(fromJSAbiValue(target), propertyKey, fromJSAbiValue(value)));
       }),
       reflectSetPrototypeOf: function (target, prototype): boolean {
         throw new Error("Function not implemented.");
       },
-    }
+    })
   }
 
   /**
