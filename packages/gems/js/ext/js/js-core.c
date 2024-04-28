@@ -439,7 +439,7 @@ static VALUE _rb_js_import_from_js(VALUE obj) {
  */
 static VALUE _rb_js_obj_wrap(VALUE obj, VALUE wrapping) {
 #if JS_ENABLE_COMPONENT_MODEL
-  rb_abi_stage_rb_value_to_js(obj);
+  rb_abi_stage_rb_value_to_js(wrapping);
   return jsvalue_s_new(rb_js_abi_host_rb_object_to_js_rb_value());
 #else
   rb_abi_lend_object(wrapping);
