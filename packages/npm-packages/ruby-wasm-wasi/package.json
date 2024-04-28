@@ -39,8 +39,8 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test:run": "npm run test:unit && npm run test:vitest && npm run test:e2e",
-    "test:vitest": "NODE_OPTIONS=\"--experimental-wasi-unstable-preview1\" vitest run --pool=forks --testTimeout 300000 ./test/",
+    "test:run": "npm run test:unit && npm run test:vitest -- --run && npm run test:e2e",
+    "test:vitest": "node ../../../node_modules/.bin/vitest ./test/",
     "test:unit": "./tools/run-test-unit.mjs",
     "test:e2e": "playwright install && npm run test:e2e:examples && npm run test:e2e:integrations",
     "test:e2e:examples": "playwright test -c test-e2e/playwright.examples.config.ts",

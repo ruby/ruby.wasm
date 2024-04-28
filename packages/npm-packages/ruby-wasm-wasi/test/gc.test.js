@@ -28,7 +28,13 @@ describe("GC integration", () => {
 
   test("protect exported Ruby objects", async () => {
     function dropRbValue(value) {
-      value.inner.drop();
+      if (value.inner.drop) {
+        value.inner.drop();
+      } else if (global.gc) {
+        global.gc();
+      } else {
+        console.warn("--expose-gc is not enabled. Skip GC test.")
+      }
     }
     const vm = await initRubyVM();
     const initialGCCount = Number(vm.eval("GC.count").toString());
