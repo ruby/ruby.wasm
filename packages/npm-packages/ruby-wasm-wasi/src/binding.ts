@@ -76,7 +76,7 @@ export class ComponentBinding implements Binding {
     return this.underlying.rbErrinfo();
   }
   rbClearErrinfo(): void {
-    return this.rbClearErrinfo();
+    return this.underlying.rbClearErrinfo();
   }
   rstringPtr(value: RbAbiValue): string {
     return this.underlying.rstringPtr(value);
