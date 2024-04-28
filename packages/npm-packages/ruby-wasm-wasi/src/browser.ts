@@ -1,4 +1,4 @@
-import { Fd, WASI } from "@bjorn3/browser_wasi_shim";
+import { Fd, File, OpenFile, PreopenDirectory, WASI } from "@bjorn3/browser_wasi_shim";
 import { consolePrinter } from "./console.js";
 import { RubyVM } from "./vm.js";
 
@@ -18,7 +18,12 @@ export const DefaultRubyVM = async (
     ([k, v]) => `${k}=${v}`,
   );
 
-  const fds: Fd[] = [];
+  const fds: Fd[] = [
+    new OpenFile(new File([])),
+    new OpenFile(new File([])),
+    new OpenFile(new File([])),
+    new PreopenDirectory("/", new Map()),
+  ];
   const wasi = new WASI(args, env, fds, { debug: false });
   const vm = new RubyVM();
 
