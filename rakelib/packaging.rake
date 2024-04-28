@@ -82,6 +82,8 @@ namespace :npm do
               sh "npx", "jco", "transpile",
                 "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization", "--tracing",
                 component_path, "-o", File.join(dist_dir, "component")
+              # ./component/package.json is required to be an ES module
+              File.write(File.join(dist_dir, "component", "package.json"), '{ "type": "module" }')
             end
           end
           sh wasi_sdk.wasm_opt,

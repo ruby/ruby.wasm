@@ -1,4 +1,5 @@
-import { RubyJsRubyRuntime } from "./bindgen/interfaces/ruby-js-ruby-runtime.js";
+import type { RubyJsJsRuntime } from "./bindgen/interfaces/ruby-js-js-runtime.js";
+import type { RubyJsRubyRuntime } from "./bindgen/interfaces/ruby-js-ruby-runtime.js";
 import * as RbAbi from "./bindgen/legacy/rb-abi-guest.js";
 import {
   RbJsAbiHost,
@@ -83,9 +84,18 @@ export class RubyVM {
     this.exceptionFormatter = new RbExceptionFormatter();
   }
 
-  static _instantiate(component: typeof RubyJsRubyRuntime): RubyVM {
-    const binding = new ComponentBinding(component)
-    return new RubyVM(binding);
+  static async _instantiate(initComponent: (_: typeof RubyJsJsRuntime) => Promise<typeof RubyJsRubyRuntime>): Promise<RubyVM> {
+    const binding = new ComponentBinding()
+    const vm = new RubyVM(binding);
+    const component = await initComponent({
+      ...vm.getImports(),
+      throwProhibitRewindException: (message: string) => {
+        throw new RbFatalError(message);
+      },
+      JsAbiValue: Object,
+    });
+    binding.setUnderlying(component);
+    return vm
   }
 
   /**
@@ -122,20 +132,6 @@ export class RubyVM {
    */
   addToImports(imports: WebAssembly.Imports) {
     this.guest.addToImports(imports);
-    function wrapTry(f: (...args: any[]) => JsAbiValue): () => JsAbiResult {
-      return (...args) => {
-        try {
-          return { tag: "success", val: f(...args) };
-        } catch (e) {
-          if (e instanceof RbFatalError) {
-            // RbFatalError should not be caught by Ruby because it Ruby VM
-            // can be already in an inconsistent state.
-            throw e;
-          }
-          return { tag: "failure", val: e };
-        }
-      };
-    }
     imports["rb-js-abi-host"] = {
       rb_wasm_throw_prohibit_rewind_exception: (
         messagePtr: number,
@@ -185,130 +181,148 @@ export class RubyVM {
 
     addRbJsAbiHostToImports(
       imports,
-      proxyImports({
-        evalJs: wrapTry((code) => {
-          return Function(code)();
-        }),
-        isJs: (value) => {
-          // Just for compatibility with the old JS API
-          return true;
-        },
-        globalThis: () => {
-          if (typeof globalThis !== "undefined") {
-            return globalThis;
-          } else if (typeof global !== "undefined") {
-            return global;
-          } else if (typeof window !== "undefined") {
-            return window;
-          }
-          throw new Error("unable to locate global object");
-        },
-        intToJsNumber: (value) => {
-          return value;
-        },
-        floatToJsNumber: (value) => {
-          return value;
-        },
-        stringToJsString: (value) => {
-          return value;
-        },
-        boolToJsBool: (value) => {
-          return value;
-        },
-        procToJsFunction: (rawRbAbiValue) => {
-          const rbValue = this.rbValueOfPointer(rawRbAbiValue);
-          return (...args) => {
-            return rbValue.call("call", ...args.map((arg) => this.wrap(arg))).toJS();
-          };
-        },
-        rbObjectToJsRbValue: (rawRbAbiValue) => {
-          return this.rbValueOfPointer(rawRbAbiValue);
-        },
-        jsValueToString: (value) => {
-          // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
-          // `String(value)` always returns a string.
-          return String(value);
-        },
-        jsValueToInteger(value) {
-          if (typeof value === "number") {
-            return { tag: "as-float", val: value };
-          } else if (typeof value === "bigint") {
-            return { tag: "bignum", val: BigInt(value).toString(10) + "\0" };
-          } else if (typeof value === "string") {
-            return { tag: "bignum", val: value + "\0" };
-          } else if (typeof value === "undefined") {
-            return { tag: "as-float", val: 0 };
-          } else {
-            return { tag: "as-float", val: Number(value) };
-          }
-        },
-        exportJsValueToHost: (value) => {
-          // See `JsValueExporter` for the reason why we need to do this
-          this.transport.takeJsValue(value);
-        },
-        importJsValueFromHost: () => {
-          return this.transport.consumeJsValue();
-        },
-        instanceOf: (value, klass) => {
-          if (typeof klass === "function") {
-            return value instanceof klass;
-          } else {
-            return false;
-          }
-        },
-        jsValueTypeof(value) {
-          return typeof value;
-        },
-        jsValueEqual(lhs, rhs) {
-          return lhs == rhs;
-        },
-        jsValueStrictlyEqual(lhs, rhs) {
-          return lhs === rhs;
-        },
-        reflectApply: wrapTry((target, thisArgument, args) => {
-          return Reflect.apply(target as any, thisArgument, args);
-        }),
-        reflectConstruct: function (target, args) {
-          throw new Error("Function not implemented.");
-        },
-        reflectDeleteProperty: function (target, propertyKey): boolean {
-          throw new Error("Function not implemented.");
-        },
-        reflectGet: wrapTry((target, propertyKey) => {
-          return target[propertyKey];
-        }),
-        reflectGetOwnPropertyDescriptor: function (
-          target,
-          propertyKey: string,
-        ) {
-          throw new Error("Function not implemented.");
-        },
-        reflectGetPrototypeOf: function (target) {
-          throw new Error("Function not implemented.");
-        },
-        reflectHas: function (target, propertyKey): boolean {
-          throw new Error("Function not implemented.");
-        },
-        reflectIsExtensible: function (target): boolean {
-          throw new Error("Function not implemented.");
-        },
-        reflectOwnKeys: function (target) {
-          throw new Error("Function not implemented.");
-        },
-        reflectPreventExtensions: function (target): boolean {
-          throw new Error("Function not implemented.");
-        },
-        reflectSet: wrapTry((target, propertyKey, value) => {
-          return Reflect.set(target, propertyKey, value);
-        }),
-        reflectSetPrototypeOf: function (target, prototype): boolean {
-          throw new Error("Function not implemented.");
-        },
-      }),
+      proxyImports(this.getImports()),
       (name) => {
         return this.instance.exports[name];
       },
     );
+  }
+
+  private getImports(): RbJsAbiHost {
+    function wrapTry(f: (...args: any[]) => JsAbiValue): () => JsAbiResult {
+      return (...args) => {
+        try {
+          return { tag: "success", val: f(...args) };
+        } catch (e) {
+          if (e instanceof RbFatalError) {
+            // RbFatalError should not be caught by Ruby because it Ruby VM
+            // can be already in an inconsistent state.
+            throw e;
+          }
+          return { tag: "failure", val: e };
+        }
+      };
+    }
+    return {
+      evalJs: wrapTry((code) => {
+        return Function(code)();
+      }),
+      isJs: (value) => {
+        // Just for compatibility with the old JS API
+        return true;
+      },
+      globalThis: () => {
+        if (typeof globalThis !== "undefined") {
+          return globalThis;
+        } else if (typeof global !== "undefined") {
+          return global;
+        } else if (typeof window !== "undefined") {
+          return window;
+        }
+        throw new Error("unable to locate global object");
+      },
+      intToJsNumber: (value) => {
+        return value;
+      },
+      floatToJsNumber: (value) => {
+        return value;
+      },
+      stringToJsString: (value) => {
+        return value;
+      },
+      boolToJsBool: (value) => {
+        return value;
+      },
+      procToJsFunction: (rawRbAbiValue) => {
+        const rbValue = this.rbValueOfPointer(rawRbAbiValue);
+        return (...args) => {
+          return rbValue.call("call", ...args.map((arg) => this.wrap(arg))).toJS();
+        };
+      },
+      rbObjectToJsRbValue: (rawRbAbiValue) => {
+        return this.rbValueOfPointer(rawRbAbiValue);
+      },
+      jsValueToString: (value) => {
+        // According to the [spec](https://tc39.es/ecma262/multipage/text-processing.html#sec-string-constructor-string-value)
+        // `String(value)` always returns a string.
+        return String(value);
+      },
+      jsValueToInteger(value) {
+        if (typeof value === "number") {
+          return { tag: "as-float", val: value };
+        } else if (typeof value === "bigint") {
+          return { tag: "bignum", val: BigInt(value).toString(10) + "\0" };
+        } else if (typeof value === "string") {
+          return { tag: "bignum", val: value + "\0" };
+        } else if (typeof value === "undefined") {
+          return { tag: "as-float", val: 0 };
+        } else {
+          return { tag: "as-float", val: Number(value) };
+        }
+      },
+      exportJsValueToHost: (value) => {
+        // See `JsValueExporter` for the reason why we need to do this
+        this.transport.takeJsValue(value);
+      },
+      importJsValueFromHost: () => {
+        return this.transport.consumeJsValue();
+      },
+      instanceOf: (value, klass) => {
+        if (typeof klass === "function") {
+          return value instanceof klass;
+        } else {
+          return false;
+        }
+      },
+      jsValueTypeof(value) {
+        return typeof value;
+      },
+      jsValueEqual(lhs, rhs) {
+        return lhs == rhs;
+      },
+      jsValueStrictlyEqual(lhs, rhs) {
+        return lhs === rhs;
+      },
+      reflectApply: wrapTry((target, thisArgument, args) => {
+        return Reflect.apply(target as any, thisArgument, args);
+      }),
+      reflectConstruct: function (target, args) {
+        throw new Error("Function not implemented.");
+      },
+      reflectDeleteProperty: function (target, propertyKey): boolean {
+        throw new Error("Function not implemented.");
+      },
+      reflectGet: wrapTry((target, propertyKey) => {
+        return target[propertyKey];
+      }),
+      reflectGetOwnPropertyDescriptor: function (
+        target,
+        propertyKey: string,
+      ) {
+        throw new Error("Function not implemented.");
+      },
+      reflectGetPrototypeOf: function (target) {
+        throw new Error("Function not implemented.");
+      },
+      reflectHas: function (target, propertyKey): boolean {
+        throw new Error("Function not implemented.");
+      },
+      reflectIsExtensible: function (target): boolean {
+        throw new Error("Function not implemented.");
+      },
+      reflectOwnKeys: function (target) {
+        throw new Error("Function not implemented.");
+      },
+      reflectPreventExtensions: function (target): boolean {
+        throw new Error("Function not implemented.");
+      },
+      reflectSet: wrapTry((target, propertyKey, value) => {
+        return Reflect.set(target, propertyKey, value);
+      }),
+      reflectSetPrototypeOf: function (target, prototype): boolean {
+        throw new Error("Function not implemented.");
+      },
+    }
   }
 
   /**
