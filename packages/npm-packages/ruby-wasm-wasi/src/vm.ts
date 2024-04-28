@@ -84,7 +84,9 @@ export class RubyVM {
     this.exceptionFormatter = new RbExceptionFormatter();
   }
 
-  static async _instantiate(initComponent: (_: typeof RubyJsJsRuntime) => Promise<typeof RubyJsRubyRuntime>): Promise<RubyVM> {
+  static async _instantiate(initComponent: (_: typeof RubyJsJsRuntime) => Promise<typeof RubyJsRubyRuntime>, options: {
+    args?: string[],
+  }): Promise<RubyVM> {
     const binding = new ComponentBinding()
     const vm = new RubyVM(binding);
     const component = await initComponent({
@@ -95,6 +97,7 @@ export class RubyVM {
       JsAbiValue: Object,
     });
     binding.setUnderlying(component);
+    vm.initialize(options.args);
     return vm
   }
 
