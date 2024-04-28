@@ -291,8 +291,9 @@ export class RubyVM {
         return toJSAbiValue(this.transport.consumeJsValue());
       },
       instanceOf: (value, klass) => {
+        klass = fromJSAbiValue(klass);
         if (typeof klass === "function") {
-          return value instanceof klass;
+          return fromJSAbiValue(value) instanceof klass;
         } else {
           return false;
         }
