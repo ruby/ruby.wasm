@@ -76,7 +76,9 @@ namespace :npm do
                "-o",
                File.join(dist_dir, "ruby.debug+stdlib.wasm")
             if pkg[:enable_component_model]
-              component_path = File.join(dist_dir, "ruby.component.wasm")
+              component_path = File.join(pkg_dir, "tmp", "ruby.component.wasm")
+              FileUtils.mkdir_p(File.dirname(component_path))
+
               sh env.merge("RUBY_WASM_EXPERIMENTAL_COMPONENT_MODEL" => "1"),
                  *build_command, "-o", component_path
               sh "npx", "jco", "transpile",
