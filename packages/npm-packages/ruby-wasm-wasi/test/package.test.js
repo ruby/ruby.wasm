@@ -6,7 +6,10 @@ import { DefaultRubyVM } from "../src/node";
 import { describe, test, expect } from "vitest"
 
 const initRubyVM = async (rubyModule, args) => {
-  const wasi = new WASI();
+  const wasi = new WASI({
+    version: "preview1",
+    returnOnExit: true,
+  });
   const vm = new RubyVM();
   const imports = {
     wasi_snapshot_preview1: wasi.wasiImport,

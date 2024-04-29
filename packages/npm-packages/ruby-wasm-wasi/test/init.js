@@ -31,6 +31,8 @@ const initModuleRubyVM = async ({ suppressStderr } = { suppressStderr: false }) 
     stderrFd = devNullFd.fd;
   }
   const wasi = new WASI({
+    version: "preview1",
+    returnOnExit: true,
     args: ["ruby.wasm"].concat(process.argv.slice(2)),
     stderr: stderrFd,
     preopens,
