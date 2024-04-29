@@ -37,7 +37,7 @@ class RubyWasm::Packager::Core
       raise NotImplementedError
     end
 
-    def build_and_link_exts(executor)
+    def build_and_link_exts(executor, module_bytes)
       raise NotImplementedError
     end
 
@@ -93,7 +93,7 @@ class RubyWasm::Packager::Core
       build.crossruby.artifact
     end
 
-    def build_and_link_exts(executor)
+    def build_and_link_exts(executor, module_bytes)
       build = derive_build
       self.build_exts(executor, build)
       self.link_exts(executor, build)
@@ -276,7 +276,6 @@ class RubyWasm::Packager::Core
       return @build if @build
       __skip__ = build ||= RubyWasm::Build.new(
         name, **@packager.full_build_options, target: target,
-        wasi_vfs: @packager.features.support_component_model? ? nil : :default
       )
       build.crossruby.user_exts = user_exts(build)
       # Emscripten uses --global-base=1024 by default, but it conflicts with
@@ -302,10 +301,7 @@ class RubyWasm::Packager::Core
       build
     end
 
-    def build_and_link_exts(executor)
-      build = derive_build
-      ruby_root = build.crossruby.dest_dir
-      module_bytes = File.binread(File.join(ruby_root, "usr", "local", "bin", "ruby"))
+    def build_and_link_exts(executor, module_bytes)
       return module_bytes unless @packager.features.support_component_model?
 
       linker = RubyWasmExt::ComponentEncode.new

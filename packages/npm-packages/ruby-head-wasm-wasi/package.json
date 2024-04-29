@@ -29,7 +29,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasi npm -C ../ruby-wasm-wasi run test:run",
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasi npm -C ../ruby-wasm-wasi run test:run:all",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-head-wasm-wasi",

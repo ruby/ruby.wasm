@@ -56,7 +56,7 @@ class RubyWasm::Packager
     @packager: RubyWasm::Packager
     def initialize: (RubyWasm::Packager) -> void
     def build: (RubyWasm::BuildExecutor, untyped options) -> String
-    def build_and_link_exts: (RubyWasm::BuildExecutor) -> bytes
+    def build_and_link_exts: (RubyWasm::BuildExecutor, bytes module_bytes) -> bytes
 
     extend Forwardable
 
@@ -72,7 +72,7 @@ class RubyWasm::Packager
       def initialize: (RubyWasm::Packager) -> void
       def build: (RubyWasm::BuildExecutor, untyped options) -> String
       def specs_with_extensions: () -> Array[[untyped, Array[string]]]
-      def build_and_link_exts: (RubyWasm::BuildExecutor) -> bytes
+      def build_and_link_exts: (RubyWasm::BuildExecutor, bytes module_bytes) -> bytes
     end
 
     class DynamicLinking < RubyWasm::Packager::Core::BuildStrategy

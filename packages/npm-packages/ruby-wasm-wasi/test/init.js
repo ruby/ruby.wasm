@@ -1,7 +1,8 @@
-const fs = require("fs/promises");
-const path = require("path");
-const { WASI } = require("wasi");
-const { RubyVM } = require("../dist/cjs/index");
+import * as fs from "fs/promises";
+import * as path from "path";
+import { WASI } from "wasi";
+import { RubyVM } from "../src/index";
+import * as preview2Shim from "@bytecodealliance/preview2-shim"
 
 const rubyModule = (async () => {
   let binaryPath;
@@ -19,7 +20,7 @@ const rubyModule = (async () => {
   return await WebAssembly.compile(binary.buffer);
 })();
 
-const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
+const initModuleRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
   let preopens = {};
   if (process.env.RUBY_ROOT) {
     preopens["/usr"] = path.join(process.env.RUBY_ROOT, "./usr");
@@ -30,6 +31,8 @@ const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
     stderrFd = devNullFd.fd;
   }
   const wasi = new WASI({
+    version: "preview1",
+    returnOnExit: true,
     args: ["ruby.wasm"].concat(process.argv.slice(2)),
     stderr: stderrFd,
     preopens,
@@ -50,6 +53,63 @@ const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
   vm.initialize();
   return vm;
 };
+
+const moduleCache = new Map();
+async function initComponentRubyVM({ suppressStderr } = { suppressStderr: false }) {
+  const pkgPath = process.env.RUBY_NPM_PACKAGE_ROOT
+  if (!pkgPath) {
+    throw new Error("RUBY_NPM_PACKAGE_ROOT must be set");
+  }
+  const componentJsPath = path.resolve(pkgPath, "dist/component/ruby.component.js");
+  const { instantiate } = await import(componentJsPath);
+  const getCoreModule = async (relativePath) => {
+    const coreModulePath = path.resolve(pkgPath, "dist/component", relativePath);
+    if (moduleCache.has(coreModulePath)) {
+      return moduleCache.get(coreModulePath);
+    }
+    const buffer = await fs.readFile(coreModulePath);
+    const module = WebAssembly.compile(buffer);
+    moduleCache.set(coreModulePath, module);
+    return module;
+  }
+  const vm = await RubyVM._instantiate(async (jsRuntime) => {
+    const { cli, clocks, filesystem, io, random, sockets } = preview2Shim;
+    filesystem._setPreopens({})
+    cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
+    cli._setCwd("/")
+    const root = await instantiate(getCoreModule, {
+      "ruby:js/js-runtime": jsRuntime,
+      "wasi:cli/environment": cli.environment,
+      "wasi:cli/exit": cli.exit,
+      "wasi:cli/stderr": cli.stderr,
+      "wasi:cli/stdin": cli.stdin,
+      "wasi:cli/stdout": cli.stdout,
+      "wasi:cli/terminal-input": cli.terminalInput,
+      "wasi:cli/terminal-output": cli.terminalOutput,
+      "wasi:cli/terminal-stderr": cli.terminalStderr,
+      "wasi:cli/terminal-stdin": cli.terminalStdin,
+      "wasi:cli/terminal-stdout": cli.terminalStdout,
+      "wasi:clocks/monotonic-clock": clocks.monotonicClock,
+      "wasi:clocks/wall-clock": clocks.wallClock,
+      "wasi:filesystem/preopens": filesystem.preopens,
+      "wasi:filesystem/types": filesystem.types,
+      "wasi:io/error": io.error,
+      "wasi:io/poll": io.poll,
+      "wasi:io/streams": io.streams,
+      "wasi:random/random": random.random,
+      "wasi:sockets/tcp": sockets.tcp,
+    })
+    return root.rubyRuntime;
+  }, {})
+  return vm;
+}
+
+const initRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
+  if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
+    return initComponentRubyVM({ suppressStderr });
+  }
+  return initModuleRubyVM({ suppressStderr });
+}
 
 class RubyVersion {
   constructor(version) {

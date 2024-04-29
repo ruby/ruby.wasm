@@ -39,8 +39,6 @@ const instantiateComponent = async (rootTestFile) => {
     const dirname = path.dirname(new URL(import.meta.url).pathname);
     filesystem._setPreopens({
       "/__root__": path.join(dirname, ".."),
-      "/usr": path.join(process.env.RUBY_BUILD_ROOT, "usr"),
-      "/bundle": path.join(process.env.RUBY_BUILD_ROOT, "bundle"),
     })
     cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
     cli._setCwd("/")
@@ -214,11 +212,12 @@ const test = async (instantiate) => {
 };
 
 const main = async () => {
-  await test(instantiateNodeWasi);
-  if (!process.env.RUBY_ROOT) {
-    await test(instantiateBrowserWasi);
-    if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
-      await test(instantiateComponent);
+  if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
+    await test(instantiateComponent);
+  } else {
+    await test(instantiateNodeWasi);
+    if (!process.env.RUBY_ROOT) {
+      await test(instantiateBrowserWasi);
     }
   }
 };

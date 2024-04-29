@@ -5,7 +5,7 @@ export const DefaultRubyVM = async (
   rubyModule: WebAssembly.Module,
   options: { env?: Record<string, string> | undefined } = {},
 ) => {
-  const wasi = new WASI({ env: options.env, version: "preview1" });
+  const wasi = new WASI({ env: options.env, version: "preview1", returnOnExit: true });
   const vm = new RubyVM();
   const imports = {
     wasi_snapshot_preview1: wasi.wasiImport,

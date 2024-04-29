@@ -29,13 +29,14 @@ class RubyWasm::Packager
 
     fs = RubyWasm::Packager::FileSystem.new(dest_dir, self)
     fs.package_ruby_root(tarball, executor)
-    wasm_bytes = ruby_core.build_and_link_exts(executor)
+
+    wasm_bytes = File.binread(File.join(fs.ruby_root, "bin", "ruby"))
 
     fs.package_gems
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
 
-    if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_component_model?
+    if full_build_options[:target] == "wasm32-unknown-wasip1"
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)
@@ -43,6 +44,7 @@ class RubyWasm::Packager
 
       wasm_bytes = wasi_vfs.pack(wasm_bytes)
     end
+    wasm_bytes = ruby_core.build_and_link_exts(executor, wasm_bytes)
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes
