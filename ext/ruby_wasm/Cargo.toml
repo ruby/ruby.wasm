@@ -14,5 +14,6 @@ magnus = { version = "0.6.2", features = ["bytes"] }
 bytes = "1"
 wizer = "4.0.0"
 wasi-vfs-cli = { git = "https://github.com/kateinoigakukun/wasi-vfs/", tag = "0.5.2" }
+wasi-virt = { git = "https://github.com/kateinoigakukun/WASI-Virt/", rev = "4b0f183675e8fc33f7e6c837c88efefb11a6be2e" }
 structopt = "0.3.26"
 wit-component = "0.203.0"
