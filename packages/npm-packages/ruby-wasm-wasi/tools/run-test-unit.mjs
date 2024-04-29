@@ -212,11 +212,12 @@ const test = async (instantiate) => {
 };
 
 const main = async () => {
-  await test(instantiateNodeWasi);
-  if (!process.env.RUBY_ROOT) {
-    await test(instantiateBrowserWasi);
-    if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
-      await test(instantiateComponent);
+  if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
+    await test(instantiateComponent);
+  } else {
+    await test(instantiateNodeWasi);
+    if (!process.env.RUBY_ROOT) {
+      await test(instantiateBrowserWasi);
     }
   }
 };
