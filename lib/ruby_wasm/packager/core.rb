@@ -125,7 +125,7 @@ class RubyWasm::Packager::Core
       linker = RubyWasmExt::ComponentLink.new
       linker.use_built_in_libdl(true)
       linker.stub_missing_functions(false)
-      linker.validate(true)
+      linker.validate(ENV["RUBYWASM_SKIP_LINKER_VALIDATION"] != "1")
 
       libraries.each do |lib|
         # Non-DL openable libraries should be referenced as base name
@@ -305,7 +305,7 @@ class RubyWasm::Packager::Core
       return module_bytes unless @packager.features.support_component_model?
 
       linker = RubyWasmExt::ComponentEncode.new
-      linker.validate(true)
+      linker.validate(ENV["RUBYWASM_SKIP_LINKER_VALIDATION"] != "1")
       linker.module(module_bytes)
       linker.adapter(
         "wasi_snapshot_preview1",
