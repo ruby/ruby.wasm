@@ -39,8 +39,6 @@ const instantiateComponent = async (rootTestFile) => {
     const dirname = path.dirname(new URL(import.meta.url).pathname);
     filesystem._setPreopens({
       "/__root__": path.join(dirname, ".."),
-      "/usr": path.join(process.env.RUBY_BUILD_ROOT, "usr"),
-      "/bundle": path.join(process.env.RUBY_BUILD_ROOT, "bundle"),
     })
     cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
     cli._setCwd("/")
