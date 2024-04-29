@@ -14,4 +14,5 @@ bindgen/legacy/%.o: $(srcdir)/bindgen/legacy/%.c
 
 bindgen/ext.o: $(srcdir)/bindgen/ext.c
 	@mkdir -p "$(@D)"
-	$(CC) -c -o $@ $<
+	$(ECHO) compiling $(<)
+	$(Q) $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c $(CSRCFLAG)$<
