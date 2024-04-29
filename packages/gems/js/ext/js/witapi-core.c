@@ -362,6 +362,11 @@ static inline void __wasm_call_ctors_if_needed(void) {
   if (!__wasm_call_ctors_done) {
     __wasm_call_ctors_done = true;
     __wasm_call_ctors();
+
+    __attribute__((weak)) extern void __wasi_vfs_rt_init(void);
+    if (__wasi_vfs_rt_init) {
+      __wasi_vfs_rt_init();
+    }
   }
 }
 
