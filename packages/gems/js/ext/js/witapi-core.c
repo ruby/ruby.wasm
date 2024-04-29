@@ -363,10 +363,15 @@ static inline void __wasm_call_ctors_if_needed(void) {
     __wasm_call_ctors_done = true;
     __wasm_call_ctors();
 
+    // Initialize VFS runtime if it's used
+    // NOTE: We don't use wasi-vfs for PIC build. Instead, we use
+    // Component Model-native wasi-virt.
+#  ifndef __PIC__
     __attribute__((weak)) extern void __wasi_vfs_rt_init(void);
     if (__wasi_vfs_rt_init) {
       __wasi_vfs_rt_init();
     }
+#  endif
   }
 }
 
