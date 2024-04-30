@@ -168,7 +168,7 @@ module RubyWasm
     def feature_name: (CrossRubyProduct crossruby) -> String
 
     def make_args: (CrossRubyProduct crossruby) -> Array[String]
-    def build: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
+    def build: (BuildExecutor executor, CrossRubyProduct crossruby, Array[String] extra_mkargs) -> void
     def do_extconf: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
     def do_install_rb: (BuildExecutor executor, CrossRubyProduct crossruby) -> void
 

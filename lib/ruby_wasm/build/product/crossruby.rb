@@ -42,7 +42,7 @@ module RubyWasm
       make_args
     end
 
-    def build(executor, crossruby)
+    def build(executor, crossruby, extra_mkargs = [])
       objdir = product_build_dir crossruby
       executor.mkdir_p objdir
       do_extconf executor, crossruby
@@ -54,7 +54,8 @@ module RubyWasm
                       "-C",
                       "#{objdir}",
                       *make_args(crossruby),
-                      build_target
+                      build_target,
+                      *extra_mkargs
       # A ext can provide link args by link.filelist. It contains only built archive file by default.
       unless File.exist?(linklist(crossruby))
         executor.write(
@@ -187,7 +188,7 @@ module RubyWasm
     def build_exts(executor)
       @user_exts.each do |prod|
         executor.begin_section prod.class, prod.name, "Building"
-        prod.build(executor, self)
+        prod.build(executor, self, [])
         executor.end_section prod.class, prod.name
       end
     end

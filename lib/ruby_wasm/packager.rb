@@ -32,6 +32,8 @@ class RubyWasm::Packager
 
     wasm_bytes = File.binread(File.join(fs.ruby_root, "bin", "ruby"))
 
+    ruby_core.build_gem_exts(executor, fs.bundle_dir)
+
     fs.package_gems
     fs.remove_non_runtime_files(executor)
     fs.remove_stdlib(executor) unless options[:stdlib]
@@ -44,7 +46,7 @@ class RubyWasm::Packager
 
       wasm_bytes = wasi_vfs.pack(wasm_bytes)
     end
-    wasm_bytes = ruby_core.build_and_link_exts(executor, wasm_bytes)
+    wasm_bytes = ruby_core.link_gem_exts(executor, fs.bundle_dir, wasm_bytes)
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes
