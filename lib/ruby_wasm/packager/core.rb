@@ -306,6 +306,7 @@ class RubyWasm::Packager::Core
       return @build if @build
       __skip__ = build ||= RubyWasm::Build.new(
         name, **@packager.full_build_options, target: target,
+        wasi_vfs: nil
       )
       build.crossruby.user_exts = user_exts(build)
       # Emscripten uses --global-base=1024 by default, but it conflicts with
