@@ -79,7 +79,7 @@ namespace :npm do
               component_path = File.join(pkg_dir, "tmp", "ruby.component.wasm")
               FileUtils.mkdir_p(File.dirname(component_path))
 
-              sh env.merge("RUBY_WASM_EXPERIMENTAL_COMPONENT_MODEL" => "1"),
+              sh env.merge("RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING" => "1"),
                  *build_command, "-o", component_path
               sh "npx", "jco", "transpile",
                 "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization",
