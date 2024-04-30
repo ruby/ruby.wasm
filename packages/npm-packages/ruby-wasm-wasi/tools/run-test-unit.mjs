@@ -201,7 +201,6 @@ const test = async (instantiate) => {
   const rootTestFile = "/__root__/test/test_unit.rb";
   const { vm, wasi } = await instantiate(rootTestFile);
 
-  Error.stackTraceLimit = Infinity;
 
   await vm.evalAsync(`
     require 'test/unit'
@@ -212,6 +211,7 @@ const test = async (instantiate) => {
 };
 
 const main = async () => {
+  Error.stackTraceLimit = Infinity;
   if (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false') {
     await test(instantiateComponent);
   } else {
