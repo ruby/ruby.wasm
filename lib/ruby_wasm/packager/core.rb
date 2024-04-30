@@ -127,7 +127,8 @@ class RubyWasm::Packager::Core
         wasi_sdk_path = toolchain.wasi_sdk_path
         libraries << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
       end
-      wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1("command")
+      # TODO: Detect WASI exec-model from binary exports (_start or _initialize)
+      wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1("reactor")
       adapters = [wasi_adapter]
       dl_openable_libs = []
       dl_openable_libs << [File.join(ruby_root, "usr"), Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so"))]
@@ -161,6 +162,7 @@ class RubyWasm::Packager::Core
         # e.g. wasi_snapshot_preview1.command.wasm -> wasi_snapshot_preview1
         adapter_name = adapter_name.split(".")[0]
         module_bytes = File.binread(adapter)
+        RubyWasm.logger.info "Linking adapter #{adapter_name}=#{adapter} (#{module_bytes.size} bytes)"
         linker.adapter(adapter_name, module_bytes)
       end
       return linker.encode()
