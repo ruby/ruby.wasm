@@ -36,7 +36,13 @@ class RubyWasm::Packager
 
     fs.package_gems
     fs.remove_non_runtime_files(executor)
-    fs.remove_stdlib(executor) unless options[:stdlib]
+    if options[:stdlib]
+      options[:without_stdlib_components].each do |component|
+        fs.remove_stdlib_component(executor, component)
+      end
+    else
+      fs.remove_stdlib(executor)
+    end
 
     if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_dynamic_linking?
       # wasi-vfs supports only WASI target
@@ -46,7 +52,7 @@ class RubyWasm::Packager
 
       wasm_bytes = wasi_vfs.pack(wasm_bytes)
     end
-    wasm_bytes = ruby_core.link_gem_exts(executor, fs.bundle_dir, wasm_bytes)
+    wasm_bytes = ruby_core.link_gem_exts(executor, fs.ruby_root, fs.bundle_dir, wasm_bytes)
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes

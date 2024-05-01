@@ -53,6 +53,7 @@ module RubyWasm
         target_triplet: "wasm32-unknown-wasip1",
         profile: "full",
         stdlib: true,
+        without_stdlib_components: [],
         dest_dir: nil,
         disable_gems: false,
         gemfile: nil,
@@ -103,6 +104,10 @@ module RubyWasm
 
           opts.on("--[no-]stdlib", "Include stdlib") do |stdlib|
             options[:stdlib] = stdlib
+          end
+
+          opts.on("--without-stdlib COMPONENT", "Exclude stdlib component") do |component|
+            options[:without_stdlib_components] << component
           end
 
           opts.on("--disable-gems", "Disable gems") do

@@ -41,7 +41,7 @@ class RubyWasm::Packager::Core
       raise NotImplementedError
     end
 
-    def link_gem_exts(executor, gem_home, module_bytes)
+    def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
       raise NotImplementedError
     end
 
@@ -110,15 +110,13 @@ class RubyWasm::Packager::Core
       self._build_gem_exts(executor, build, gem_home)
     end
 
-    def link_gem_exts(executor, gem_home, module_bytes)
+    def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
       build = derive_build
-      self._link_gem_exts(executor, build, gem_home)
+      self._link_gem_exts(executor, build, ruby_root, gem_home, module_bytes)
     end
 
-    def _link_gem_exts(executor, build, gem_home)
-      ruby_root = build.crossruby.dest_dir
-
-      libraries = [File.join(ruby_root, "usr", "local", "bin", "ruby")]
+    def _link_gem_exts(executor, build, ruby_root, gem_home, module_bytes)
+      libraries = []
 
       # TODO: Should be computed from dyinfo of ruby binary
       wasi_libc_shared_libs = [
@@ -138,13 +136,15 @@ class RubyWasm::Packager::Core
       wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1(wasi_exec_model)
       adapters = [wasi_adapter]
       dl_openable_libs = []
-      dl_openable_libs << [File.join(ruby_root, "usr"), Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so"))]
+      dl_openable_libs << [File.dirname(ruby_root), Dir.glob(File.join(ruby_root, "lib", "ruby", "**", "*.so"))]
       dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "**", "*.so"))]
 
       linker = RubyWasmExt::ComponentLink.new
       linker.use_built_in_libdl(true)
       linker.stub_missing_functions(false)
       linker.validate(ENV["RUBYWASM_SKIP_LINKER_VALIDATION"] != "1")
+
+      linker.library("ruby", module_bytes, false)
 
       libraries.each do |lib|
         # Non-DL openable libraries should be referenced as base name
@@ -333,7 +333,7 @@ class RubyWasm::Packager::Core
       # No-op because we already built extensions as part of the Ruby build
     end
 
-    def link_gem_exts(executor, gem_home, module_bytes)
+    def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
       return module_bytes unless @packager.features.support_component_model?
 
       linker = RubyWasmExt::ComponentEncode.new
