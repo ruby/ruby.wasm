@@ -139,7 +139,7 @@ class RubyWasm::Packager::Core
       adapters = [wasi_adapter]
       dl_openable_libs = []
       dl_openable_libs << [File.join(ruby_root, "usr"), Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so"))]
-      dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "gems", "**", "*.so"))]
+      dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "**", "*.so"))]
 
       linker = RubyWasmExt::ComponentLink.new
       linker.use_built_in_libdl(true)

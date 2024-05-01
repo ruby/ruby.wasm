@@ -23,6 +23,7 @@ class RubyWasm::Packager
     src: RubyWasm::Packager::build_source,
     default_exts: String,
     suffix: String,
+    gem_home: String?,
   }
 
   type bytes = String
