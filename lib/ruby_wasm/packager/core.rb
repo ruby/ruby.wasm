@@ -121,6 +121,8 @@ class RubyWasm::Packager::Core
       # TODO: Should be computed from dyinfo of ruby binary
       wasi_libc_shared_libs = [
         "libc.so",
+        "libc++.so",
+        "libc++abi.so",
         "libwasi-emulated-getpid.so",
         "libwasi-emulated-mman.so",
         "libwasi-emulated-process-clocks.so",
