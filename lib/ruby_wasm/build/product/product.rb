@@ -26,6 +26,7 @@ module RubyWasm
     def tools_args
       args = []
       args << "CC=#{@toolchain.cc}"
+      args << "CXX=#{@toolchain.cxx}"
       args << "LD=#{@toolchain.ld}"
       args << "AR=#{@toolchain.ar}"
       args << "RANLIB=#{@toolchain.ranlib}"
