@@ -242,6 +242,7 @@ module RubyWasm
     def self.find_path: (String command) -> String?
     def self.check_executable: (String command) -> String
     def cc: -> String
+    def cxx: -> String
     def ranlib: -> String
     def ld: -> String
     def ar: -> String

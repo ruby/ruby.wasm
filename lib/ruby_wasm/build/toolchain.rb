@@ -43,7 +43,7 @@ module RubyWasm
       tool
     end
 
-    %i[cc ranlib ld ar].each do |name|
+    %i[cc cxx ranlib ld ar].each do |name|
       define_method(name) do
         @tools_cache ||= {}
         @tools_cache[name] ||= find_tool(name)
@@ -84,6 +84,7 @@ module RubyWasm
 
       @tools = {
         cc: "#{wasi_sdk_path}/bin/clang",
+        cxx: "#{wasi_sdk_path}/bin/clang++",
         ld: "#{wasi_sdk_path}/bin/clang",
         ar: "#{wasi_sdk_path}/bin/llvm-ar",
         ranlib: "#{wasi_sdk_path}/bin/llvm-ranlib"

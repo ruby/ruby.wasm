@@ -34,6 +34,7 @@ module RubyWasm
     def make_args(crossruby)
       make_args = []
       make_args << "CC=#{@toolchain.cc}"
+      make_args << "CXX=#{@toolchain.cc}"
       make_args << "LD=#{@toolchain.ld}"
       make_args << "AR=#{@toolchain.ar}"
       make_args << "RANLIB=#{@toolchain.ranlib}"
