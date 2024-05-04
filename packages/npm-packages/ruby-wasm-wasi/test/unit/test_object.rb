@@ -322,7 +322,9 @@ class JS::TestObject < Test::Unit::TestCase
       return {
         return_true() { return true; },
         return_false() { return false; },
-        return_object() { return {}; }
+        return_object() { return {}; },
+        return_null() { return null; },
+        return_empty_string() { return ''; }
       };
     JS
 
@@ -334,8 +336,12 @@ class JS::TestObject < Test::Unit::TestCase
     assert_true object.return_true?
     assert_false object.return_false?
 
-    # Return Ruby false when the return value is not JS::True
-    assert_false object.return_object?
+    # Return Ruby true when the return value is JavaScript true
+    assert_true object.return_object?
+
+    # Return Ruby false when the return value is JavaScript false
+    assert_false object.return_null?
+    assert_false object.return_empty_string?
   end
 
   def test_respond_to_missing?
