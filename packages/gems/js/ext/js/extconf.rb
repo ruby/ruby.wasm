@@ -1,4 +1,12 @@
 require "mkmf"
+
+MakeMakefile::RbConfig ||= RbConfig
+unless MakeMakefile::RbConfig::CONFIG["platform"] =~ /wasm/
+  $stderr.puts "This extension is only for WebAssembly. Creating a dummy Makefile."
+  create_makefile("js")
+  return
+end
+
 $objs = %w[js-core.o witapi-core.o]
 
 use_component_model = enable_config("component-model", false)
