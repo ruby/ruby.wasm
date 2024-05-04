@@ -179,7 +179,7 @@ module RubyWasm
 
   class Emscripten < Toolchain
     def initialize
-      @tools = { cc: "emcc", ld: "emcc", ar: "emar", ranlib: "emranlib" }
+      @tools = { cc: "emcc", cxx: "em++", ld: "emcc", ar: "emar", ranlib: "emranlib" }
       @name = "emscripten"
     end
 
