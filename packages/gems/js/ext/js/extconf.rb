@@ -19,7 +19,16 @@ else
   $objs << "bindgen/legacy/rb-js-abi-host.o"
   $objs << "bindgen/legacy/rb-abi-guest.o"
 end
+
+component_type_obj = "$(srcdir)/bindgen/ext_component_type.o"
+
+unless $static
+  # When building shared library, we need to link the component type object
+  # to the shared library instead of the main ruby executable.
+  $libs << component_type_obj
+end
+
 create_makefile("js") do |mk|
-  mk << "EXTRA_OBJS = $(srcdir)/bindgen/ext_component_type.o\n" if use_component_model
+  mk << "EXTRA_OBJS = #{component_type_obj}\n" if use_component_model
   mk
 end
