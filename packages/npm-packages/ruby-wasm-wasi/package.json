@@ -1,6 +1,6 @@
 {
   "name": "@ruby/wasm-wasi",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "description": "WebAssembly port of CRuby with WASI",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",

@@ -125,5 +125,5 @@ $ npm install --save @ruby/wasm-wasi@latest
 # or if you want the nightly snapshot
 $ npm install --save @ruby/wasm-wasi@next
 # or you can specify the exact snapshot version
-$ npm install --save @ruby/wasm-wasi@2.5.2-2024-05-04-a
+$ npm install --save @ruby/wasm-wasi@2.6.0-2024-05-05-a
 ```
