@@ -53,6 +53,8 @@ module RubyWasm
         target_triplet: "wasm32-unknown-wasip1",
         profile: "full",
         stdlib: true,
+        without_stdlib_components: [],
+        dest_dir: nil,
         disable_gems: false,
         gemfile: nil,
         patches: [],
@@ -104,8 +106,16 @@ module RubyWasm
             options[:stdlib] = stdlib
           end
 
+          opts.on("--without-stdlib COMPONENT", "Exclude stdlib component") do |component|
+            options[:without_stdlib_components] << component
+          end
+
           opts.on("--disable-gems", "Disable gems") do
             options[:disable_gems] = true
+          end
+
+          opts.on("--dest-dir PATH", "(Experimental) Destination directory") do |path|
+            options[:dest_dir] = path
           end
 
           opts.on("-p", "--patch PATCH", "Apply a patch") do |patch|
@@ -149,7 +159,9 @@ module RubyWasm
 
       require "tmpdir"
 
-      if options[:save_temps]
+      if dest_dir = options[:dest_dir]
+        self.do_build(executor, dest_dir, packager, options)
+      elsif options[:save_temps]
         tmpdir = Dir.mktmpdir
         self.do_build(executor, tmpdir, packager, options)
         @stderr.puts "Temporary files are saved to #{tmpdir}"

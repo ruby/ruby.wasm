@@ -14,10 +14,12 @@ module RubyWasm
       target_triplet: String,
       profile: String,
       stdlib: bool,
+      without_stdlib_components: Array[String],
       disable_gems: bool,
       gemfile: String?,
       patches: Array[String],
       format: String,
+      dest_dir: String,
     }
 
     DEFAULT_RUBIES_DIR: string

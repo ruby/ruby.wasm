@@ -12,7 +12,7 @@ class RubyWasm::Packager::Core
 
   extend Forwardable
 
-  def_delegators :build_strategy, :cache_key, :artifact, :build_and_link_exts
+  def_delegators :build_strategy, :cache_key, :artifact, :build_gem_exts, :link_gem_exts
 
   private
 
@@ -37,7 +37,11 @@ class RubyWasm::Packager::Core
       raise NotImplementedError
     end
 
-    def build_and_link_exts(executor, module_bytes)
+    def build_gem_exts(executor, gem_home)
+      raise NotImplementedError
+    end
+
+    def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
       raise NotImplementedError
     end
 
@@ -53,6 +57,14 @@ class RubyWasm::Packager::Core
         next nil if exts.empty?
         [spec, exts]
       end
+    end
+
+    def wasi_exec_model
+      # TODO: Detect WASI exec-model from binary exports (_start or _initialize)
+      use_js_gem = @packager.specs.any? do |spec|
+        spec.name == "js"
+      end
+      use_js_gem ? "reactor" : "command"
     end
 
     def cache_key(digest)
@@ -93,20 +105,24 @@ class RubyWasm::Packager::Core
       build.crossruby.artifact
     end
 
-    def build_and_link_exts(executor, module_bytes)
+    def build_gem_exts(executor, gem_home)
       build = derive_build
-      self.build_exts(executor, build)
-      self.link_exts(executor, build)
+      self._build_gem_exts(executor, build, gem_home)
     end
 
-    def link_exts(executor, build)
-      ruby_root = build.crossruby.dest_dir
+    def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
+      build = derive_build
+      self._link_gem_exts(executor, build, ruby_root, gem_home, module_bytes)
+    end
 
-      libraries = [File.join(ruby_root, "usr", "local", "bin", "ruby")]
+    def _link_gem_exts(executor, build, ruby_root, gem_home, module_bytes)
+      libraries = []
 
       # TODO: Should be computed from dyinfo of ruby binary
       wasi_libc_shared_libs = [
         "libc.so",
+        "libc++.so",
+        "libc++abi.so",
         "libwasi-emulated-getpid.so",
         "libwasi-emulated-mman.so",
         "libwasi-emulated-process-clocks.so",
@@ -119,13 +135,18 @@ class RubyWasm::Packager::Core
         wasi_sdk_path = toolchain.wasi_sdk_path
         libraries << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
       end
-      wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1("command")
+      wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1(wasi_exec_model)
       adapters = [wasi_adapter]
-      dl_openable_libs = Dir.glob(File.join(ruby_root, "usr", "local", "lib", "ruby", "**", "*.so"))
+      dl_openable_libs = []
+      dl_openable_libs << [File.dirname(ruby_root), Dir.glob(File.join(ruby_root, "lib", "ruby", "**", "*.so"))]
+      dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "**", "*.so"))]
+
       linker = RubyWasmExt::ComponentLink.new
       linker.use_built_in_libdl(true)
       linker.stub_missing_functions(false)
-      linker.validate(true)
+      linker.validate(ENV["RUBYWASM_SKIP_LINKER_VALIDATION"] != "1")
+
+      linker.library("ruby", module_bytes, false)
 
       libraries.each do |lib|
         # Non-DL openable libraries should be referenced as base name
@@ -135,12 +156,14 @@ class RubyWasm::Packager::Core
         linker.library(lib_name, module_bytes, false)
       end
 
-      dl_openable_libs.each do |lib|
-        # DL openable lib_name should be a relative path from ruby_root
-        lib_name = "/" + Pathname.new(lib).relative_path_from(Pathname.new(ruby_root)).to_s
-        module_bytes = File.binread(lib)
-        RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
-        linker.library(lib_name, module_bytes, true)
+      dl_openable_libs.each do |root, libs|
+        libs.each do |lib|
+          # DL openable lib_name should be a relative path from ruby_root
+          lib_name = "/" + Pathname.new(lib).relative_path_from(Pathname.new(File.dirname(root))).to_s
+          module_bytes = File.binread(lib)
+          RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
+          linker.library(lib_name, module_bytes, true)
+        end
       end
 
       adapters.each do |adapter|
@@ -148,29 +171,36 @@ class RubyWasm::Packager::Core
         # e.g. wasi_snapshot_preview1.command.wasm -> wasi_snapshot_preview1
         adapter_name = adapter_name.split(".")[0]
         module_bytes = File.binread(adapter)
+        RubyWasm.logger.info "Linking adapter #{adapter_name}=#{adapter} (#{module_bytes.size} bytes)"
         linker.adapter(adapter_name, module_bytes)
       end
       return linker.encode()
     end
 
-    def build_exts(executor, build)
+    def _build_gem_exts(executor, build, gem_home)
       exts = specs_with_extensions.flat_map do |spec, exts|
         exts.map do |ext|
           ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"
           ext_srcdir = File.join(spec.full_gem_path, ext_feature)
           ext_relative_path = File.join(spec.full_name, ext_feature)
-          RubyWasm::CrossRubyExtProduct.new(
+          prod = RubyWasm::CrossRubyExtProduct.new(
             ext_srcdir,
             build.toolchain,
             features: @packager.features,
             ext_relative_path: ext_relative_path
           )
+          [prod, spec]
         end
       end
 
-      exts.each do |prod|
+      exts.each do |prod, spec|
+        libdir = File.join(gem_home, "gems", spec.full_name, spec.raw_require_paths.first)
+        extra_mkargs = [
+          "sitearchdir=#{libdir}",
+          "sitelibdir=#{libdir}",
+        ]
         executor.begin_section prod.class, prod.name, "Building"
-        prod.build(executor, build.crossruby)
+        prod.build(executor, build.crossruby, extra_mkargs)
         executor.end_section prod.class, prod.name
       end
     end
@@ -301,15 +331,19 @@ class RubyWasm::Packager::Core
       build
     end
 
-    def build_and_link_exts(executor, module_bytes)
+    def build_gem_exts(executor, gem_home)
+      # No-op because we already built extensions as part of the Ruby build
+    end
+
+    def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
       return module_bytes unless @packager.features.support_component_model?
 
       linker = RubyWasmExt::ComponentEncode.new
-      linker.validate(true)
+      linker.validate(ENV["RUBYWASM_SKIP_LINKER_VALIDATION"] != "1")
       linker.module(module_bytes)
       linker.adapter(
         "wasi_snapshot_preview1",
-        File.binread(RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1("reactor"))
+        File.binread(RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1(wasi_exec_model))
       )
 
       linker.encode()
