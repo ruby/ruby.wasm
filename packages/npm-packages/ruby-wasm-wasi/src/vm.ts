@@ -125,7 +125,11 @@ export class RubyVM {
     this.guest.rubyInit();
     this.guest.rubySysinit(c_args);
     this.guest.rubyOptions(c_args);
-    this.eval(`require "/bundle/setup"`);
+    try {
+      this.eval(`require "/bundle/setup"`);
+    } catch (e) {
+      console.warn("Failed to load /bundle/setup", e);
+    }
   }
 
   /**
