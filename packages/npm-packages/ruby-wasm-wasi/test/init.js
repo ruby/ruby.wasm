@@ -74,7 +74,10 @@ async function initComponentRubyVM({ suppressStderr } = { suppressStderr: false 
   }
   const vm = await RubyVM._instantiate(async (jsRuntime) => {
     const { cli, clocks, filesystem, io, random, sockets } = preview2Shim;
-    filesystem._setPreopens({})
+    filesystem._setPreopens({
+      "/usr": path.join(process.env.RUBY_BUILD_ROOT, "usr"),
+      "/bundle": path.join(process.env.RUBY_BUILD_ROOT, "bundle"),
+    })
     cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
     cli._setCwd("/")
     const root = await instantiate(getCoreModule, {
