@@ -44,7 +44,7 @@ class RubyWasm::Packager
       fs.remove_stdlib(executor)
     end
 
-    if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_component_model?
+    if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_dynamic_linking?
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)
@@ -53,27 +53,6 @@ class RubyWasm::Packager
       wasm_bytes = wasi_vfs.pack(wasm_bytes)
     end
     wasm_bytes = ruby_core.link_gem_exts(executor, fs.ruby_root, fs.bundle_dir, wasm_bytes)
-
-    if features.support_component_model?
-      tmp_file = "tmp/ruby.component.wasm"
-      tmp_virt_file = "tmp/ruby.component.virt.wasm"
-      File.write(tmp_file, wasm_bytes)
-      args = [
-        "wasi-virt", "--stderr=allow",
-        "--allow-random", "--allow-clocks", "--allow-exit",
-        "--stdout=allow", "--stdin=allow",
-        "--allow-all",
-        "--debug"
-      ]
-      [["/bundle", fs.bundle_dir], ["/usr", File.dirname(fs.ruby_root)]].each do |guest, host|
-        args += ["--mount", "#{guest}=#{host}"]
-      end
-      args += ["--out", tmp_virt_file]
-      args += [tmp_file]
-
-      executor.system(*args)
-      wasm_bytes = File.binread(tmp_virt_file)
-    end
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes
