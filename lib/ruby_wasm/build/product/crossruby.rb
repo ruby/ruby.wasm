@@ -299,8 +299,7 @@ module RubyWasm
     end
 
     def extinit_c_erb
-      lib_root = File.expand_path("../../../../..", __FILE__)
-      File.join(lib_root, "ext", "extinit.c.erb")
+      File.expand_path("../crossruby/extinit.c.erb", __FILE__)
     end
 
     def baseruby_path
