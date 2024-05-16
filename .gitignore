@@ -7,6 +7,7 @@ dist
 /target
 /Gemfile.lock
 /lib/ruby_wasm/ruby_wasm.so
+/lib/ruby_wasm/ruby_wasm.bundle
 
 .cache
 compile_commands.json
