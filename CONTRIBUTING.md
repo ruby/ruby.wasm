@@ -9,6 +9,8 @@ This document describes development setup and pointers for diving into this proj
 $ git clone https://github.com/ruby/ruby.wasm --recursive
 $ cd ruby.wasm
 $ ./bin/setup
+# Just for building vendor/jco (will be removed soon)
+$ rustup target add wasm32-wasi
 # Compile extension library
 $ bundle exec rake compile
 $ rake --tasks
