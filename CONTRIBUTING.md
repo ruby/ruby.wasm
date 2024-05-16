@@ -6,7 +6,7 @@ This document describes development setup and pointers for diving into this proj
 ## Install dependencies
 
 ```console
-$ git clone https://github.com/ruby/ruby.wasm
+$ git clone https://github.com/ruby/ruby.wasm --recursive
 $ cd ruby.wasm
 $ ./bin/setup
 # Compile extension library
