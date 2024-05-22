@@ -3,6 +3,8 @@ require "mkmf"
 MakeMakefile::RbConfig ||= RbConfig
 unless MakeMakefile::RbConfig::CONFIG["platform"] =~ /wasm/
   $stderr.puts "This extension is only for WebAssembly. Creating a dummy Makefile."
+  # Explicitly set $srcs to avoid the default '*.c' globbing.
+  $srcs = []
   create_makefile("js")
   return
 end
