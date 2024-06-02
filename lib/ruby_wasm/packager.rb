@@ -70,6 +70,7 @@ class RubyWasm::Packager
     return [] unless @definition
     @specs ||= @definition.resolve.materialize(@definition.requested_dependencies)
       .reject { |spec| EXCLUDED_GEMS.include?(spec.name) }
+      .reject { |spec| spec.is_a?(Bundler::LazySpecification) }
     @specs
   end
 
