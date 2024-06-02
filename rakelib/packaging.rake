@@ -32,7 +32,7 @@ def npm_pkg_rubies_cache_key(pkg)
   chdir = pkg[:gemfile] ? File.dirname(pkg[:gemfile]) : Dir.pwd
   stdout, status = Open3.capture2(*cmd, chdir: chdir)
   unless status.success?
-    raise "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+    raise "Command failed with status (#{status.exitstatus}): #{cmd.join " "}"
   end
   require "json"
   JSON.parse(stdout)["hexdigest"]

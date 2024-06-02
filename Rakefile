@@ -71,7 +71,7 @@ class BuildTask < Struct.new(:name, :target, :build_command)
     cmd = build_command + ["--print-ruby-cache-key"]
     stdout, status = Open3.capture2(*cmd)
     unless status.success?
-      raise "Command failed with status (#{status.exitstatus}): #{cmd.join ""}"
+      raise "Command failed with status (#{status.exitstatus}): #{cmd.join " "}"
     end
     require "json"
     @key = JSON.parse(stdout)
