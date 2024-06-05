@@ -16,3 +16,4 @@ wizer = "4.0.0"
 wasi-vfs-cli = { git = "https://github.com/kateinoigakukun/wasi-vfs/", tag = "0.5.2" }
 structopt = "0.3.26"
 wit-component = "0.203.0"
+wasi-virt = { git = "https://github.com/bytecodealliance/wasi-virt", rev = "b2581ff6e993c7c3cb6f5d899977bbce3d4c6c60" }
