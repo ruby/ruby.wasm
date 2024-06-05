@@ -59,9 +59,10 @@ class RubyWasm::Packager
       tmp_virt_file = "tmp/ruby.component.virt.wasm"
       File.write(tmp_file, wasm_bytes)
       args = [
-        "wasi-virt", "--stderr=allow",
+        "wasi-virt",
+        "--allow-fs",
         "--allow-random", "--allow-clocks", "--allow-exit",
-        "--stdout=allow", "--stdin=allow",
+        "--stdin=allow", "--stdout=allow", "--stderr=allow",
         "--allow-all",
         "--debug"
       ]
