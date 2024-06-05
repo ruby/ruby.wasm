@@ -30,7 +30,8 @@ def npm_pkg_rubies_cache_key(pkg)
   require "open3"
   cmd = build_command + ["--print-ruby-cache-key"]
   chdir = pkg[:gemfile] ? File.dirname(pkg[:gemfile]) : Dir.pwd
-  stdout, status = Open3.capture2(*cmd, chdir: chdir)
+  env = { "RUBY_WASM_ROOT" => LIB_ROOT }
+  stdout, status = Open3.capture2(env, *cmd, chdir: chdir)
   unless status.success?
     raise "Command failed with status (#{status.exitstatus}): #{cmd.join " "}"
   end

@@ -68,8 +68,9 @@ class BuildTask < Struct.new(:name, :target, :build_command)
   def ruby_cache_key
     return @key if @key
     require "open3"
+    env = { "RUBY_WASM_ROOT" => LIB_ROOT }
     cmd = build_command + ["--print-ruby-cache-key"]
-    stdout, status = Open3.capture2(*cmd)
+    stdout, status = Open3.capture2(env, *cmd)
     unless status.success?
       raise "Command failed with status (#{status.exitstatus}): #{cmd.join " "}"
     end
