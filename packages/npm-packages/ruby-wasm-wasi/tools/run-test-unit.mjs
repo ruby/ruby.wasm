@@ -37,11 +37,12 @@ const instantiateComponent = async (rootTestFile) => {
   const vm = await RubyVM._instantiate(async (jsRuntime) => {
     const { cli, clocks, filesystem, io, random, sockets } = preview2Shim;
     const dirname = path.dirname(new URL(import.meta.url).pathname);
-    filesystem._setPreopens({
-      "/__root__": path.join(dirname, ".."),
-      "/usr": path.join(process.env.RUBY_BUILD_ROOT, "usr"),
-      "/bundle": path.join(process.env.RUBY_BUILD_ROOT, "bundle"),
-    })
+    const preopens = { "/__root__": path.join(dirname, "..") };
+    if (process.env.RUBY_ROOT) {
+      preopens["/usr"] = path.join(process.env.RUBY_ROOT, "usr");
+      preopens["/bundle"] = path.join(process.env.RUBY_ROOT, "bundle");
+    }
+    filesystem._setPreopens(preopens);
     cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
     cli._setCwd("/")
     const root = await instantiate(getCoreModule, {
