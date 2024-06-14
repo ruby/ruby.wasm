@@ -216,7 +216,9 @@ module RubyWasm
           local_source = { type: "local", path: src_name }
           # @type var local_source: RubyWasm::Packager::build_source
           local_source = local_source.merge(name: "local", patches: [])
-          return [local_source, nil]
+          # FIXME: We should have a way to specify extensions to be included by users.
+          # For now, assume all default extensions available in the head revision are available.
+          return [local_source, RubyWasm::Packager::ALL_DEFAULT_EXTS]
         end
         # Otherwise, it's an unknown source.
         raise(
