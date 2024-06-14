@@ -3,7 +3,11 @@
 #include "ruby.h"
 #include "ruby/version.h"
 
-static VALUE rb_eval_string_value_protect_thunk(VALUE str) {
+#include "types.h"
+
+static VALUE rb_eval_string_value_protect_thunk(VALUE ctx) {
+  const rb_abi_guest_string_t *cabi_str = (const rb_abi_guest_string_t *)ctx;
+  VALUE str = rb_utf8_str_new((const char *)cabi_str->ptr, cabi_str->len);
   const ID id_eval = rb_intern("eval");
   VALUE binding = rb_const_get(rb_cObject, rb_intern("TOPLEVEL_BINDING"));
   const VALUE file = rb_utf8_str_new("eval", 4);
@@ -11,13 +15,12 @@ static VALUE rb_eval_string_value_protect_thunk(VALUE str) {
   return rb_funcallv(rb_mKernel, id_eval, 3, args);
 }
 
-static VALUE rb_eval_string_value_protect(VALUE str, int *pstate) {
-  return rb_protect(rb_eval_string_value_protect_thunk, str, pstate);
+static VALUE rb_eval_string_value_protect(const rb_abi_guest_string_t *str,
+                                          int *pstate) {
+  return rb_protect(rb_eval_string_value_protect_thunk, (VALUE)str, pstate);
 }
 
 #define TAG_NONE 0
-
-#include "types.h"
 
 __attribute__((import_module("asyncify"), import_name("start_unwind"))) void
 asyncify_start_unwind(void *buf);
@@ -200,14 +203,16 @@ void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(
 
 void rb_abi_guest_ruby_show_version(void) { ruby_show_version(); }
 
-void rb_abi_guest_ruby_init(void) {
-  RB_WASM_LIB_RT(ruby_init())
-
+__attribute__((noinline)) static void rb_abi_guest_ruby_init_thunk(void) {
+  ruby_init();
   rb_abi_guest_arena_hash = rb_hash_new();
   rb_abi_guest_refcount_hash = rb_hash_new();
 
   rb_gc_register_mark_object(rb_abi_guest_arena_hash);
   rb_gc_register_mark_object(rb_abi_guest_refcount_hash);
+}
+void rb_abi_guest_ruby_init(void) {
+  RB_WASM_LIB_RT(rb_abi_guest_ruby_init_thunk())
 }
 
 void rb_abi_guest_ruby_sysinit(rb_abi_guest_list_string_t *args) {
@@ -234,12 +239,11 @@ void rb_abi_guest_ruby_init_loadpath(void) {
   RB_WASM_LIB_RT(ruby_init_loadpath())
 }
 
-void rb_abi_guest_rb_eval_string_protect(
+__attribute__((noinline)) static void rb_abi_guest_rb_eval_string_protect_thunk(
     rb_abi_guest_string_t *str, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0) {
   VALUE retval;
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: str = %s\n", str->ptr);
-  VALUE utf8_str = rb_utf8_str_new((const char *)str->ptr, str->len);
-  RB_WASM_LIB_RT(retval = rb_eval_string_value_protect(utf8_str, &ret0->f1));
+  retval = rb_eval_string_value_protect(str, &ret0->f1);
   RB_WASM_DEBUG_LOG("rb_eval_string_protect: retval = %p, state = %d\n",
                     (void *)retval, ret0->f1);
 
@@ -247,6 +251,10 @@ void rb_abi_guest_rb_eval_string_protect(
     rb_abi_lend_object(retval);
   }
   ret0->f0 = rb_abi_guest_rb_abi_value_new((void *)retval);
+}
+void rb_abi_guest_rb_eval_string_protect(
+    rb_abi_guest_string_t *str, rb_abi_guest_tuple2_rb_abi_value_s32_t *ret0) {
+  RB_WASM_LIB_RT(rb_abi_guest_rb_eval_string_protect_thunk(str, ret0));
 }
 
 struct rb_funcallv_thunk_ctx {
@@ -284,7 +292,9 @@ void rb_abi_guest_rb_funcallv_protect(
 }
 
 rb_abi_guest_rb_id_t rb_abi_guest_rb_intern(rb_abi_guest_string_t *name) {
-  return rb_intern((const char *)name->ptr);
+  VALUE retval;
+  RB_WASM_LIB_RT(retval = rb_intern((const char *)name->ptr));
+  return (rb_abi_guest_rb_id_t)retval;
 }
 
 rb_abi_guest_own_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
@@ -294,14 +304,22 @@ rb_abi_guest_own_rb_abi_value_t rb_abi_guest_rb_errinfo(void) {
   return rb_abi_guest_rb_abi_value_new((void *)retval);
 }
 
-void rb_abi_guest_rb_clear_errinfo(void) { rb_set_errinfo(Qnil); }
+void rb_abi_guest_rb_clear_errinfo(void) {
+  RB_WASM_LIB_RT(rb_set_errinfo(Qnil));
+}
 
-void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_abi_value_t value,
-                              rb_abi_guest_string_t *ret0) {
+__attribute__((noinline)) static void
+rb_abi_guest_rstring_ptr_thunk(rb_abi_guest_rb_abi_value_t value,
+                               rb_abi_guest_string_t *ret0) {
   VALUE r_str = (VALUE)rb_abi_guest_rb_abi_value_get(&value);
   ret0->len = RSTRING_LEN(r_str);
   ret0->ptr = xmalloc(ret0->len);
   memcpy(ret0->ptr, RSTRING_PTR(r_str), ret0->len);
+}
+
+void rb_abi_guest_rstring_ptr(rb_abi_guest_rb_abi_value_t value,
+                              rb_abi_guest_string_t *ret0) {
+  RB_WASM_LIB_RT(rb_abi_guest_rstring_ptr_thunk(value, ret0));
 }
 
 uint32_t rb_abi_guest_rb_abi_value_data_ptr(rb_abi_guest_rb_abi_value_t self) {
