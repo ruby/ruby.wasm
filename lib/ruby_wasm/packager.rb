@@ -68,7 +68,7 @@ class RubyWasm::Packager
   # Retrieves the specs from the Bundler definition, excluding the excluded gems.
   def specs
     return [] unless @definition
-    @specs ||= @definition.resolve.materialize(@definition.requested_dependencies)
+    __skip__ = @specs ||= @definition.resolve.materialize(@definition.requested_dependencies)
       .reject { |spec| EXCLUDED_GEMS.include?(spec.name) }
       .reject { |spec| spec.is_a?(Bundler::LazySpecification) }
     @specs

@@ -46,7 +46,7 @@ class RubyWasm::Packager
 
   def root: () -> string
 
-  ALL_DEFAULT_EXTS: string
+  ALL_DEFAULT_EXTS: String
 
   def build_options: () -> Hash[Symbol, untyped]
   def full_build_options: () -> Hash[Symbol, untyped]
