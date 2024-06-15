@@ -121,7 +121,9 @@ export function consolePrinter(
         view.setUint8(fs_filetypePtr, 2); // FILETYPE_CHARACTER_DEVICE
 
         const fs_rights_basePtr = fdstat + 8;
-        view.setBigUint64(fs_rights_basePtr, BigInt(1)); // RIGHTS_FD_WRITE
+        // See https://github.com/WebAssembly/WASI/blob/v0.2.0/legacy/preview1/docs.md#record-members
+        const RIGHTS_FD_WRITE = 1 << 6;
+        view.setBigUint64(fs_rights_basePtr, BigInt(RIGHTS_FD_WRITE), true);
 
         return 0;
       };
