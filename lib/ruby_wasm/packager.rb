@@ -57,7 +57,11 @@ class RubyWasm::Packager
     if features.support_component_model?
       wasi_virt = RubyWasmExt::WasiVirt.new
       wasi_virt.allow_all
-      [["/bundle", fs.bundle_dir], ["/usr", File.dirname(fs.ruby_root)]].each do |guest, host|
+      [
+        { guest: "/bundle", host: fs.bundle_dir },
+        { guest: "/usr", host: File.dirname(fs.ruby_root) }
+      ].each do |map|
+        map => { guest:, host: }
         RubyWasm.logger.debug "Adding files into VFS: #{host} => #{guest}"
         wasi_virt.map_dir(guest, host)
       end
