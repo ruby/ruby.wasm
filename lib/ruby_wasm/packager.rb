@@ -55,25 +55,13 @@ class RubyWasm::Packager
     wasm_bytes = ruby_core.link_gem_exts(executor, fs.ruby_root, fs.bundle_dir, wasm_bytes)
 
     if features.support_component_model?
-      tmp_file = "tmp/ruby.component.wasm"
-      tmp_virt_file = "tmp/ruby.component.virt.wasm"
-      File.write(tmp_file, wasm_bytes)
-      args = [
-        "wasi-virt",
-        "--allow-fs",
-        "--allow-random", "--allow-clocks", "--allow-exit",
-        "--stdin=allow", "--stdout=allow", "--stderr=allow",
-        "--allow-all",
-        "--debug"
-      ]
+      wasi_virt = RubyWasmExt::WasiVirt.new
+      wasi_virt.allow_all
       [["/bundle", fs.bundle_dir], ["/usr", File.dirname(fs.ruby_root)]].each do |guest, host|
-        args += ["--mount", "#{guest}=#{host}"]
+        RubyWasm.logger.debug "Adding files into VFS: #{host} => #{guest}"
+        wasi_virt.map_dir(guest, host)
       end
-      args += ["--out", tmp_virt_file]
-      args += [tmp_file]
-
-      executor.system(*args)
-      wasm_bytes = File.binread(tmp_virt_file)
+      wasm_bytes = wasi_virt.compose(wasm_bytes)
     end
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]

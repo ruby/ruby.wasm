@@ -1609,6 +1609,7 @@ dependencies = [
  "structopt",
  "wasi-vfs-cli",
  "wasi-virt",
+ "wasm-compose 0.203.0",
  "wit-component 0.203.0",
  "wizer",
 ]
@@ -2249,7 +2250,7 @@ dependencies = [
  "serde",
  "toml 0.8.14",
  "walrus",
- "wasm-compose",
+ "wasm-compose 0.5.5",
  "wasm-metadata 0.10.20",
  "wasm-opt",
  "wit-component 0.21.0",
@@ -2331,6 +2332,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasm-compose"
+version = "0.203.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63d50fd3a3dd038d0910842ca01c2fe99edd15caff33caa990477cce4421c72e"
+dependencies = [
+ "anyhow",
+ "heck 0.4.1",
+ "im-rc",
+ "indexmap 2.1.0",
+ "log",
+ "petgraph",
+ "serde",
+ "serde_derive",
+ "serde_yaml",
+ "smallvec",
+ "wasm-encoder 0.203.0",
+ "wasmparser 0.203.0",
+ "wat",
+]
+
+[[package]]
 name = "wasm-encoder"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2374,6 +2396,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87e3b46a0d9d9143d57aa926c42e2af284b5cb8f0c7b71079afc7a6fca42db50"
 dependencies = [
  "leb128",
+ "wasmparser 0.203.0",
 ]
 
 [[package]]
