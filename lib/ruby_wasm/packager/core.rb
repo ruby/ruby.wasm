@@ -67,6 +67,14 @@ class RubyWasm::Packager::Core
       use_js_gem ? "reactor" : "command"
     end
 
+    def with_unbundled_env(&block)
+      __skip__ = if defined?(Bundler)
+        Bundler.with_unbundled_env(&block)
+      else
+        block.call
+      end
+    end
+
     def cache_key(digest)
       raise NotImplementedError
     end
@@ -87,27 +95,22 @@ class RubyWasm::Packager::Core
       end
       build.crossruby.clean(executor) if options[:clean]
 
-      do_build =
-        proc do
-          build.crossruby.build(
-            executor,
-            remake: options[:remake],
-            reconfigure: options[:reconfigure]
-          )
-        end
+      self.with_unbundled_env do
+        build.crossruby.build(
+          executor,
+          remake: options[:remake],
+          reconfigure: options[:reconfigure]
+        )
+      end
 
-      __skip__ =
-        if defined?(Bundler)
-          Bundler.with_unbundled_env(&do_build)
-        else
-          do_build.call
-        end
       build.crossruby.artifact
     end
 
     def build_gem_exts(executor, gem_home)
       build = derive_build
-      self._build_gem_exts(executor, build, gem_home)
+      self.with_unbundled_env do
+        self._build_gem_exts(executor, build, gem_home)
+      end
     end
 
     def link_gem_exts(executor, ruby_root, gem_home, module_bytes)
@@ -269,21 +272,14 @@ class RubyWasm::Packager::Core
       end
       build.crossruby.clean(executor) if options[:clean]
 
-      do_build =
-        proc do
-          build.crossruby.build(
-            executor,
-            remake: options[:remake],
-            reconfigure: options[:reconfigure]
-          )
-        end
+      self.with_unbundled_env do
+        build.crossruby.build(
+          executor,
+          remake: options[:remake],
+          reconfigure: options[:reconfigure]
+        )
+      end
 
-      __skip__ =
-        if defined?(Bundler)
-          Bundler.with_unbundled_env(&do_build)
-        else
-          do_build.call
-        end
       build.crossruby.artifact
     end
 
