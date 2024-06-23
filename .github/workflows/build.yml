@@ -115,6 +115,8 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         id: builder-image
+        env:
+          DOCKER_BUILD_NO_SUMMARY: true
         with:
           context: builders/${{ matrix.entry.builder }}
           load: true
