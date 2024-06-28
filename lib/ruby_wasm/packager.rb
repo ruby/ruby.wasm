@@ -44,7 +44,7 @@ class RubyWasm::Packager
       fs.remove_stdlib(executor)
     end
 
-    if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_dynamic_linking?
+    if full_build_options[:target] == "wasm32-unknown-wasip1" && !features.support_component_model?
       # wasi-vfs supports only WASI target
       wasi_vfs = RubyWasmExt::WasiVfs.new
       wasi_vfs.map_dir("/bundle", fs.bundle_dir)
@@ -53,6 +53,20 @@ class RubyWasm::Packager
       wasm_bytes = wasi_vfs.pack(wasm_bytes)
     end
     wasm_bytes = ruby_core.link_gem_exts(executor, fs.ruby_root, fs.bundle_dir, wasm_bytes)
+
+    if features.support_component_model?
+      wasi_virt = RubyWasmExt::WasiVirt.new
+      wasi_virt.allow_all
+      [
+        { guest: "/bundle", host: fs.bundle_dir },
+        { guest: "/usr", host: File.dirname(fs.ruby_root) }
+      ].each do |map|
+        map => { guest:, host: }
+        RubyWasm.logger.debug "Adding files into VFS: #{host} => #{guest}"
+        wasi_virt.map_dir(guest, host)
+      end
+      wasm_bytes = wasi_virt.compose(wasm_bytes)
+    end
 
     wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes

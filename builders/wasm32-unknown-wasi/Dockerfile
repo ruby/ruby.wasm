@@ -27,7 +27,7 @@ RUN set -eux pipefail; \
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.75
+    RUST_VERSION=1.76.0
 
 RUN set -eux pipefail; \
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \

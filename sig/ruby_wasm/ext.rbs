@@ -33,4 +33,12 @@ module RubyWasmExt
     def import_name_map: (Hash[String, String] map) -> void
     def encode: () -> bytes
   end
+
+  class WasiVirt
+    def initialize: () -> void
+    def allow_all: () -> void
+    def map_dir: (String guest_path, String host_path) -> void
+    def finish: () -> bytes
+    def compose: (bytes component_bytes) -> bytes
+  end
 end

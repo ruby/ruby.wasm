@@ -73,8 +73,13 @@ async function initComponentRubyVM({ suppressStderr } = { suppressStderr: false 
     return module;
   }
   const vm = await RubyVM._instantiate(async (jsRuntime) => {
-    const { cli, clocks, filesystem, io, random, sockets } = preview2Shim;
-    filesystem._setPreopens({})
+    const { cli, clocks, filesystem, io, random, sockets, http } = preview2Shim;
+    if (process.env.RUBY_BUILD_ROOT) {
+      filesystem._setPreopens({
+        "/usr": path.join(process.env.RUBY_BUILD_ROOT, "usr"),
+        "/bundle": path.join(process.env.RUBY_BUILD_ROOT, "bundle"),
+      })
+    }
     cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
     cli._setCwd("/")
     const root = await instantiate(getCoreModule, {
@@ -98,6 +103,9 @@ async function initComponentRubyVM({ suppressStderr } = { suppressStderr: false 
       "wasi:io/streams": io.streams,
       "wasi:random/random": random.random,
       "wasi:sockets/tcp": sockets.tcp,
+      "wasi:http/types": http.types,
+      "wasi:http/incoming-handler": http.incomingHandler,
+      "wasi:http/outgoing-handler": http.outgoingHandler,
     })
     return root.rubyRuntime;
   }, {})

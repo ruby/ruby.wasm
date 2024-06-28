@@ -80,7 +80,7 @@ module RubyWasm
         "--target-rbconfig=#{rbconfig_rb}",
       ]
       extconf_args << "--enable-component-model" if @features.support_component_model?
-      executor.system Gem.ruby, *extconf_args
+      executor.system crossruby.baseruby_path, *extconf_args
     end
 
     def do_legacy_extconf(executor, crossruby)

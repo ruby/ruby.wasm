@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, env, path::PathBuf, time::SystemTime};
 
 use magnus::{
     eval, exception, function, method,
@@ -8,6 +8,7 @@ use magnus::{
 };
 use structopt::StructOpt;
 use wizer::Wizer;
+use wasi_virt;
 
 static RUBY_WASM: value::Lazy<RModule> =
     value::Lazy::new(|ruby| ruby.define_module("RubyWasmExt").unwrap());
@@ -222,6 +223,99 @@ impl ComponentEncode {
     }
 }
 
+#[wrap(class = "RubyWasmExt::WasiVirt")]
+struct WasiVirt(std::cell::RefCell<Option<wasi_virt::WasiVirt>>);
+
+impl WasiVirt {
+    fn new() -> Self {
+        Self(std::cell::RefCell::new(Some(wasi_virt::WasiVirt::new())))
+    }
+
+    fn virt<R>(
+        &self,
+        body: impl FnOnce(&mut wasi_virt::WasiVirt) -> Result<R, Error>,
+    ) -> Result<R, Error> {
+        let mut virt = self.0.take().ok_or_else(|| {
+            Error::new(
+                exception::standard_error(),
+                "wasi virt is already consumed".to_string(),
+            )
+        })?;
+        let result = body(&mut virt)?;
+        self.0.replace(Some(virt));
+        Ok(result)
+    }
+
+    fn allow_all(&self) -> Result<(), Error> {
+        self.virt(|virt| {
+            virt.allow_all();
+            // Disable sockets for now since `sockets/ip-name-lookup` is not
+            // supported by @bytecodealliance/preview2-shim yet
+            virt.sockets(false);
+            Ok(())
+        })
+    }
+
+    fn map_dir(&self, guest_dir: String, host_dir: String) -> Result<(), Error> {
+        self.virt(|virt| {
+            virt.fs().virtual_preopen(guest_dir, host_dir);
+            Ok(())
+        })
+    }
+
+    fn finish(&self) -> Result<bytes::Bytes, Error> {
+        self.virt(|virt| {
+            let result = virt.finish().map_err(|e| {
+                Error::new(
+                    exception::standard_error(),
+                    format!("failed to generate virtualization adapter: {}", e),
+                )
+            })?;
+            Ok(result.adapter.into())
+        })
+    }
+
+    fn compose(&self, component_bytes: bytes::Bytes) -> Result<bytes::Bytes, Error> {
+        let virt_adapter = self.finish()?;
+        let tmpdir = env::temp_dir();
+        let tmp_virt = tmpdir.join(format!("virt{}.wasm", timestamp()));
+        std::fs::write(&tmp_virt, &virt_adapter).map_err(|e| {
+            Error::new(
+                exception::standard_error(),
+                format!("failed to write virt adapter: {}", e),
+            )
+        })?;
+        let tmp_component = tmpdir.join(format!("component{}.wasm", timestamp()));
+        std::fs::write(&tmp_component, &component_bytes).map_err(|e| {
+            Error::new(
+                exception::standard_error(),
+                format!("failed to write component: {}", e),
+            )
+        })?;
+
+        use wasm_compose::{composer, config};
+        let config = config::Config {
+            definitions: vec![tmp_virt],
+            ..Default::default()
+        };
+        let composer = composer::ComponentComposer::new(&tmp_component, &config);
+        let composed = composer.compose().map_err(|e| {
+            Error::new(
+                exception::standard_error(),
+                format!("failed to compose component: {}", e),
+            )
+        })?;
+        return Ok(composed.into());
+
+        fn timestamp() -> u64 {
+            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+                Ok(n) => n.as_secs(),
+                Err(_) => panic!(),
+            }
+        }
+    }
+}
+
 #[magnus::init]
 fn init(ruby: &Ruby) -> Result<(), Error> {
     let module = RUBY_WASM.get_inner_with(ruby);
@@ -265,6 +359,13 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
         method!(ComponentEncode::import_name_map, 1),
     )?;
     component_encode.define_method("encode", method!(ComponentEncode::encode, 0))?;
+
+    let wasi_virt = module.define_class("WasiVirt", ruby.class_object())?;
+    wasi_virt.define_singleton_method("new", function!(WasiVirt::new, 0))?;
+    wasi_virt.define_method("allow_all", method!(WasiVirt::allow_all, 0))?;
+    wasi_virt.define_method("map_dir", method!(WasiVirt::map_dir, 2))?;
+    wasi_virt.define_method("finish", method!(WasiVirt::finish, 0))?;
+    wasi_virt.define_method("compose", method!(WasiVirt::compose, 1))?;
 
     Ok(())
 }
