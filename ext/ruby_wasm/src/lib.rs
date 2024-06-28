@@ -249,6 +249,9 @@ impl WasiVirt {
     fn allow_all(&self) -> Result<(), Error> {
         self.virt(|virt| {
             virt.allow_all();
+            // Disable sockets for now since `sockets/ip-name-lookup` is not
+            // supported by @bytecodealliance/preview2-shim yet
+            virt.sockets(false);
             Ok(())
         })
     }
