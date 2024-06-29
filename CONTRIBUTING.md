@@ -111,7 +111,10 @@ $ rake 'bump_version[0.6.0]'
 $ git commit -m"Bump version to 0.6.0"
 $ git tag 0.6.0
 $ git push origin 0.6.0
-$ for pkg in pkg/ruby_wasm-*; do gem push $pkg; done
+# After GitHub Actions "Build gems" is done
+# https://github.com/ruby/ruby.wasm/actions/workflows/build-gems.yml
+$ gh run download <run-id>
+$ for pkg in cross-gem/pkg/ruby_wasm-*; do gem push $pkg; done
 $ gem build && gem push ruby_wasm-*.gem && rm ruby_wasm-*.gem
 $ (cd packages/gems/js/ && gem build && gem push js-*.gem && rm js-*.gem)
 ```
