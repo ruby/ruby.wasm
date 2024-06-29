@@ -25,10 +25,6 @@ def npm_pkg_build_command(pkg)
 end
 
 def npm_pkg_rubies_cache_key(pkg)
-  # FIXME: Now CrossRubyExtProduct depends on just built baseruby, and exts can be
-  # built after restoring the tarball cache. So it can fail to find baseruby when the
-  # cache hit. We need to orchestrate the build dependency graph properly.
-  return nil if pkg[:name] == "ruby-head-wasm-wasi"
   build_command = npm_pkg_build_command(pkg)
   return nil unless build_command
   require "open3"

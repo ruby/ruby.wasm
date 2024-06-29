@@ -33,6 +33,7 @@ module RubyWasm
     @source: BuildSource
 
     attr_reader toolchain: Toolchain
+    attr_reader baseruby: BaseRubyProduct
 
     def initialize: (
       string name,
