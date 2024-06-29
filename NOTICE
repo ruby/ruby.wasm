@@ -1264,8 +1264,7 @@ Licensed under the Apache License 2.0 https://www.openssl.org/source/license.htm
 https://github.com/kateinoigakukun/wasi-vfs
 
 ```
-Copyright (c) 2022 Yuta Saito. All rights reserved.
-Licensed under the MIT License
+Licensed under the Apache License v2.0 with LLVM Exceptions
 ```
 
 ---

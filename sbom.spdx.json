@@ -1,0 +1,114 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "ruby.wasm-spdx",
+  "documentNamespace": "http://spdx.org/spdxdocs/ruby.wasm-spdx-01906291-792d-7385-b800-45753122d052",
+  "creationInfo": {
+    "created": "2024-06-29T14:00:00Z",
+    "comment": "This document only covers software packages used by WebAssembly form of Ruby interpreters distributed by ruby.wasm project. It does not cover those used by the build system for now.",
+    "creators": [
+      "Person: Yuta Saito"
+    ]
+  },
+  "documentDescribes": [
+    "SPDXRef-Package-ruby.wasm"
+  ],
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-ruby.wasm",
+      "name": "ruby.wasm",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "MIT",
+      "downloadLocation": "git+http://github.com/ruby/ruby.wasm.git",
+      "copyrightText": "Copyright (c) 2021 Yuta Saito"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-ruby",
+      "name": "ruby",
+      "filesAnalyzed": false,
+      "licenseDeclared": "BSD-2-Clause OR Ruby",
+      "licenseConcluded": "Ruby",
+      "downloadLocation": "https://www.ruby-lang.org/en/",
+      "copyrightText": "Ruby is copyrighted free software by Yukihiro Matsumoto <matz@netlab.jp>."
+    },
+    {
+      "SPDXID": "SPDXRef-Package-libyaml",
+      "name": "libyaml",
+      "filesAnalyzed": false,
+      "licenseDeclared": "MIT",
+      "licenseConcluded": "MIT",
+      "downloadLocation": "git+https://github.com/yaml/libyaml.git",
+      "copyrightText": "Copyright (c) 2017-2020 Ingy döt Net\nCopyright (c) 2006-2016 Kirill Simonov"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-zlib",
+      "name": "zlib",
+      "filesAnalyzed": false,
+      "downloadLocation": "git+https://github.com/madler/zlib.git",
+      "licenseConcluded": "Zlib",
+      "licenseDeclared": "Zlib",
+      "copyrightText": "Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-wasi-libc",
+      "name": "wasi-libc",
+      "filesAnalyzed": false,
+      "downloadLocation": "git+https://github.com/WebAssembly/wasi-libc.git",
+      "licenseConcluded": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-openssl",
+      "name": "openssl",
+      "filesAnalyzed": false,
+      "downloadLocation": "https://www.openssl.org",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved."
+    },
+    {
+      "SPDXID": "SPDXRef-Package-wasi-vfs",
+      "name": "wasi-vfs",
+      "filesAnalyzed": false,
+      "downloadLocation": "git+https://github.com/kateinoigakukun/wasi-vfs.git",
+      "licenseConcluded": "Apache-2.0 WITH LLVM-exception",
+      "licenseDeclared": "Apache-2.0 WITH LLVM-exception",
+      "copyrightText": "NOASSERTION"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-Package-ruby.wasm",
+      "relatedSpdxElement": "SPDXRef-Package-ruby",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ruby.wasm",
+      "relatedSpdxElement": "SPDXRef-Package-libyaml",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ruby.wasm",
+      "relatedSpdxElement": "SPDXRef-Package-zlib",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ruby.wasm",
+      "relatedSpdxElement": "SPDXRef-Package-wasi-libc",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ruby.wasm",
+      "relatedSpdxElement": "SPDXRef-Package-openssl",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ruby.wasm",
+      "relatedSpdxElement": "SPDXRef-Package-wasi-vfs",
+      "relationshipType": "DEPENDS_ON"
+    }
+  ]
+}
