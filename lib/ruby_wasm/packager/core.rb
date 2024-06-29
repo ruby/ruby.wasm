@@ -181,6 +181,12 @@ class RubyWasm::Packager::Core
     end
 
     def _build_gem_exts(executor, build, gem_home)
+      build.toolchain.install
+      baseruby = build.baseruby
+      unless Dir.exist?(baseruby.install_dir)
+        baseruby.build(executor)
+      end
+
       exts = specs_with_extensions.flat_map do |spec, exts|
         exts.map do |ext|
           ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"

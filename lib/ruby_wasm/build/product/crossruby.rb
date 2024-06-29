@@ -71,7 +71,6 @@ module RubyWasm
         return
       end
       objdir = product_build_dir crossruby
-      source = crossruby.source
       rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
       raise "rbconfig.rb not found" unless rbconfig_rb
       extconf_args = [
@@ -359,6 +358,10 @@ module RubyWasm
         args << %Q(wasmoptflags=#{@wasmoptflags.join(" ")})
       end
       args << "--disable-install-doc"
+      unless @params.target.pic?
+        # TODO: Remove this hack after dropping Ruby 3.2 support
+        args << "ac_cv_func_dlopen=no"
+      end
       args
     end
   end
