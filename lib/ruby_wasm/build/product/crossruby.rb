@@ -71,7 +71,7 @@ module RubyWasm
         return
       end
       objdir = product_build_dir crossruby
-      rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
+      rbconfig_rb = crossruby.rbconfig_rb
       raise "rbconfig.rb not found" unless rbconfig_rb
       extconf_args = [
         "-C", objdir,
@@ -299,6 +299,10 @@ module RubyWasm
 
     def extinit_c_erb
       File.expand_path("../crossruby/extinit.c.erb", __FILE__)
+    end
+
+    def rbconfig_rb
+      Dir.glob(File.join(dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
     end
 
     def baseruby_path

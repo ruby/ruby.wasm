@@ -187,31 +187,41 @@ class RubyWasm::Packager::Core
         baseruby.build(executor)
       end
 
-      exts = specs_with_extensions.flat_map do |spec, exts|
-        exts.map do |ext|
-          ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"
-          ext_srcdir = File.join(spec.full_gem_path, ext_feature)
-          ext_relative_path = File.join(spec.full_name, ext_feature)
-          prod = RubyWasm::CrossRubyExtProduct.new(
-            ext_srcdir,
-            build.toolchain,
-            features: @packager.features,
-            ext_relative_path: ext_relative_path
-          )
-          [prod, spec]
-        end
-      end
+      crossruby = build.crossruby
+      rbconfig_rb = crossruby.rbconfig_rb
 
-      exts.each do |prod, spec|
-        libdir = File.join(gem_home, "gems", spec.full_name, spec.raw_require_paths.first)
-        extra_mkargs = [
-          "sitearchdir=#{libdir}",
-          "sitelibdir=#{libdir}",
-        ]
-        executor.begin_section prod.class, prod.name, "Building"
-        prod.build(executor, build.crossruby, extra_mkargs)
-        executor.end_section prod.class, prod.name
-      end
+      options = @packager.full_build_options
+      target_triplet = options[:target]
+
+      local_path = File.join("bundle", target_triplet)
+      env = {
+        "BUNDLE_APP_CONFIG" => File.join(".bundle", target_triplet),
+        "BUNDLE_PATH" => local_path,
+        "BUNDLE_WITHOUT" => "build",
+        # FIXME: BUNDLE_PATH is set as a installation destination here, but
+        # it is also used as a source of gems to be loaded by RubyGems itself.
+        # RubyGems loads "psych" gem and if Gemfile includes "psych" gem,
+        # RubyGems tries to load "psych" gem from BUNDLE_PATH at the second
+        # time of "bundle install" command. But the extension of "psych" gem
+        # under BUNDLE_PATH is built for Wasm target, not for host platform,
+        # so it fails to load the extension.
+        #
+        # Thus we preload psych from the default LOAD_PATH here to avoid
+        # loading Wasm version of psych.so via `Kernel#require` patched by
+        # RubyGems.
+        "RUBYOPT" => "-rpsych",
+      }
+
+      args = [
+        File.join(baseruby.install_dir, "bin", "bundle"),
+        "install",
+        "--standalone",
+        "--target-rbconfig",
+        rbconfig_rb,
+      ]
+
+      executor.system(*args, env: env)
+      executor.cp_r(local_path, gem_home)
     end
 
     def cache_key(digest)

@@ -321,7 +321,7 @@ module RubyWasm
           Bundler.ui.level = old_level
         end
       end
-      RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles}" if definition
+      RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles.map(&:to_s).join(", ")}" if definition
       RubyWasm::Packager.new(
         root, build_config(options), definition,
         features: RubyWasm::FeatureSet.derive_from_env
