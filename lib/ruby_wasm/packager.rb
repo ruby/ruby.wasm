@@ -34,7 +34,7 @@ class RubyWasm::Packager
 
     ruby_core.build_gem_exts(executor, fs.bundle_dir)
 
-    fs.package_gems
+    fs.package_gems unless features.support_component_model?
     fs.remove_non_runtime_files(executor)
     if options[:stdlib]
       options[:without_stdlib_components].each do |component|
