@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 [dependencies]
 magnus = { version = "0.7.1", features = ["bytes"] }
 bytes = "1"
-wizer = "4.0.0"
+wizer = "6.0.0"
 wasi-vfs-cli = { git = "https://github.com/kateinoigakukun/wasi-vfs/", tag = "0.5.2" }
 structopt = "0.3.26"
 wit-component = "0.212.0"
