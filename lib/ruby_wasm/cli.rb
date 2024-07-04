@@ -310,7 +310,10 @@ module RubyWasm
 
     def derive_packager(options)
       __skip__ = definition = nil
-      __skip__ = if defined?(Bundler) && !options[:disable_gems]
+      features = RubyWasm::FeatureSet.derive_from_env
+      # The head ruby & dynamic linking uses "bundle" command to build gems instead of in-process integration.
+      use_in_process_gem_building = !(options[:ruby_version] == "head" && features.support_dynamic_linking?)
+      __skip__ = if defined?(Bundler) && !options[:disable_gems] && use_in_process_gem_building
         begin
           # Silence Bundler UI if --print-ruby-cache-key is specified not to bother the JSON output.
           level = options[:print_ruby_cache_key] ? :silent : Bundler.ui.level
@@ -324,7 +327,7 @@ module RubyWasm
       RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles.map(&:to_s).join(", ")}" if definition
       RubyWasm::Packager.new(
         root, build_config(options), definition,
-        features: RubyWasm::FeatureSet.derive_from_env
+        features: features,
       )
     end
 
