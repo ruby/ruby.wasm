@@ -7,6 +7,11 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 
 env BUNDLE_GEMFILE="$root/Gemfile" bundle install
 for gemfile in $root/packages/npm-packages/*/Gemfile; do
+  # Skip ruby-head-wasm-wasi's Gemfile because it does not need to be installed here
+  if [[ "$gemfile" == *"/ruby-head-wasm-wasi/Gemfile" ]]; then
+    continue
+  fi
+
   # FIXME: This is a workaround for the following issue:
   # 1. `bundle install` does not support auto-self-upgrade for pre-release bundler versions suffixed with ".dev"
   # 2. ruby-head-wasm-wasi's component build depends on 2.6.0.dev, which added --target-rbconfig support
