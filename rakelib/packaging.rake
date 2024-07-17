@@ -67,6 +67,12 @@ namespace :npm do
         mkdir_p dist_dir
         if pkg[:target].start_with?("wasm32-unknown-wasi")
           Dir.chdir(cwd || base_dir) do
+            vendor_cache_dir = File.join(pkg_dir, "vendor", "cache")
+            mkdir_p vendor_cache_dir
+            require_relative "../packages/gems/js/lib/js/version"
+            sh "gem", "-C", File.join(base_dir, "packages/gems/js"), "build", "-o",
+              File.join(pkg_dir, "vendor", "cache", "js-local.gem")
+
             sh env,
                *build_command,
                "--no-stdlib",
