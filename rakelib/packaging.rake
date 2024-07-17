@@ -25,6 +25,8 @@ def npm_pkg_build_command(pkg)
 end
 
 def npm_pkg_rubies_cache_key(pkg)
+  vendor_gem_cache(pkg)
+
   build_command = npm_pkg_build_command(pkg)
   return nil unless build_command
   require "open3"
@@ -39,6 +41,17 @@ def npm_pkg_rubies_cache_key(pkg)
   JSON.parse(stdout)["hexdigest"]
 end
 
+def vendor_gem_cache(pkg)
+  return unless pkg[:gemfile]
+  pkg_dir = File.dirname(pkg[:gemfile])
+  pkg_dir = File.expand_path(pkg_dir)
+  vendor_cache_dir = File.join(pkg_dir, "vendor", "cache")
+  mkdir_p vendor_cache_dir
+  require_relative "../packages/gems/js/lib/js/version"
+  sh "gem", "-C", "packages/gems/js", "build", "-o",
+    File.join(vendor_cache_dir, "js-local.gem")
+end
+
 namespace :npm do
   NPM_PACKAGES.each do |pkg|
     base_dir = Dir.pwd
@@ -50,6 +63,8 @@ namespace :npm do
         build_command = npm_pkg_build_command(pkg)
         # Skip if the package does not require building ruby
         next unless build_command
+
+        vendor_gem_cache(pkg)
 
         env = {
           # Share ./build and ./rubies in the same workspace
@@ -67,11 +82,6 @@ namespace :npm do
         mkdir_p dist_dir
         if pkg[:target].start_with?("wasm32-unknown-wasi")
           Dir.chdir(cwd || base_dir) do
-            vendor_cache_dir = File.join(pkg_dir, "vendor", "cache")
-            mkdir_p vendor_cache_dir
-            require_relative "../packages/gems/js/lib/js/version"
-            sh "gem", "-C", File.join(base_dir, "packages/gems/js"), "build", "-o",
-              File.join(pkg_dir, "vendor", "cache", "js-local.gem")
 
             sh env,
                *build_command,
