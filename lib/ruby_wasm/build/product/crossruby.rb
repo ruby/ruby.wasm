@@ -78,7 +78,7 @@ module RubyWasm
         "#{@srcdir}/extconf.rb",
         "--target-rbconfig=#{rbconfig_rb}",
       ]
-      extconf_args << "--enable-component-model" if @features.support_component_model?
+      extconf_args << "--disable-component-model" unless @features.support_component_model?
       executor.system crossruby.baseruby_path, *extconf_args
     end
 
@@ -111,7 +111,7 @@ module RubyWasm
         "-I#{crossruby.build_dir}",
         "--",
       ]
-      extconf_args << "--enable-component-model" if @features.support_component_model?
+      extconf_args << "--disable-component-model" unless @features.support_component_model?
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
                       *extconf_args,
