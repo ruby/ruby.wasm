@@ -49,7 +49,7 @@ def vendor_gem_cache(pkg)
   mkdir_p vendor_cache_dir
   require_relative "../packages/gems/js/lib/js/version"
   sh "gem", "-C", "packages/gems/js", "build", "-o",
-    File.join(vendor_cache_dir, "js-local.gem")
+    File.join(vendor_cache_dir, "js-#{JS::VERSION}.gem")
 end
 
 namespace :npm do
