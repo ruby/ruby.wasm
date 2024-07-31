@@ -115,5 +115,24 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
 
       expect(await resolve()).toBe("Hello from RecursiveRequire::B");
     });
+
+    test("JS::RequireRemote#load loads a file with a relative path from base_url option", async ({
+      page
+    }) => {
+      const resolve = await resolveBinding(page, "checkResolved");
+      await page.goto(
+        "https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/",
+      );
+      await page.setContent(`
+      <script src="browser.script.iife.js"></script>
+      <script type="text/ruby" data-eval="async">
+        require 'js/require_remote'
+        JS::RequireRemote.instance.base_url = 'fixtures'
+        JS.global.checkResolved JS::RequireRemote.instance.load 'error_on_load_twice'
+      </script>
+     `);
+
+      expect(await resolve()).toBe(true);
+    });
   });
 }
