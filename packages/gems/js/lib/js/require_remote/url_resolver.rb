@@ -26,6 +26,10 @@ module JS
         @url_stack.pop
       end
 
+      def inspect
+        "#{self.class}(#{@url_stack})"
+      end
+
       private
 
       def filename_from(relative_feature)
