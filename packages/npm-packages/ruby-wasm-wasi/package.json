@@ -58,7 +58,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "20.12.2",
-    "prettier": "^3.3.2",
+    "prettier": "^3.3.3",
     "typescript": "^5.4.3",
     "vitest": "^1.6.0"
   },
