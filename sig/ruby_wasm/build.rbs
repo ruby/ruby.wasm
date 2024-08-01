@@ -219,6 +219,7 @@ module RubyWasm
     def extinit_c_erb: -> String
     def baseruby_path: -> String
     def configure_args: (String build_triple, Toolchain toolchain) -> Array[String]
+    def rbconfig_rb: -> String?
   end
 
   class WitBindgen

@@ -142,6 +142,11 @@ jobs:
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
         run: ./build-exec rake --verbose ${{ matrix.entry.task }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.entry.artifact }}
+        with:
+          name: ${{ matrix.entry.artifact_name }}
+          path: ${{ matrix.entry.artifact }}
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.entry.test != '' }}
         with:
@@ -152,11 +157,6 @@ jobs:
           bundle install --with=check --without=development
           rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
-      - uses: actions/upload-artifact@v4
-        if: ${{ matrix.entry.artifact }}
-        with:
-          name: ${{ matrix.entry.artifact_name }}
-          path: ${{ matrix.entry.artifact }}
 
   release-artifacts:
     needs: [rake-tasks]

@@ -252,6 +252,9 @@ impl WasiVirt {
             // Disable sockets for now since `sockets/ip-name-lookup` is not
             // supported by @bytecodealliance/preview2-shim yet
             virt.sockets(false);
+            // Disable http for now since `http` is not supported by
+            // wasmtime yet
+            virt.http(false);
             Ok(())
         })
     }

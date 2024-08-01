@@ -28,20 +28,20 @@ NPM_PACKAGES = [
   {
     name: "ruby-head-wasm-wasi",
     ruby_version: "head",
-    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
+    gemfile: "packages/npm-packages/ruby-head-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasip1",
     enable_component_model: true,
   },
   {
     name: "ruby-3.3-wasm-wasi",
     ruby_version: "3.3",
-    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
+    gemfile: "packages/npm-packages/ruby-3.3-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasip1"
   },
   {
     name: "ruby-3.2-wasm-wasi",
     ruby_version: "3.2",
-    gemfile: "packages/npm-packages/ruby-wasm-wasi/Gemfile",
+    gemfile: "packages/npm-packages/ruby-3.2-wasm-wasi/Gemfile",
     target: "wasm32-unknown-wasip1"
   },
   { name: "ruby-wasm-wasi", target: "wasm32-unknown-wasip1" }

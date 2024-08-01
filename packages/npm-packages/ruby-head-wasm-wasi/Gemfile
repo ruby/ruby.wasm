@@ -1,0 +1,15 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# We build ./vendor/cache/js-{version}.gem just before evaluating this Gemfile
+# so that Bundler builds extensions even from the local gem. (gem extensions
+# from "path:" gems are not built by Bundler.)
+# Thus even we specify version of "js" gem here, it should always installed
+# from the ./vendor/cache/js-{version}.gem, not from rubygems.org. To achieve this,
+# we always use non-exist version during development.
+require_relative "../../gems/js/lib/js/version.rb"
+gem "js", JS::VERSION
+gem "ruby_wasm", path: "../../../", group: [:build]
+gem "power_assert"
+gem "test-unit"

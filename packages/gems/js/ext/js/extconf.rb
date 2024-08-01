@@ -11,7 +11,7 @@ end
 
 $objs = %w[js-core.o witapi-core.o]
 
-use_component_model = enable_config("component-model", false)
+use_component_model = enable_config("component-model", true)
 $stderr.print "Building with component model: "
 $stderr.puts use_component_model ? "\e[1;32myes\e[0m" : "\e[1;31mno\e[0m"
 if use_component_model
