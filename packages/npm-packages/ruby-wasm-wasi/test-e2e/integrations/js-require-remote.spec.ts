@@ -117,7 +117,7 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
     });
 
     test("JS::RequireRemote#load loads the file with a path relative to the base_url specified by the base_url property.", async ({
-      page
+      page,
     }) => {
       const resolve = await resolveBinding(page, "checkResolved");
       await page.goto(
