@@ -49,8 +49,6 @@ module JS
       @evaluator = Evaluator.new
     end
 
-    # Initialize the instance.
-    #
     # If you want to resolve relative paths to a starting point other than the HTML file that executes ruby.wasm,
     # you can set the base_url property.
     # For example, if you want to use the `lib` directory as the starting point, specify base_url as follows
