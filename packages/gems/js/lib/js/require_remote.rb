@@ -43,9 +43,25 @@ module JS
     include Singleton
 
     def initialize
+      # By default, the base_url is the URL of the HTML file that invoked ruby.wasm vm.
       base_url = JS.global[:URL].new(JS.global[:location][:href])
       @resolver = URLResolver.new(base_url)
       @evaluator = Evaluator.new
+    end
+
+    # If you want to resolve relative paths to a starting point other than the HTML file that executes ruby.wasm,
+    # you can set the base_url property.
+    # For example, if you want to use the `lib` directory as the starting point, specify base_url as follows
+    #
+    # == Example
+    #  require 'js/require_remote'
+    #  JS::RequireRemote.instance.base_url = "lib"
+    #  JS::RequireRemote.instance.load("foo") # => 'lib/foo.rb' will be loaded.
+    #
+    def base_url=(base_url)
+      base_url = base_url.end_with?("/") ? base_url : "#{base_url}/"
+      url = JS.global[:URL].new(base_url, JS.global[:location][:href])
+      @resolver = URLResolver.new(url)
     end
 
     # Load the given feature from remote.
