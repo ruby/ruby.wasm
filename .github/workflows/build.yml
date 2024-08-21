@@ -41,6 +41,9 @@ jobs:
       - run: git diff --exit-code
 
   build-builder-image:
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
