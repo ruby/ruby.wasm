@@ -13,7 +13,7 @@ GEM
 
 PLATFORMS
   ruby
-  wasm32-wasi
+  x86_64-linux
 
 DEPENDENCIES
   js (= 2.6.2.dev)

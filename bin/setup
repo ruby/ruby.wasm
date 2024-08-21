@@ -6,28 +6,6 @@ set -vx
 root="$(cd "$(dirname "$0")/.." && pwd)"
 
 env BUNDLE_GEMFILE="$root/Gemfile" bundle install
-for gemfile in $root/packages/npm-packages/*/Gemfile; do
-  # Skip ruby-head-wasm-wasi's Gemfile because it does not need to be installed here
-  if [[ "$gemfile" == *"/ruby-head-wasm-wasi/Gemfile" ]]; then
-    continue
-  fi
-
-  # FIXME: This is a workaround for the following issue:
-  # 1. `bundle install` does not support auto-self-upgrade for pre-release bundler versions suffixed with ".dev"
-  # 2. ruby-head-wasm-wasi's component build depends on 2.6.0.dev, which added --target-rbconfig support
-  # 3. If the "bundle" command here is earlier than 2.6.0.dev, "bundle install" does *not* self-upgrade to
-  #    the specified pre-release version, and it overwrites the Gemfile.lock with the earlier command version.
-  # 4. Overwritten Gemfile.lock with the earlier bundler version causes auto-self-downgrade when running
-  #    "bundle install --target-rbconfig" inside "rbwasm build" command, then it fails because the earlier
-  #    bundler version does not support --target-rbconfig.
-  #
-  # Thus, we temporarily discard the Gemfile.lock changes here to prevent the auto-self-downgrade issue.
-  # This workaround should be removed once we drop static Ruby builds from ruby-head-wasm-wasi or
-  # a stable bundler version is released with --target-rbconfig support.
-  cp "$gemfile.lock" "$gemfile.lock.orig"
-  env BUNDLE_GEMFILE="$gemfile" bundle install
-  mv "$gemfile.lock.orig" "$gemfile.lock"
-done
 
 # Build vendored jco if Rust toolchain is available and submodule is checked out
 if command -v rustc && [ -f vendor/jco/package.json ]; then
