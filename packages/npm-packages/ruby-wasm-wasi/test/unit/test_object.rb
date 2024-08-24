@@ -290,13 +290,6 @@ class JS::TestObject < Test::Unit::TestCase
     assert_equal "o", JS.eval("return 'hello';").charAt(4).to_s
   end
 
-  def test_method_missing_for_send_method
-    object = JS.eval(<<~JS)
-      return { send(message) { return message; } };
-    JS
-    assert_equal "hello", object.send('hello').to_s
-  end
-
   def test_method_missing_with_block
     obj = JS.eval(<<~JS)
       return {
@@ -358,7 +351,20 @@ class JS::TestObject < Test::Unit::TestCase
     assert_true object.respond_to?(:foo)
     assert_true object.respond_to?(:new)
     assert_false object.respond_to?(:bar)
-    assert_false object.respond_to?(:send)
+  end
+
+  def test_send_method_for_javascript_object_with_send_method
+    object = JS.eval(<<~JS)
+      return { send(message) { return message; } };
+    JS
+    assert_equal "hello", object.send('hello').to_s
+  end
+
+  def test_send_method_for_javascript_object_without_send_method
+    object = JS.eval(<<~JS)
+      return { write(message) { return message; } };
+    JS
+    assert_equal "hello", object.send(:write, 'hello').to_s
   end
 
   def test_member_get

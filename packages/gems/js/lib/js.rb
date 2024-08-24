@@ -195,15 +195,26 @@ class JS::Object
     self[sym].typeof == "function"
   end
 
-  # To call the JavaScript `send` method and to check whether the `send` method exists, delete the definition of `Object#send`.
+  # Override the `Object#send` to give priority to `send` method of JavaScript.
   #
-  # For example, the JavaScript `WebSocket` and `XMLHttpRequest` have a `send` method.
-  # The JavaScript method call short-hand in JS::Object is implemented using method_missing.
-  # Therefore, if `Object#send` is defined, `Object#send` will be given priority over the JavaScript `send` method.
-  # The same applies to the `respond_to_missing?` method.
+  # This is to make it easier to use JavaScript Objects with `send` method such as `WebSocket` and `XMLHttpRequest`.
+  # The JavaScript method call short-hand in `JS::Object` is implemented using `method_missing`.
+  # Therefore, `Object#send` takes precedence over the JavaScript `send` method.
+  # If you want to call the JavaScript `send` method, you must use the `call` method as follows:
   #
-  # Please use `BasicObject#__send__` instead.
-  undef_method :send
+  #   ws = JS.global[:WebSocket].new("ws://example.com")
+  #   ws.call(:send, ["Hello, world! from Ruby"])
+  #
+  # This method allows you to call the JavaScript `send` method with the following syntax:
+  #
+  #   ws.send("Hello, world! from Ruby")
+  def send(name, *args)
+    if(self[:send].typeof == "function")
+      self.call(:send, [name, *args].to_js)
+    else
+      super
+    end
+  end
 
   # Call the receiver (a JavaScript function) with `undefined` as its receiver context. 
   # This method is similar to JS::Object#call, but it is used to call a function that is not
