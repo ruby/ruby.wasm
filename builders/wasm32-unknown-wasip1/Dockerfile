@@ -34,6 +34,19 @@ RUN set -eux pipefail; \
     sh -s -- -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION; \
   chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
+# Install the latest Ruby to use the latest Bundler for cross-building C extension gems.
+ADD --keep-git-dir=true https://github.com/ruby/ruby.git /buildruby
+RUN set -eux; \
+  cd /buildruby; \
+  ./autogen.sh; \
+  mkdir -p /opt/ruby; \
+  ./configure --prefix=/opt/ruby --disable-install-doc; \
+  make -j$(nproc); \
+  make install; \
+  cd /; \
+  rm -rf /buildruby
+ENV PATH=/opt/ruby/bin:$PATH
+
 ENV BUNDLE_PATH=/usr/local/gems
 RUN set -eux; \
   mkdir -p $BUNDLE_PATH; \

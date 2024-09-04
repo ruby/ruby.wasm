@@ -11,8 +11,6 @@ def npm_pkg_build_command(pkg)
   # Skip if the package does not require building ruby
   return nil unless pkg[:ruby_version] && pkg[:target]
   [
-    "bundle",
-    "exec",
     exe_rbwasm,
     "build",
     "--ruby-version",
@@ -25,6 +23,8 @@ def npm_pkg_build_command(pkg)
 end
 
 def npm_pkg_rubies_cache_key(pkg)
+  vendor_gem_cache(pkg)
+
   build_command = npm_pkg_build_command(pkg)
   return nil unless build_command
   require "open3"
@@ -39,6 +39,17 @@ def npm_pkg_rubies_cache_key(pkg)
   JSON.parse(stdout)["hexdigest"]
 end
 
+def vendor_gem_cache(pkg)
+  return unless pkg[:gemfile]
+  pkg_dir = File.dirname(pkg[:gemfile])
+  pkg_dir = File.expand_path(pkg_dir)
+  vendor_cache_dir = File.join(pkg_dir, "vendor", "cache")
+  mkdir_p vendor_cache_dir
+  require_relative "../packages/gems/js/lib/js/version"
+  sh "gem", "-C", "packages/gems/js", "build", "-o",
+    File.join(vendor_cache_dir, "js-#{JS::VERSION}.gem")
+end
+
 namespace :npm do
   NPM_PACKAGES.each do |pkg|
     base_dir = Dir.pwd
@@ -50,6 +61,8 @@ namespace :npm do
         build_command = npm_pkg_build_command(pkg)
         # Skip if the package does not require building ruby
         next unless build_command
+
+        vendor_gem_cache(pkg)
 
         env = {
           # Share ./build and ./rubies in the same workspace
@@ -67,12 +80,16 @@ namespace :npm do
         mkdir_p dist_dir
         if pkg[:target].start_with?("wasm32-unknown-wasi")
           Dir.chdir(cwd || base_dir) do
+            sh "bundle", "install"
+
             sh env,
+               "bundle", "exec",
                *build_command,
                "--no-stdlib",
                "-o",
                File.join(dist_dir, "ruby.wasm")
             sh env,
+               "bundle", "exec",
                *build_command,
                "-o",
                File.join(dist_dir, "ruby.debug+stdlib.wasm")

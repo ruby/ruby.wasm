@@ -1,4 +1,5 @@
 require "forwardable"
+require "pathname"
 
 class RubyWasm::Packager::Core
   def initialize(packager)
@@ -19,7 +20,6 @@ class RubyWasm::Packager::Core
   def build_strategy
     @build_strategy ||=
       begin
-        has_exts = @packager.specs.any? { |spec| spec.extensions.any? }
         if @packager.features.support_dynamic_linking?
           DynamicLinking.new(@packager)
         else
@@ -57,14 +57,6 @@ class RubyWasm::Packager::Core
         next nil if exts.empty?
         [spec, exts]
       end
-    end
-
-    def wasi_exec_model
-      # TODO: Detect WASI exec-model from binary exports (_start or _initialize)
-      use_js_gem = @packager.specs.any? do |spec|
-        spec.name == "js"
-      end
-      use_js_gem ? "reactor" : "command"
     end
 
     def with_unbundled_env(&block)
@@ -138,11 +130,15 @@ class RubyWasm::Packager::Core
         wasi_sdk_path = toolchain.wasi_sdk_path
         libraries << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
       end
-      wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1(wasi_exec_model)
-      adapters = [wasi_adapter]
       dl_openable_libs = []
       dl_openable_libs << [File.dirname(ruby_root), Dir.glob(File.join(ruby_root, "lib", "ruby", "**", "*.so"))]
       dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "**", "*.so"))]
+
+      has_js_so = dl_openable_libs.any? do |root, libs|
+        libs.any? { |lib| lib.end_with?("/js.so") }
+      end
+      wasi_adapter = RubyWasm::Packager::ComponentAdapter.wasi_snapshot_preview1(has_js_so ? "reactor" : "command")
+      adapters = [wasi_adapter]
 
       linker = RubyWasmExt::ComponentLink.new
       linker.use_built_in_libdl(true)
@@ -187,31 +183,43 @@ class RubyWasm::Packager::Core
         baseruby.build(executor)
       end
 
-      exts = specs_with_extensions.flat_map do |spec, exts|
-        exts.map do |ext|
-          ext_feature = File.dirname(ext) # e.g. "ext/cgi/escape"
-          ext_srcdir = File.join(spec.full_gem_path, ext_feature)
-          ext_relative_path = File.join(spec.full_name, ext_feature)
-          prod = RubyWasm::CrossRubyExtProduct.new(
-            ext_srcdir,
-            build.toolchain,
-            features: @packager.features,
-            ext_relative_path: ext_relative_path
-          )
-          [prod, spec]
-        end
-      end
+      crossruby = build.crossruby
+      rbconfig_rb = crossruby.rbconfig_rb
 
-      exts.each do |prod, spec|
-        libdir = File.join(gem_home, "gems", spec.full_name, spec.raw_require_paths.first)
-        extra_mkargs = [
-          "sitearchdir=#{libdir}",
-          "sitelibdir=#{libdir}",
-        ]
-        executor.begin_section prod.class, prod.name, "Building"
-        prod.build(executor, build.crossruby, extra_mkargs)
-        executor.end_section prod.class, prod.name
-      end
+      options = @packager.full_build_options
+      target_triplet = options[:target]
+
+      local_path = File.join("bundle", target_triplet)
+      env = {
+        "BUNDLE_APP_CONFIG" => File.join(".bundle", target_triplet),
+        "BUNDLE_PATH" => local_path,
+        "BUNDLE_WITHOUT" => "build",
+        # Do not auto-switch bundler version by Gemfile.lock
+        "BUNDLE_VERSION" => "system",
+        # FIXME: BUNDLE_PATH is set as a installation destination here, but
+        # it is also used as a source of gems to be loaded by RubyGems itself.
+        # RubyGems loads "psych" gem and if Gemfile includes "psych" gem,
+        # RubyGems tries to load "psych" gem from BUNDLE_PATH at the second
+        # time of "bundle install" command. But the extension of "psych" gem
+        # under BUNDLE_PATH is built for Wasm target, not for host platform,
+        # so it fails to load the extension.
+        #
+        # Thus we preload psych from the default LOAD_PATH here to avoid
+        # loading Wasm version of psych.so via `Kernel#require` patched by
+        # RubyGems.
+        "RUBYOPT" => "-rpsych",
+      }
+
+      args = [
+        File.join(baseruby.install_dir, "bin", "bundle"),
+        "install",
+        "--standalone",
+        "--target-rbconfig",
+        rbconfig_rb,
+      ]
+
+      executor.system(*args, env: env)
+      executor.cp_r(local_path, gem_home)
     end
 
     def cache_key(digest)
@@ -335,6 +343,14 @@ class RubyWasm::Packager::Core
 
     def build_gem_exts(executor, gem_home)
       # No-op because we already built extensions as part of the Ruby build
+    end
+
+    def wasi_exec_model
+      # TODO: Detect WASI exec-model from binary exports (_start or _initialize)
+      use_js_gem = @packager.specs.any? do |spec|
+        spec.name == "js"
+      end
+      use_js_gem ? "reactor" : "command"
     end
 
     def link_gem_exts(executor, ruby_root, gem_home, module_bytes)

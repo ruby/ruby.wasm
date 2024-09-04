@@ -44,7 +44,6 @@ class RubyWasm::Packager::FileSystem
     when "enc"
       # Remove all encodings except for encdb.so and transdb.so
       enc_dir = File.join(@ruby_root, "lib", "ruby", ruby_version, "wasm32-wasi", "enc")
-      puts File.join(enc_dir, "**/*.so")
       Dir.glob(File.join(enc_dir, "**/*.so")).each do |entry|
         next if entry.end_with?("encdb.so", "transdb.so")
         RubyWasm.logger.debug "Removing stdlib encoding: #{entry}"

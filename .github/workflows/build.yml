@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "head"
           bundler-cache: true
       - run: ./bin/setup
       - run: bundle exec rake check:type
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "head"
           bundler-cache: true
       - run: ./bin/setup
       - run: rake ci:pin_build_manifest
@@ -90,8 +90,8 @@ jobs:
       - name: Set matrix
         id: set-matrix
         run: |
-          rake ci:rake_task_matrix > matrix.json
-          echo "entries=$(cat matrix.json)" >> $GITHUB_OUTPUT
+          rake ci:rake_task_matrix
+          echo "entries=$(cat ci_matrix.json)" >> $GITHUB_OUTPUT
 
   rake-tasks:
     strategy:
@@ -142,21 +142,21 @@ jobs:
         if: ${{ inputs.prerel_name != '' && matrix.entry.prerelease != '' }}
       - name: rake ${{ matrix.entry.task }}
         run: ./build-exec rake --verbose ${{ matrix.entry.task }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.entry.artifact }}
+        with:
+          name: ${{ matrix.entry.artifact_name }}
+          path: ${{ matrix.entry.artifact }}
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.entry.test != '' }}
         with:
-          ruby-version: "3.3"
+          ruby-version: "head"
           bundler-cache: false
       - name: rake ${{ matrix.entry.test }}
         run: |
           bundle install --with=check --without=development
           rake ${{ matrix.entry.test }}
         if: ${{ matrix.entry.test != '' }}
-      - uses: actions/upload-artifact@v4
-        if: ${{ matrix.entry.artifact }}
-        with:
-          name: ${{ matrix.entry.artifact_name }}
-          path: ${{ matrix.entry.artifact }}
 
   release-artifacts:
     needs: [rake-tasks]
@@ -176,7 +176,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "head"
           bundler-cache: true
       - run: ./bin/setup
       - run: echo "PREREL_NAME=${{ inputs.prerel_name }}" >> $GITHUB_ENV

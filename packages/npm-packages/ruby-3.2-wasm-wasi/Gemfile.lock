@@ -1,12 +1,12 @@
 PATH
   remote: ../../..
   specs:
-    ruby_wasm (2.6.2)
+    ruby_wasm (2.6.2.dev)
 
 PATH
   remote: ../../gems/js
   specs:
-    js (2.6.2)
+    js (2.6.2.dev)
 
 GEM
   remote: https://rubygems.org/
@@ -26,4 +26,4 @@ DEPENDENCIES
   test-unit
 
 BUNDLED WITH
-   2.5.3
+   2.6.0.dev

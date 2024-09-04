@@ -38,3 +38,17 @@ task :bump_version, %i[version] do |t, args|
   # Update Gemfile.lock
   sh "BUNDLE_GEMFILE=packages/npm-packages/ruby-wasm-wasi/Gemfile bundle install"
 end
+
+def bump_dev_version_rb(version_rb)
+  version_rb_content = File.read(version_rb)
+  version_rb_content.sub!(/VERSION = "(.+)"$/) do
+    dev_version = $1.end_with?(".dev") ? $1 : $1 + ".dev"
+    "VERSION = \"#{dev_version}\""
+  end
+  File.write(version_rb, version_rb_content)
+end
+
+task :bump_dev_version do
+  bump_dev_version_rb("lib/ruby_wasm/version.rb")
+  bump_dev_version_rb("packages/gems/js/lib/js/version.rb")
+end

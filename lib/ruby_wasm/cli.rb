@@ -310,7 +310,10 @@ module RubyWasm
 
     def derive_packager(options)
       __skip__ = definition = nil
-      __skip__ = if defined?(Bundler) && !options[:disable_gems]
+      features = RubyWasm::FeatureSet.derive_from_env
+      # The head ruby & dynamic linking uses "bundle" command to build gems instead of in-process integration.
+      use_in_process_gem_building = !(options[:ruby_version] == "head" && features.support_dynamic_linking?)
+      __skip__ = if defined?(Bundler) && !options[:disable_gems] && use_in_process_gem_building
         begin
           # Silence Bundler UI if --print-ruby-cache-key is specified not to bother the JSON output.
           level = options[:print_ruby_cache_key] ? :silent : Bundler.ui.level
@@ -321,10 +324,10 @@ module RubyWasm
           Bundler.ui.level = old_level
         end
       end
-      RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles}" if definition
+      RubyWasm.logger.info "Using Gemfile: #{definition.gemfiles.map(&:to_s).join(", ")}" if definition
       RubyWasm::Packager.new(
         root, build_config(options), definition,
-        features: RubyWasm::FeatureSet.derive_from_env
+        features: features,
       )
     end
 
@@ -332,6 +335,9 @@ module RubyWasm
       ruby_core_build = packager.ruby_core_build
       require "digest"
       digest = Digest::SHA256.new
+      # The build system key is used to invalidate the cache when the build system is updated.
+      build_system_key = 1
+      digest.update(build_system_key.to_s)
       ruby_core_build.cache_key(digest)
       hexdigest = digest.hexdigest
       require "json"

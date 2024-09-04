@@ -71,14 +71,14 @@ module RubyWasm
         return
       end
       objdir = product_build_dir crossruby
-      rbconfig_rb = Dir.glob(File.join(crossruby.dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
+      rbconfig_rb = crossruby.rbconfig_rb
       raise "rbconfig.rb not found" unless rbconfig_rb
       extconf_args = [
         "-C", objdir,
         "#{@srcdir}/extconf.rb",
         "--target-rbconfig=#{rbconfig_rb}",
       ]
-      extconf_args << "--enable-component-model" if @features.support_component_model?
+      extconf_args << "--disable-component-model" unless @features.support_component_model?
       executor.system crossruby.baseruby_path, *extconf_args
     end
 
@@ -111,7 +111,7 @@ module RubyWasm
         "-I#{crossruby.build_dir}",
         "--",
       ]
-      extconf_args << "--enable-component-model" if @features.support_component_model?
+      extconf_args << "--disable-component-model" unless @features.support_component_model?
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
                       *extconf_args,
@@ -299,6 +299,10 @@ module RubyWasm
 
     def extinit_c_erb
       File.expand_path("../crossruby/extinit.c.erb", __FILE__)
+    end
+
+    def rbconfig_rb
+      Dir.glob(File.join(dest_dir, "usr/local/lib/ruby/*/wasm32-wasi/rbconfig.rb")).first
     end
 
     def baseruby_path
