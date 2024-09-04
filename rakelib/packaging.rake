@@ -80,13 +80,16 @@ namespace :npm do
         mkdir_p dist_dir
         if pkg[:target].start_with?("wasm32-unknown-wasi")
           Dir.chdir(cwd || base_dir) do
+            sh "bundle", "install"
 
             sh env,
+               "bundle", "exec",
                *build_command,
                "--no-stdlib",
                "-o",
                File.join(dist_dir, "ruby.wasm")
             sh env,
+               "bundle", "exec",
                *build_command,
                "-o",
                File.join(dist_dir, "ruby.debug+stdlib.wasm")
