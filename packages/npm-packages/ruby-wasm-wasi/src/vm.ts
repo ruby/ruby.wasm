@@ -126,7 +126,15 @@ export class RubyVM {
     this.guest.rubySysinit(c_args);
     this.guest.rubyOptions(c_args);
     try {
-      this.eval(`require "/bundle/setup"`);
+      this.eval(`
+        # Require Bundler standalone setup
+        if File.exist?("/bundle/bundler/setup.rb")
+          require "/bundle/bundler/setup.rb"
+        elsif File.exist?("/bundle/setup.rb")
+          # For non-CM builds, which doesn't use Bundler's standalone mode
+          require "/bundle/setup.rb"
+        end
+      `);
     } catch (e) {
       console.warn("Failed to load /bundle/setup", e);
     }
