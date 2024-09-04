@@ -90,8 +90,8 @@ jobs:
       - name: Set matrix
         id: set-matrix
         run: |
-          rake ci:rake_task_matrix > matrix.json
-          echo "entries=$(cat matrix.json)" >> $GITHUB_OUTPUT
+          rake ci:rake_task_matrix
+          echo "entries=$(cat ci_matrix.json)" >> $GITHUB_OUTPUT
 
   rake-tasks:
     strategy:

@@ -95,7 +95,8 @@ end
 
 namespace :ci do
   task :rake_task_matrix do
-    print JSON.generate(rake_task_matrix.flat_map { |_, entries| entries })
+    content = JSON.generate(rake_task_matrix.flat_map { |_, entries| entries })
+    File.write("ci_matrix.json", content)
   end
 
   task :pin_build_manifest do
