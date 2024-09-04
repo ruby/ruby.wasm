@@ -39,11 +39,13 @@ ADD --keep-git-dir=true https://github.com/ruby/ruby.git /buildruby
 RUN set -eux; \
   cd /buildruby; \
   ./autogen.sh; \
-  ./configure --prefix=/usr/local --disable-install-doc; \
+  mkdir -p /opt/ruby; \
+  ./configure --prefix=/opt/ruby --disable-install-doc; \
   make -j$(nproc); \
   make install; \
   cd /; \
   rm -rf /buildruby
+ENV PATH=/opt/ruby/bin:$PATH
 
 ENV BUNDLE_PATH=/usr/local/gems
 RUN set -eux; \
