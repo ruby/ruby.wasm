@@ -1,4 +1,5 @@
 require "forwardable"
+require "pathname"
 
 class RubyWasm::Packager::Core
   def initialize(packager)

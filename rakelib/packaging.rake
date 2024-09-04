@@ -11,8 +11,6 @@ def npm_pkg_build_command(pkg)
   # Skip if the package does not require building ruby
   return nil unless pkg[:ruby_version] && pkg[:target]
   [
-    "bundle",
-    "exec",
     exe_rbwasm,
     "build",
     "--ruby-version",
