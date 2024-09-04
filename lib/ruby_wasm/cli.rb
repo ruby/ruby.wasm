@@ -335,6 +335,9 @@ module RubyWasm
       ruby_core_build = packager.ruby_core_build
       require "digest"
       digest = Digest::SHA256.new
+      # The build system key is used to invalidate the cache when the build system is updated.
+      build_system_key = 1
+      digest.update(build_system_key.to_s)
       ruby_core_build.cache_key(digest)
       hexdigest = digest.hexdigest
       require "json"
