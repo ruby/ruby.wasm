@@ -11,7 +11,8 @@ group :development do
 end
 
 group :check do
-  gem "webrick"
+  # Use the latest version of webrick for URI change in Ruby 3.4
+  gem "webrick", github: "ruby/webrick", ref: "0c600e169bd4ae267cb5eeb6197277c848323bbe"
   gem "syntax_tree", "~> 3.5"
   gem "steep"
 end
