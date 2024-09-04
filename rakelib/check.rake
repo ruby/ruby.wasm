@@ -41,8 +41,12 @@ namespace :check do
     )
   end
 
+  task bindgen_ts: :install_wit_bindgen do
+    sh "node", "packages/npm-packages/ruby-wasm-wasi/tools/component-ts-bindgen.mjs"
+  end
+
   desc "Check wit-bindgen'ed sources are up-to-date"
-  task bindgen: %i[bindgen_c legacy_bindgen_c legacy_bindgen_js]
+  task bindgen: %i[bindgen_c bindgen_ts legacy_bindgen_c legacy_bindgen_js]
 
   task :type do
     sh "bundle exec steep check"
