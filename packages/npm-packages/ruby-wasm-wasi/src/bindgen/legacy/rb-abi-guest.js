@@ -60,10 +60,7 @@ export class RbAbiGuest {
   rubyShowVersion() {
     this._exports['ruby-show-version: func() -> ()']();
   }
-  rubyInit() {
-    this._exports['ruby-init: func() -> ()']();
-  }
-  rubySysinit(arg0) {
+  rubyInit(arg0) {
     const memory = this._exports.memory;
     const realloc = this._exports["cabi_realloc"];
     const vec1 = arg0;
@@ -77,31 +74,7 @@ export class RbAbiGuest {
       data_view(memory).setInt32(base + 4, len0, true);
       data_view(memory).setInt32(base + 0, ptr0, true);
     }
-    this._exports['ruby-sysinit: func(args: list<string>) -> ()'](result1, len1);
-  }
-  rubyOptions(arg0) {
-    const memory = this._exports.memory;
-    const realloc = this._exports["cabi_realloc"];
-    const vec1 = arg0;
-    const len1 = vec1.length;
-    const result1 = realloc(0, 0, 4, len1 * 8);
-    for (let i = 0; i < vec1.length; i++) {
-      const e = vec1[i];
-      const base = result1 + i * 8;
-      const ptr0 = utf8_encode(e, realloc, memory);
-      const len0 = UTF8_ENCODED_LEN;
-      data_view(memory).setInt32(base + 4, len0, true);
-      data_view(memory).setInt32(base + 0, ptr0, true);
-    }
-    const ret = this._exports['ruby-options: func(args: list<string>) -> handle<rb-iseq>'](result1, len1);
-    return this._resource0_slab.remove(ret);
-  }
-  rubyScript(arg0) {
-    const memory = this._exports.memory;
-    const realloc = this._exports["cabi_realloc"];
-    const ptr0 = utf8_encode(arg0, realloc, memory);
-    const len0 = UTF8_ENCODED_LEN;
-    this._exports['ruby-script: func(name: string) -> ()'](ptr0, len0);
+    this._exports['ruby-init: func(args: list<string>) -> ()'](result1, len1);
   }
   rubyInitLoadpath() {
     this._exports['ruby-init-loadpath: func() -> ()']();

@@ -7,10 +7,7 @@ import * as RbAbi from "./bindgen/legacy/rb-abi-guest.js";
  */
 export interface Binding {
   rubyShowVersion(): void;
-  rubyInit(): void;
-  rubySysinit(args: string[]): void;
-  rubyOptions(args: string[]): void;
-  rubyScript(name: string): void;
+  rubyInit(args: string[]): void;
   rubyInitLoadpath(): void;
   rbEvalStringProtect(str: string): [RbAbiValue, number];
   rbFuncallvProtect(recv: RbAbiValue, mid: RbAbi.RbId, args: RbAbiValue[]): [RbAbiValue, number];
@@ -48,17 +45,8 @@ export class ComponentBinding implements Binding {
   rubyShowVersion(): void {
     this.underlying.rubyShowVersion();
   }
-  rubyInit(): void {
-    this.underlying.rubyInit();
-  }
-  rubySysinit(args: string[]): void {
-    this.underlying.rubySysinit(args);
-  }
-  rubyOptions(args: string[]) {
-    this.underlying.rubyOptions(args);
-  }
-  rubyScript(name: string): void {
-    this.underlying.rubyScript(name);
+  rubyInit(args: string[]): void {
+    this.underlying.rubyInit(args);
   }
   rubyInitLoadpath(): void {
     this.underlying.rubyInitLoadpath();

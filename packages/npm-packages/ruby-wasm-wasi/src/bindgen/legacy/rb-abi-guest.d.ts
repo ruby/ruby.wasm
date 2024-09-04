@@ -68,10 +68,7 @@ export class RbAbiGuest {
   imports?: any,
   ): Promise<void>;
   rubyShowVersion(): void;
-  rubyInit(): void;
-  rubySysinit(args: string[]): void;
-  rubyOptions(args: string[]): RbIseq;
-  rubyScript(name: string): void;
+  rubyInit(args: string[]): void;
   rubyInitLoadpath(): void;
   rbEvalStringProtect(str: string): [RbAbiValue, number];
   rbFuncallvProtect(recv: RbAbiValue, mid: RbId, args: RbAbiValue[]): [RbAbiValue, number];

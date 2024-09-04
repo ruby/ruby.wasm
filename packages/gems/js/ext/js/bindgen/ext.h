@@ -108,10 +108,7 @@ extern void ruby_js_js_runtime_throw_prohibit_rewind_exception(ext_string_t *mes
 
 // Exported Functions from `ruby:js/ruby-runtime`
 void exports_ruby_js_ruby_runtime_ruby_show_version(void);
-void exports_ruby_js_ruby_runtime_ruby_init(void);
-void exports_ruby_js_ruby_runtime_ruby_sysinit(ext_list_string_t *args);
-exports_ruby_js_ruby_runtime_own_rb_iseq_t exports_ruby_js_ruby_runtime_ruby_options(ext_list_string_t *args);
-void exports_ruby_js_ruby_runtime_ruby_script(ext_string_t *name);
+void exports_ruby_js_ruby_runtime_ruby_init(ext_list_string_t *args);
 void exports_ruby_js_ruby_runtime_ruby_init_loadpath(void);
 void exports_ruby_js_ruby_runtime_rb_eval_string_protect(ext_string_t *str, exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t *ret);
 void exports_ruby_js_ruby_runtime_rb_funcallv_protect(exports_ruby_js_ruby_runtime_borrow_rb_abi_value_t recv, exports_ruby_js_ruby_runtime_rb_id_t mid, exports_ruby_js_ruby_runtime_list_borrow_rb_abi_value_t *args, exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t *ret);

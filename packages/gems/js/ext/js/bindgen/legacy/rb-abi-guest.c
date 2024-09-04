@@ -127,25 +127,10 @@ __attribute__((export_name("ruby-show-version: func() -> ()")))
 void __wasm_export_rb_abi_guest_ruby_show_version(void) {
   rb_abi_guest_ruby_show_version();
 }
-__attribute__((export_name("ruby-init: func() -> ()")))
-void __wasm_export_rb_abi_guest_ruby_init(void) {
-  rb_abi_guest_ruby_init();
-}
-__attribute__((export_name("ruby-sysinit: func(args: list<string>) -> ()")))
-void __wasm_export_rb_abi_guest_ruby_sysinit(int32_t arg, int32_t arg0) {
+__attribute__((export_name("ruby-init: func(args: list<string>) -> ()")))
+void __wasm_export_rb_abi_guest_ruby_init(int32_t arg, int32_t arg0) {
   rb_abi_guest_list_string_t arg1 = (rb_abi_guest_list_string_t) { (rb_abi_guest_string_t*)(arg), (size_t)(arg0) };
-  rb_abi_guest_ruby_sysinit(&arg1);
-}
-__attribute__((export_name("ruby-options: func(args: list<string>) -> handle<rb-iseq>")))
-int32_t __wasm_export_rb_abi_guest_ruby_options(int32_t arg, int32_t arg0) {
-  rb_abi_guest_list_string_t arg1 = (rb_abi_guest_list_string_t) { (rb_abi_guest_string_t*)(arg), (size_t)(arg0) };
-  rb_abi_guest_rb_iseq_t ret = rb_abi_guest_ruby_options(&arg1);
-  return (ret).idx;
-}
-__attribute__((export_name("ruby-script: func(name: string) -> ()")))
-void __wasm_export_rb_abi_guest_ruby_script(int32_t arg, int32_t arg0) {
-  rb_abi_guest_string_t arg1 = (rb_abi_guest_string_t) { (char*)(arg), (size_t)(arg0) };
-  rb_abi_guest_ruby_script(&arg1);
+  rb_abi_guest_ruby_init(&arg1);
 }
 __attribute__((export_name("ruby-init-loadpath: func() -> ()")))
 void __wasm_export_rb_abi_guest_ruby_init_loadpath(void) {

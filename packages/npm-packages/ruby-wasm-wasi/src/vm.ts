@@ -122,9 +122,7 @@ export class RubyVM {
    */
   initialize(args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0"]) {
     const c_args = args.map((arg) => arg + "\0");
-    this.guest.rubyInit();
-    this.guest.rubySysinit(c_args);
-    this.guest.rubyOptions(c_args);
+    this.guest.rubyInit(c_args);
     try {
       this.eval(`
         # Require Bundler standalone setup
