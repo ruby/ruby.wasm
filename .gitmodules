@@ -1,3 +1,0 @@
-[submodule "vendor/jco"]
-	path = vendor/jco
-	url = https://github.com/bytecodealliance/jco.git

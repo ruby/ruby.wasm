@@ -5,9 +5,9 @@
         "packages/npm-packages/*"
     ],
     "devDependencies": {
+        "@bytecodealliance/jco": "1.4.4",
         "@playwright/test": "^1.46.1",
         "@rollup/plugin-json": "^6.1.0",
-        "rollup": "^4.21.2",
-        "@bytecodealliance/jco": "./vendor/jco"
+        "rollup": "^4.21.2"
     }
 }

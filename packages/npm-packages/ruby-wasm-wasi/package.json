@@ -54,7 +54,7 @@
     "build": "npm run build:rollup && npm run build:tsc && npm run build:static && ./tools/post-build.sh ./dist"
   },
   "devDependencies": {
-    "@bytecodealliance/jco": "../../../vendor/jco",
+    "@bytecodealliance/jco": "1.4.4",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "20.12.2",
