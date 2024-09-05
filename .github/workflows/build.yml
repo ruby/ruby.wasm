@@ -36,7 +36,7 @@ jobs:
       - run: ./bin/setup
       - run: bundle exec rake check:type
       - run: sudo apt-get install clang-format
-      - run: ./tools/clang-format-diff.sh
+      - run: ./bin/clang-format-diff.sh
       - run: bundle exec rake check:bindgen
       - run: git diff --exit-code
 
