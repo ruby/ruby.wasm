@@ -6,19 +6,7 @@ export const DefaultRubyVM = async (
   options: { env?: Record<string, string> | undefined } = {},
 ) => {
   const wasi = new WASI({ env: options.env, version: "preview1", returnOnExit: true });
-  const vm = new RubyVM();
-  const imports = {
-    wasi_snapshot_preview1: wasi.wasiImport,
-  };
-
-  vm.addToImports(imports);
-
-  const instance = await WebAssembly.instantiate(rubyModule, imports);
-
-  await vm.setInstance(instance);
-
-  wasi.initialize(instance);
-  vm.initialize();
+  const { vm, instance } = await RubyVM.instantiateModule({ module: rubyModule, wasip1: wasi });
 
   return {
     vm,

@@ -25,22 +25,16 @@ export const DefaultRubyVM = async (
     new PreopenDirectory("/", new Map()),
   ];
   const wasi = new WASI(args, env, fds, { debug: false });
-  const vm = new RubyVM();
-
-  const imports = {
-    wasi_snapshot_preview1: wasi.wasiImport,
-  };
-  vm.addToImports(imports);
   const printer = options.consolePrint ?? true ? consolePrinter() : undefined;
-  printer?.addToImports(imports);
-
-  const instance = await WebAssembly.instantiate(rubyModule, imports);
-  await vm.setInstance(instance);
-
-  printer?.setMemory(instance.exports.memory as WebAssembly.Memory);
-
-  wasi.initialize(instance as any);
-  vm.initialize();
+  const { vm, instance } = await RubyVM.instantiateModule({
+    module: rubyModule, wasip1: wasi,
+    addToImports: (imports) => {
+      printer?.addToImports(imports);
+    },
+    setMemory: (memory) => {
+      printer?.setMemory(memory);
+    }
+  });
 
   return {
     vm,
