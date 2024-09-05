@@ -200,7 +200,8 @@ void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(
 
 void rb_abi_guest_ruby_show_version(void) { ruby_show_version(); }
 
-__attribute__((noinline)) static void rb_abi_guest_ruby_init_thunk(int argc, char **c_args) {
+__attribute__((noinline)) static void
+rb_abi_guest_ruby_init_thunk(int argc, char **c_args) {
   ruby_init();
   rb_abi_guest_arena_hash = rb_hash_new();
   rb_abi_guest_refcount_hash = rb_hash_new();
