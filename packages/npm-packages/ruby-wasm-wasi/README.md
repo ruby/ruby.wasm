@@ -16,4 +16,4 @@ See [Cheat Sheet](https://github.com/ruby/ruby.wasm/blob/main/docs/cheat_sheet.m
 
 ## API
 
-See [API Documentation](https://ruby.github.io/ruby.wasm/npm/@ruby/ruby-wasm-wasi) for details.
+See [API Documentation](https://ruby.github.io/ruby.wasm/npm/@ruby/wasm-wasi/) for details.

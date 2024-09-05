@@ -1,2 +1,2 @@
 - [Ruby API](https://ruby.github.io/ruby.wasm/JS.html)
-- [JavaScript API](https://github.com/ruby/ruby.wasm/blob/main/packages/npm-packages/ruby-wasm-wasi/README.md#API)
+- [JavaScript API](https://ruby.github.io/ruby.wasm/npm/@ruby/wasm-wasi/)
