@@ -147,32 +147,6 @@ void ruby_js_js_runtime_list_borrow_js_abi_value_free(ruby_js_js_runtime_list_bo
   }
 }
 
-__attribute__((__import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-drop]rb-iseq")))
-extern void __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_drop(int32_t handle);
-
-void exports_ruby_js_ruby_runtime_rb_iseq_drop_own(exports_ruby_js_ruby_runtime_own_rb_iseq_t handle) {
-  __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_drop(handle.__handle);
-}
-
-__attribute__(( __import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-new]rb-iseq")))
-extern int32_t __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_new(int32_t);
-
-__attribute__((__import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-rep]rb-iseq")))
-extern int32_t __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_rep(int32_t);
-
-exports_ruby_js_ruby_runtime_own_rb_iseq_t exports_ruby_js_ruby_runtime_rb_iseq_new(exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {
-  return (exports_ruby_js_ruby_runtime_own_rb_iseq_t) { __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_new((int32_t) rep) };
-}
-
-exports_ruby_js_ruby_runtime_rb_iseq_t* exports_ruby_js_ruby_runtime_rb_iseq_rep(exports_ruby_js_ruby_runtime_own_rb_iseq_t handle) {
-  return (exports_ruby_js_ruby_runtime_rb_iseq_t*) __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_rep(handle.__handle);
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#[dtor]rb_iseq")))
-void __wasm_export_exports_ruby_js_ruby_runtime_rb_iseq_dtor(exports_ruby_js_ruby_runtime_rb_iseq_t* arg) {
-  exports_ruby_js_ruby_runtime_rb_iseq_destructor(arg);
-}
-
 __attribute__((__import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-drop]rb-abi-value")))
 extern void __wasm_import_exports_ruby_js_ruby_runtime_rb_abi_value_drop(int32_t handle);
 

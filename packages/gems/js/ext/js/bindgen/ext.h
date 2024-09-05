@@ -48,14 +48,6 @@ typedef struct ruby_js_js_runtime_list_borrow_js_abi_value_t {
   size_t len;
 } ruby_js_js_runtime_list_borrow_js_abi_value_t;
 
-typedef struct exports_ruby_js_ruby_runtime_own_rb_iseq_t {
-  int32_t __handle;
-} exports_ruby_js_ruby_runtime_own_rb_iseq_t;
-
-typedef struct exports_ruby_js_ruby_runtime_rb_iseq_t exports_ruby_js_ruby_runtime_rb_iseq_t;
-
-typedef exports_ruby_js_ruby_runtime_rb_iseq_t* exports_ruby_js_ruby_runtime_borrow_rb_iseq_t;
-
 typedef struct exports_ruby_js_ruby_runtime_own_rb_abi_value_t {
   int32_t __handle;
 } exports_ruby_js_ruby_runtime_own_rb_abi_value_t;
@@ -133,12 +125,6 @@ void ruby_js_js_runtime_js_abi_result_free(ruby_js_js_runtime_js_abi_result_t *p
 void ruby_js_js_runtime_raw_integer_free(ruby_js_js_runtime_raw_integer_t *ptr);
 
 void ruby_js_js_runtime_list_borrow_js_abi_value_free(ruby_js_js_runtime_list_borrow_js_abi_value_t *ptr);
-
-extern void exports_ruby_js_ruby_runtime_rb_iseq_drop_own(exports_ruby_js_ruby_runtime_own_rb_iseq_t handle);
-
-extern exports_ruby_js_ruby_runtime_own_rb_iseq_t exports_ruby_js_ruby_runtime_rb_iseq_new(exports_ruby_js_ruby_runtime_rb_iseq_t *rep);
-extern exports_ruby_js_ruby_runtime_rb_iseq_t* exports_ruby_js_ruby_runtime_rb_iseq_rep(exports_ruby_js_ruby_runtime_own_rb_iseq_t handle);
-void exports_ruby_js_ruby_runtime_rb_iseq_destructor(exports_ruby_js_ruby_runtime_rb_iseq_t *rep);
 
 extern void exports_ruby_js_ruby_runtime_rb_abi_value_drop_own(exports_ruby_js_ruby_runtime_own_rb_abi_value_t handle);
 

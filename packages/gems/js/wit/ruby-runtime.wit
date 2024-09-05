@@ -3,7 +3,6 @@ package ruby:js;
 interface ruby-runtime {
     use js-runtime.{js-abi-value};
 
-    resource rb-iseq {}
     resource rb-abi-value {}
 
     type rb-errno = s32;

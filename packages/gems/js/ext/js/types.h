@@ -10,7 +10,6 @@ typedef exports_ruby_js_ruby_runtime_own_rb_abi_value_t
     rb_abi_guest_own_rb_abi_value_t;
 typedef exports_ruby_js_ruby_runtime_list_borrow_rb_abi_value_t
     rb_abi_guest_list_rb_abi_value_t;
-typedef exports_ruby_js_ruby_runtime_own_rb_iseq_t rb_abi_guest_rb_iseq_t;
 typedef exports_ruby_js_ruby_runtime_rb_id_t rb_abi_guest_rb_id_t;
 typedef exports_ruby_js_ruby_runtime_tuple2_own_rb_abi_value_s32_t
     rb_abi_guest_tuple2_rb_abi_value_s32_t;

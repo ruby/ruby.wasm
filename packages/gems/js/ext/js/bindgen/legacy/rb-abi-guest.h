@@ -10,17 +10,6 @@ extern "C"
   
   typedef struct {
     uint32_t idx;
-  } rb_abi_guest_rb_iseq_t;
-  void rb_abi_guest_rb_iseq_free(rb_abi_guest_rb_iseq_t *ptr);
-  rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_clone(rb_abi_guest_rb_iseq_t *ptr);
-  rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_new(void *data);
-  void* rb_abi_guest_rb_iseq_get(rb_abi_guest_rb_iseq_t *ptr);
-  
-  __attribute__((weak))
-  void rb_abi_guest_rb_iseq_dtor(void *data);
-  
-  typedef struct {
-    uint32_t idx;
   } rb_abi_guest_rb_abi_value_t;
   void rb_abi_guest_rb_abi_value_free(rb_abi_guest_rb_abi_value_t *ptr);
   rb_abi_guest_rb_abi_value_t rb_abi_guest_rb_abi_value_clone(rb_abi_guest_rb_abi_value_t *ptr);

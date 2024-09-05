@@ -14,40 +14,6 @@ size_t new_size
   return ret;
 }
 
-__attribute__((import_module("canonical_abi"), import_name("resource_drop_rb-iseq")))
-void __resource_rb_iseq_drop(uint32_t idx);
-
-void rb_abi_guest_rb_iseq_free(rb_abi_guest_rb_iseq_t *ptr) {
-  __resource_rb_iseq_drop(ptr->idx);
-}
-
-__attribute__((import_module("canonical_abi"), import_name("resource_clone_rb-iseq")))
-uint32_t __resource_rb_iseq_clone(uint32_t idx);
-
-rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_clone(rb_abi_guest_rb_iseq_t *ptr) {
-  return (rb_abi_guest_rb_iseq_t){__resource_rb_iseq_clone(ptr->idx)};
-}
-
-__attribute__((import_module("canonical_abi"), import_name("resource_new_rb-iseq")))
-uint32_t __resource_rb_iseq_new(uint32_t val);
-
-rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_new(void *data) {
-  return (rb_abi_guest_rb_iseq_t){__resource_rb_iseq_new((uint32_t) data)};
-}
-
-__attribute__((import_module("canonical_abi"), import_name("resource_get_rb-iseq")))
-uint32_t __resource_rb_iseq_get(uint32_t idx);
-
-void* rb_abi_guest_rb_iseq_get(rb_abi_guest_rb_iseq_t *ptr) {
-  return (void*) __resource_rb_iseq_get(ptr->idx);
-}
-
-__attribute__((export_name("canonical_abi_drop_rb-iseq")))
-void __resource_rb_iseq_dtor(uint32_t val) {
-  if (rb_abi_guest_rb_iseq_dtor)
-  rb_abi_guest_rb_iseq_dtor((void*) val);
-}
-
 __attribute__((import_module("canonical_abi"), import_name("resource_drop_rb-abi-value")))
 void __resource_rb_abi_value_drop(uint32_t idx);
 

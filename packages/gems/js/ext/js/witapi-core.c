@@ -188,9 +188,6 @@ void rb_abi_guest_rb_abi_value_dtor(void *data) {
 }
 
 #ifdef JS_ENABLE_COMPONENT_MODEL
-void exports_ruby_js_ruby_runtime_rb_iseq_destructor(
-    exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {}
-
 void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(
     exports_ruby_js_ruby_runtime_rb_abi_value_t *rep) {
   rb_abi_guest_rb_abi_value_dtor((void *)rep);
@@ -214,7 +211,6 @@ __attribute__((noinline)) static void rb_abi_guest_ruby_init_thunk(int argc, cha
   ruby_options(argc, c_args);
 }
 void rb_abi_guest_ruby_init(rb_abi_guest_list_string_t *args) {
-  void *result;
   int argc = args->len;
   char **c_args;
   c_strings_from_abi(args, c_args);
