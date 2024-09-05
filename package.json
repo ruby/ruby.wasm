@@ -8,6 +8,7 @@
         "@bytecodealliance/jco": "1.4.4",
         "@playwright/test": "^1.46.1",
         "@rollup/plugin-json": "^6.1.0",
-        "rollup": "^4.21.2"
+        "rollup": "^4.21.2",
+        "typedoc": "^0.26.6"
     }
 }

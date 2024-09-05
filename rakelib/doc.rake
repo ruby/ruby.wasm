@@ -12,18 +12,14 @@ RDoc::Task.new do |doc|
                  ]
 end
 
-namespace :doc do
-  desc "Update docs/api/javascript.md"
-  task :api_js do
-    sh "npx",
-       "documentation",
-       "readme",
-       "--readme-file",
-       "./packages/npm-packages/ruby-wasm-wasi/README.md",
-       "--section",
-       "API",
-       "--markdown-toc",
-       "false",
-       "./packages/npm-packages/ruby-wasm-wasi/dist/esm/index.js"
-  end
+desc "Generate TypeScript documentation"
+task :typedoc do
+  mkdir_p "html/npm/@ruby/wasm-wasi"
+  sh "npx typedoc packages/npm-packages/ruby-wasm-wasi/src/index.ts --sort source-order --out html/npm/@ruby/wasm-wasi"
+end
+
+desc "Generate documentation site"
+task :doc do
+  Rake::Task["rdoc"].invoke
+  Rake::Task["typedoc"].invoke
 end
