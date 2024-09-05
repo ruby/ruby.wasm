@@ -1,12 +1,9 @@
 export namespace RubyJsRubyRuntime {
   export function rubyShowVersion(): void;
-  export function rubyInit(): void;
-  export function rubySysinit(args: string[]): void;
-  export function rubyOptions(args: string[]): RbIseq;
-  export function rubyScript(name: string): void;
+  export function rubyInit(args: Array<string>): void;
   export function rubyInitLoadpath(): void;
   export function rbEvalStringProtect(str: string): [RbAbiValue, number];
-  export function rbFuncallvProtect(recv: RbAbiValue, mid: RbId, args: RbAbiValue[]): [RbAbiValue, number];
+  export function rbFuncallvProtect(recv: RbAbiValue, mid: RbId, args: Array<RbAbiValue>): [RbAbiValue, number];
   export function rbIntern(name: string): RbId;
   export function rbErrinfo(): RbAbiValue;
   export function rbClearErrinfo(): void;
@@ -27,7 +24,6 @@ export namespace RubyJsRubyRuntime {
    * 4. `export-rb-value-to-js()` returns the staged value
    */
   export function exportRbValueToJs(): RbAbiValue;
-  export { RbIseq };
   export { RbAbiValue };
 }
 import type { JsAbiValue } from './ruby-js-js-runtime.js';
@@ -36,7 +32,4 @@ export type RbErrno = number;
 export type RbId = number;
 
 export class RbAbiValue {
-}
-
-export class RbIseq {
 }

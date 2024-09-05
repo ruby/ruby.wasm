@@ -1,13 +1,9 @@
-resource rb-iseq
 resource rb-abi-value
 type rb-errno = s32
 type rb-id = u32
 
 ruby-show-version: func()
-ruby-init: func()
-ruby-sysinit: func(args: list<string>)
-ruby-options: func(args: list<string>) -> rb-iseq
-ruby-script: func(name: string)
+ruby-init: func(args: list<string>)
 ruby-init-loadpath: func()
 rb-eval-string-protect: func(str: string) -> tuple<rb-abi-value, s32>
 rb-funcallv-protect: func(recv: rb-abi-value, mid: rb-id, args: list<rb-abi-value>) -> tuple<rb-abi-value, s32>

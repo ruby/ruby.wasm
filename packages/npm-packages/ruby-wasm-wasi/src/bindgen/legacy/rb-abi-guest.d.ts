@@ -68,10 +68,7 @@ export class RbAbiGuest {
   imports?: any,
   ): Promise<void>;
   rubyShowVersion(): void;
-  rubyInit(): void;
-  rubySysinit(args: string[]): void;
-  rubyOptions(args: string[]): RbIseq;
-  rubyScript(name: string): void;
+  rubyInit(args: string[]): void;
   rubyInitLoadpath(): void;
   rbEvalStringProtect(str: string): [RbAbiValue, number];
   rbFuncallvProtect(recv: RbAbiValue, mid: RbId, args: RbAbiValue[]): [RbAbiValue, number];
@@ -83,33 +80,6 @@ export class RbAbiGuest {
   rbGcEnable(): boolean;
   rbGcDisable(): boolean;
   rbSetShouldProhibitRewind(newValue: boolean): boolean;
-}
-
-export class RbIseq {
-  // Creates a new strong reference count as a new
-  // object.  This is only required if you're also
-  // calling `drop` below and want to manually manage
-  // the reference count from JS.
-  //
-  // If you don't call `drop`, you don't need to call
-  // this and can simply use the object from JS.
-  clone(): RbIseq;
-  
-  // Explicitly indicate that this JS object will no
-  // longer be used. If the internal reference count
-  // reaches zero then this will deterministically
-  // destroy the underlying wasm object.
-  //
-  // This is not required to be called from JS. Wasm
-  // destructors will be automatically called for you
-  // if this is not called using the JS
-  // `FinalizationRegistry`.
-  //
-  // Calling this method does not guarantee that the
-  // underlying wasm object is deallocated. Something
-  // else (including wasm) may be holding onto a
-  // strong reference count.
-  drop(): void;
 }
 
 export class RbAbiValue {

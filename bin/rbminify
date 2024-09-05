@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH << File.join(File.dirname(__FILE__), "../lib")
+$LOAD_PATH << File.join(File.dirname(__FILE__), "lib")
 
 require "syntax_tree"
 require "syntax_tree/cli"

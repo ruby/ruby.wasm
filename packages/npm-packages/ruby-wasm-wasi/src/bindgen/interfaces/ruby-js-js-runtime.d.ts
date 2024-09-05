@@ -16,7 +16,7 @@ export namespace RubyJsJsRuntime {
   export function jsValueTypeof(value: JsAbiValue): string;
   export function jsValueEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
   export function jsValueStrictlyEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
-  export function reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: JsAbiValue[]): JsAbiResult;
+  export function reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: Array<JsAbiValue>): JsAbiResult;
   export function reflectGet(target: JsAbiValue, propertyKey: string): JsAbiResult;
   export function reflectSet(target: JsAbiValue, propertyKey: string, value: JsAbiValue): JsAbiResult;
   export function throwProhibitRewindException(message: string): void;

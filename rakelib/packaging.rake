@@ -48,6 +48,7 @@ def vendor_gem_cache(pkg)
   require_relative "../packages/gems/js/lib/js/version"
   sh "gem", "-C", "packages/gems/js", "build", "-o",
     File.join(vendor_cache_dir, "js-#{JS::VERSION}.gem")
+  JS::VERSION
 end
 
 namespace :npm do
@@ -62,7 +63,7 @@ namespace :npm do
         # Skip if the package does not require building ruby
         next unless build_command
 
-        vendor_gem_cache(pkg)
+        js_gem_version = vendor_gem_cache(pkg)
 
         env = {
           # Share ./build and ./rubies in the same workspace
@@ -80,12 +81,15 @@ namespace :npm do
         mkdir_p dist_dir
         if pkg[:target].start_with?("wasm32-unknown-wasi")
           Dir.chdir(cwd || base_dir) do
+            # Uninstall js gem to re-install just-built js gem
+            sh "gem", "uninstall", "js", "-v", js_gem_version, "--force"
+            # Install gems including js gem
             sh "bundle", "install"
 
             sh env,
                "bundle", "exec",
                *build_command,
-               "--no-stdlib",
+               "--no-stdlib", "--remake",
                "-o",
                File.join(dist_dir, "ruby.wasm")
             sh env,
@@ -96,6 +100,9 @@ namespace :npm do
             if pkg[:enable_component_model]
               component_path = File.join(pkg_dir, "tmp", "ruby.component.wasm")
               FileUtils.mkdir_p(File.dirname(component_path))
+
+              # Remove js gem from the ./bundle directory to force Bundler to re-install it
+              rm_rf FileList[File.join(pkg_dir, "bundle", "**", "js-#{js_gem_version}")]
 
               sh env.merge("RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING" => "1"),
                  *build_command, "-o", component_path

@@ -14,40 +14,6 @@ size_t new_size
   return ret;
 }
 
-__attribute__((import_module("canonical_abi"), import_name("resource_drop_rb-iseq")))
-void __resource_rb_iseq_drop(uint32_t idx);
-
-void rb_abi_guest_rb_iseq_free(rb_abi_guest_rb_iseq_t *ptr) {
-  __resource_rb_iseq_drop(ptr->idx);
-}
-
-__attribute__((import_module("canonical_abi"), import_name("resource_clone_rb-iseq")))
-uint32_t __resource_rb_iseq_clone(uint32_t idx);
-
-rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_clone(rb_abi_guest_rb_iseq_t *ptr) {
-  return (rb_abi_guest_rb_iseq_t){__resource_rb_iseq_clone(ptr->idx)};
-}
-
-__attribute__((import_module("canonical_abi"), import_name("resource_new_rb-iseq")))
-uint32_t __resource_rb_iseq_new(uint32_t val);
-
-rb_abi_guest_rb_iseq_t rb_abi_guest_rb_iseq_new(void *data) {
-  return (rb_abi_guest_rb_iseq_t){__resource_rb_iseq_new((uint32_t) data)};
-}
-
-__attribute__((import_module("canonical_abi"), import_name("resource_get_rb-iseq")))
-uint32_t __resource_rb_iseq_get(uint32_t idx);
-
-void* rb_abi_guest_rb_iseq_get(rb_abi_guest_rb_iseq_t *ptr) {
-  return (void*) __resource_rb_iseq_get(ptr->idx);
-}
-
-__attribute__((export_name("canonical_abi_drop_rb-iseq")))
-void __resource_rb_iseq_dtor(uint32_t val) {
-  if (rb_abi_guest_rb_iseq_dtor)
-  rb_abi_guest_rb_iseq_dtor((void*) val);
-}
-
 __attribute__((import_module("canonical_abi"), import_name("resource_drop_rb-abi-value")))
 void __resource_rb_abi_value_drop(uint32_t idx);
 
@@ -127,25 +93,10 @@ __attribute__((export_name("ruby-show-version: func() -> ()")))
 void __wasm_export_rb_abi_guest_ruby_show_version(void) {
   rb_abi_guest_ruby_show_version();
 }
-__attribute__((export_name("ruby-init: func() -> ()")))
-void __wasm_export_rb_abi_guest_ruby_init(void) {
-  rb_abi_guest_ruby_init();
-}
-__attribute__((export_name("ruby-sysinit: func(args: list<string>) -> ()")))
-void __wasm_export_rb_abi_guest_ruby_sysinit(int32_t arg, int32_t arg0) {
+__attribute__((export_name("ruby-init: func(args: list<string>) -> ()")))
+void __wasm_export_rb_abi_guest_ruby_init(int32_t arg, int32_t arg0) {
   rb_abi_guest_list_string_t arg1 = (rb_abi_guest_list_string_t) { (rb_abi_guest_string_t*)(arg), (size_t)(arg0) };
-  rb_abi_guest_ruby_sysinit(&arg1);
-}
-__attribute__((export_name("ruby-options: func(args: list<string>) -> handle<rb-iseq>")))
-int32_t __wasm_export_rb_abi_guest_ruby_options(int32_t arg, int32_t arg0) {
-  rb_abi_guest_list_string_t arg1 = (rb_abi_guest_list_string_t) { (rb_abi_guest_string_t*)(arg), (size_t)(arg0) };
-  rb_abi_guest_rb_iseq_t ret = rb_abi_guest_ruby_options(&arg1);
-  return (ret).idx;
-}
-__attribute__((export_name("ruby-script: func(name: string) -> ()")))
-void __wasm_export_rb_abi_guest_ruby_script(int32_t arg, int32_t arg0) {
-  rb_abi_guest_string_t arg1 = (rb_abi_guest_string_t) { (char*)(arg), (size_t)(arg0) };
-  rb_abi_guest_ruby_script(&arg1);
+  rb_abi_guest_ruby_init(&arg1);
 }
 __attribute__((export_name("ruby-init-loadpath: func() -> ()")))
 void __wasm_export_rb_abi_guest_ruby_init_loadpath(void) {

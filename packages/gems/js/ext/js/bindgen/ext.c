@@ -78,9 +78,6 @@ extern void __wasm_import_ruby_js_js_runtime_throw_prohibit_rewind_exception(uin
 
 
 
-
-
-
 __attribute__((__weak__, __export_name__("cabi_post_ruby:js/ruby-runtime#rstring-ptr")))
 void __wasm_export_exports_ruby_js_ruby_runtime_rstring_ptr_post_return(uint8_t * arg0) {
   if ((*((size_t*) (arg0 + 4))) > 0) {
@@ -148,32 +145,6 @@ void ruby_js_js_runtime_list_borrow_js_abi_value_free(ruby_js_js_runtime_list_bo
     }
     free(list_ptr);
   }
-}
-
-__attribute__((__import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-drop]rb-iseq")))
-extern void __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_drop(int32_t handle);
-
-void exports_ruby_js_ruby_runtime_rb_iseq_drop_own(exports_ruby_js_ruby_runtime_own_rb_iseq_t handle) {
-  __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_drop(handle.__handle);
-}
-
-__attribute__(( __import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-new]rb-iseq")))
-extern int32_t __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_new(int32_t);
-
-__attribute__((__import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-rep]rb-iseq")))
-extern int32_t __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_rep(int32_t);
-
-exports_ruby_js_ruby_runtime_own_rb_iseq_t exports_ruby_js_ruby_runtime_rb_iseq_new(exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {
-  return (exports_ruby_js_ruby_runtime_own_rb_iseq_t) { __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_new((int32_t) rep) };
-}
-
-exports_ruby_js_ruby_runtime_rb_iseq_t* exports_ruby_js_ruby_runtime_rb_iseq_rep(exports_ruby_js_ruby_runtime_own_rb_iseq_t handle) {
-  return (exports_ruby_js_ruby_runtime_rb_iseq_t*) __wasm_import_exports_ruby_js_ruby_runtime_rb_iseq_rep(handle.__handle);
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#[dtor]rb_iseq")))
-void __wasm_export_exports_ruby_js_ruby_runtime_rb_iseq_dtor(exports_ruby_js_ruby_runtime_rb_iseq_t* arg) {
-  exports_ruby_js_ruby_runtime_rb_iseq_destructor(arg);
 }
 
 __attribute__((__import_module__("[export]ruby:js/ruby-runtime"), __import_name__("[resource-drop]rb-abi-value")))
@@ -437,27 +408,9 @@ void __wasm_export_exports_ruby_js_ruby_runtime_ruby_show_version(void) {
 }
 
 __attribute__((__export_name__("ruby:js/ruby-runtime#ruby-init")))
-void __wasm_export_exports_ruby_js_ruby_runtime_ruby_init(void) {
-  exports_ruby_js_ruby_runtime_ruby_init();
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#ruby-sysinit")))
-void __wasm_export_exports_ruby_js_ruby_runtime_ruby_sysinit(uint8_t * arg, size_t arg0) {
+void __wasm_export_exports_ruby_js_ruby_runtime_ruby_init(uint8_t * arg, size_t arg0) {
   ext_list_string_t arg1 = (ext_list_string_t) { (ext_string_t*)(arg), (arg0) };
-  exports_ruby_js_ruby_runtime_ruby_sysinit(&arg1);
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#ruby-options")))
-int32_t __wasm_export_exports_ruby_js_ruby_runtime_ruby_options(uint8_t * arg, size_t arg0) {
-  ext_list_string_t arg1 = (ext_list_string_t) { (ext_string_t*)(arg), (arg0) };
-  exports_ruby_js_ruby_runtime_own_rb_iseq_t ret = exports_ruby_js_ruby_runtime_ruby_options(&arg1);
-  return (ret).__handle;
-}
-
-__attribute__((__export_name__("ruby:js/ruby-runtime#ruby-script")))
-void __wasm_export_exports_ruby_js_ruby_runtime_ruby_script(uint8_t * arg, size_t arg0) {
-  ext_string_t arg1 = (ext_string_t) { (uint8_t*)(arg), (arg0) };
-  exports_ruby_js_ruby_runtime_ruby_script(&arg1);
+  exports_ruby_js_ruby_runtime_ruby_init(&arg1);
 }
 
 __attribute__((__export_name__("ruby:js/ruby-runtime#ruby-init-loadpath")))

@@ -34,45 +34,19 @@ const instantiateComponent = async (rootTestFile) => {
     const buffer = await fs.readFile(coreModulePath);
     return WebAssembly.compile(buffer);
   }
-  const vm = await RubyVM._instantiate(async (jsRuntime) => {
-    const { cli, clocks, filesystem, io, random, sockets, http } = preview2Shim;
-    const dirname = path.dirname(new URL(import.meta.url).pathname);
-    const preopens = { "/__root__": path.join(dirname, "..") };
-    if (process.env.RUBY_ROOT) {
-      preopens["/usr"] = path.join(process.env.RUBY_ROOT, "usr");
-      preopens["/bundle"] = path.join(process.env.RUBY_ROOT, "bundle");
-    }
-    filesystem._setPreopens(preopens);
-    cli._setArgs(["ruby.wasm"].concat(process.argv.slice(2)));
-    cli._setCwd("/")
-    const root = await instantiate(getCoreModule, {
-      "ruby:js/js-runtime": jsRuntime,
-      "wasi:cli/environment": cli.environment,
-      "wasi:cli/exit": cli.exit,
-      "wasi:cli/stderr": cli.stderr,
-      "wasi:cli/stdin": cli.stdin,
-      "wasi:cli/stdout": cli.stdout,
-      "wasi:cli/terminal-input": cli.terminalInput,
-      "wasi:cli/terminal-output": cli.terminalOutput,
-      "wasi:cli/terminal-stderr": cli.terminalStderr,
-      "wasi:cli/terminal-stdin": cli.terminalStdin,
-      "wasi:cli/terminal-stdout": cli.terminalStdout,
-      "wasi:clocks/monotonic-clock": clocks.monotonicClock,
-      "wasi:clocks/wall-clock": clocks.wallClock,
-      "wasi:filesystem/preopens": filesystem.preopens,
-      "wasi:filesystem/types": filesystem.types,
-      "wasi:io/error": io.error,
-      "wasi:io/poll": io.poll,
-      "wasi:io/streams": io.streams,
-      "wasi:random/random": random.random,
-      "wasi:sockets/tcp": sockets.tcp,
-      "wasi:http/types": http.types,
-      "wasi:http/incoming-handler": http.incomingHandler,
-      "wasi:http/outgoing-handler": http.outgoingHandler,
-    })
-    return root.rubyRuntime;
-  }, {
-    args: ["ruby.wasm", rootTestFile],
+
+  const { cli, filesystem } = preview2Shim;
+  const dirname = path.dirname(new URL(import.meta.url).pathname);
+  const preopens = { "/__root__": path.join(dirname, "..") };
+  if (process.env.RUBY_ROOT) {
+    preopens["/usr"] = path.join(process.env.RUBY_ROOT, "usr");
+    preopens["/bundle"] = path.join(process.env.RUBY_ROOT, "bundle");
+  }
+  filesystem._setPreopens(preopens);
+  cli._setArgs(["ruby.wasm", rootTestFile]);
+  cli._setCwd("/")
+  const { vm } = await RubyVM.instantiateComponent({
+    instantiate, getCoreModule, wasip2: preview2Shim,
   })
   return { vm };
 }
@@ -85,7 +59,7 @@ const instantiateNodeWasi = async (rootTestFile) => {
   const rubyModule = await WebAssembly.compile(binary);
   const wasi = new nodeWasi.WASI({
     stdio: "inherit",
-    args: ["ruby.wasm"].concat(process.argv.slice(2)),
+    args: ["ruby.wasm", rootTestFile],
     env: {
       ...process.env,
       // Extend fiber stack size to be able to run test-unit
@@ -95,20 +69,10 @@ const instantiateNodeWasi = async (rootTestFile) => {
     version: "preview1",
   });
 
-  const vm = new RubyVM();
-  const imports = {
-    wasi_snapshot_preview1: wasi.wasiImport,
-  };
-
-  vm.addToImports(imports);
-
-  const instance = await WebAssembly.instantiate(rubyModule, imports);
-  await vm.setInstance(instance);
-
-  wasi.initialize(instance);
-
-  vm.initialize(["ruby.wasm", rootTestFile]);
-  return { instance, vm, wasi };
+  const { vm } = await RubyVM.instantiateModule({
+    module: rubyModule, wasip1: wasi,
+  })
+  return { vm, wasi };
 };
 
 const instantiateBrowserWasi = async (rootTestFile) => {
@@ -181,31 +145,26 @@ const instantiateBrowserWasi = async (rootTestFile) => {
   const wasi = new browserWasi.WASI(args, env, fds, {
     debug: false,
   });
-
-  const vm = new RubyVM();
-  const imports = {
-    wasi_snapshot_preview1: wasi.wasiImport,
-  };
   const printer = consolePrinter({
     stdout: (str) => process.stdout.write(str),
     stderr: (str) => process.stderr.write(str),
   });
-  printer.addToImports(imports);
-  vm.addToImports(imports);
 
-  const instance = await WebAssembly.instantiate(rubyModule, imports);
-  printer.setMemory(instance.exports.memory);
-  await vm.setInstance(instance);
-
-  wasi.initialize(instance);
-  vm.initialize(["ruby.wasm", rootTestFile]);
-
-  return { instance, vm, wasi };
+  const { vm } = await RubyVM.instantiateModule({
+    module: rubyModule, wasip1: wasi,
+    addToImports: (imports) => {
+      printer.addToImports(imports);
+    },
+    setMemory: (memory) => {
+      printer.setMemory(memory);
+    }
+  });
+  return { vm, wasi };
 };
 
 const test = async (instantiate) => {
   const rootTestFile = "/__root__/test/test_unit.rb";
-  const { vm, wasi } = await instantiate(rootTestFile);
+  const { vm } = await instantiate(rootTestFile);
 
 
   await vm.evalAsync(`

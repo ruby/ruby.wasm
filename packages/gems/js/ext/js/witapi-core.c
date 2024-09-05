@@ -188,9 +188,6 @@ void rb_abi_guest_rb_abi_value_dtor(void *data) {
 }
 
 #ifdef JS_ENABLE_COMPONENT_MODEL
-void exports_ruby_js_ruby_runtime_rb_iseq_destructor(
-    exports_ruby_js_ruby_runtime_rb_iseq_t *rep) {}
-
 void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(
     exports_ruby_js_ruby_runtime_rb_abi_value_t *rep) {
   rb_abi_guest_rb_abi_value_dtor((void *)rep);
@@ -203,36 +200,22 @@ void exports_ruby_js_ruby_runtime_rb_abi_value_destructor(
 
 void rb_abi_guest_ruby_show_version(void) { ruby_show_version(); }
 
-__attribute__((noinline)) static void rb_abi_guest_ruby_init_thunk(void) {
+__attribute__((noinline)) static void
+rb_abi_guest_ruby_init_thunk(int argc, char **c_args) {
   ruby_init();
   rb_abi_guest_arena_hash = rb_hash_new();
   rb_abi_guest_refcount_hash = rb_hash_new();
 
   rb_gc_register_mark_object(rb_abi_guest_arena_hash);
   rb_gc_register_mark_object(rb_abi_guest_refcount_hash);
+  ruby_sysinit(&argc, &c_args);
+  ruby_options(argc, c_args);
 }
-void rb_abi_guest_ruby_init(void) {
-  RB_WASM_LIB_RT(rb_abi_guest_ruby_init_thunk())
-}
-
-void rb_abi_guest_ruby_sysinit(rb_abi_guest_list_string_t *args) {
-  char **c_args;
+void rb_abi_guest_ruby_init(rb_abi_guest_list_string_t *args) {
   int argc = args->len;
-  c_strings_from_abi(args, c_args);
-  RB_WASM_LIB_RT(ruby_sysinit(&argc, &c_args))
-}
-
-rb_abi_guest_rb_iseq_t
-rb_abi_guest_ruby_options(rb_abi_guest_list_string_t *args) {
-  void *result;
   char **c_args;
   c_strings_from_abi(args, c_args);
-  RB_WASM_LIB_RT(result = ruby_options(args->len, c_args))
-  return rb_abi_guest_rb_iseq_new(result);
-}
-
-void rb_abi_guest_ruby_script(rb_abi_guest_string_t *name) {
-  RB_WASM_LIB_RT(ruby_script((const char *)name->ptr))
+  RB_WASM_LIB_RT(rb_abi_guest_ruby_init_thunk(argc, c_args))
 }
 
 void rb_abi_guest_ruby_init_loadpath(void) {
@@ -398,22 +381,9 @@ void exports_ruby_js_ruby_runtime_ruby_show_version(void) {
   __wasm_call_ctors_if_needed();
   rb_abi_guest_ruby_show_version();
 }
-void exports_ruby_js_ruby_runtime_ruby_init(void) {
+void exports_ruby_js_ruby_runtime_ruby_init(ext_list_string_t *args) {
   __wasm_call_ctors_if_needed();
-  rb_abi_guest_ruby_init();
-}
-void exports_ruby_js_ruby_runtime_ruby_sysinit(ext_list_string_t *args) {
-  __wasm_call_ctors_if_needed();
-  rb_abi_guest_ruby_sysinit(args);
-}
-exports_ruby_js_ruby_runtime_own_rb_iseq_t
-exports_ruby_js_ruby_runtime_ruby_options(ext_list_string_t *args) {
-  __wasm_call_ctors_if_needed();
-  return rb_abi_guest_ruby_options(args);
-}
-void exports_ruby_js_ruby_runtime_ruby_script(ext_string_t *name) {
-  __wasm_call_ctors_if_needed();
-  rb_abi_guest_ruby_script(name);
+  rb_abi_guest_ruby_init(args);
 }
 void exports_ruby_js_ruby_runtime_ruby_init_loadpath(void) {
   __wasm_call_ctors_if_needed();
