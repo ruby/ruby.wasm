@@ -146,12 +146,25 @@ VALUE _rb_js_try_convert(VALUE klass, VALUE obj) {
  *   p JS.is_a?(JS.global, JS.global[:Object]) #=> true
  *   p JS.is_a?(JS.global, Object)             #=> false
  */
-static VALUE _rb_js_is_kind_of(VALUE klass, VALUE obj, VALUE c) {
+static VALUE _rb_js_is_kind_of(int argc, VALUE *argv, VALUE self) {
+
+  if (argc == 1) {
+    // If the second argument is not given, behaves as `Module#is_a?`.
+    return rb_obj_is_kind_of(self, argv[0]);
+  }
+
+  if (argc != 2) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 2)",
+             argc);
+  }
+
+  VALUE obj = argv[0];
+  VALUE klass = argv[1];
   if (!IS_JSVALUE(obj)) {
     return Qfalse;
   }
   struct jsvalue *val = DATA_PTR(obj);
-  VALUE js_klass_v = _rb_js_try_convert(klass, c);
+  VALUE js_klass_v = _rb_js_try_convert(self, klass);
   struct jsvalue *js_klass = DATA_PTR(js_klass_v);
   return RBOOL(rb_js_abi_host_instance_of(val->abi, js_klass->abi));
 }
@@ -561,7 +574,7 @@ static VALUE _rb_js_proc_to_js(VALUE obj) {
  */
 void Init_js() {
   rb_mJS = rb_define_module("JS");
-  rb_define_module_function(rb_mJS, "is_a?", _rb_js_is_kind_of, 2);
+  rb_define_module_function(rb_mJS, "is_a?", _rb_js_is_kind_of, -1);
   rb_define_module_function(rb_mJS, "try_convert", _rb_js_try_convert, 1);
   rb_define_module_function(rb_mJS, "eval", _rb_js_eval_js, 1);
   rb_define_module_function(rb_mJS, "global", _rb_js_global_this, 0);

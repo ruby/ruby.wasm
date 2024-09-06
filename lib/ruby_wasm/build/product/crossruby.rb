@@ -222,6 +222,10 @@ module RubyWasm
       end
       install_dir = File.join(build_dir, "install")
       if !File.exist?(install_dir) || remake || reconfigure
+        unless target.pic?
+          # HACK: force static linking for non-pic target
+          executor.rm_f File.join(build_dir, "ruby")
+        end
         executor.system "make",
                         "-j#{executor.process_count}",
                         "install",
