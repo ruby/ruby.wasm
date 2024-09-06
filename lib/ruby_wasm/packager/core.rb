@@ -147,11 +147,13 @@ class RubyWasm::Packager::Core
 
       linker.library("ruby", module_bytes, false)
 
+      RubyWasm.logger.info "Linking Ruby with extensions"
+
       libraries.each do |lib|
         # Non-DL openable libraries should be referenced as base name
         lib_name = File.basename(lib)
         module_bytes = File.binread(lib)
-        RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
+        RubyWasm.logger.debug "Linking #{lib_name} (#{module_bytes.size} bytes)"
         linker.library(lib_name, module_bytes, false)
       end
 
@@ -160,7 +162,7 @@ class RubyWasm::Packager::Core
           # DL openable lib_name should be a relative path from ruby_root
           lib_name = "/" + Pathname.new(lib).relative_path_from(Pathname.new(File.dirname(root))).to_s
           module_bytes = File.binread(lib)
-          RubyWasm.logger.info "Linking #{lib_name} (#{module_bytes.size} bytes)"
+          RubyWasm.logger.debug "Linking #{lib_name} (#{module_bytes.size} bytes)"
           linker.library(lib_name, module_bytes, true)
         end
       end
@@ -170,7 +172,7 @@ class RubyWasm::Packager::Core
         # e.g. wasi_snapshot_preview1.command.wasm -> wasi_snapshot_preview1
         adapter_name = adapter_name.split(".")[0]
         module_bytes = File.binread(adapter)
-        RubyWasm.logger.info "Linking adapter #{adapter_name}=#{adapter} (#{module_bytes.size} bytes)"
+        RubyWasm.logger.debug "Linking adapter #{adapter_name}=#{adapter} (#{module_bytes.size} bytes)"
         linker.adapter(adapter_name, module_bytes)
       end
       return linker.encode()
