@@ -195,10 +195,10 @@ class JS::Object
     self[sym].typeof == "function"
   end
 
-  # Call the receiver (a JavaScript function) with `undefined` as its receiver context. 
+  # Call the receiver (a JavaScript function) with `undefined` as its receiver context.
   # This method is similar to JS::Object#call, but it is used to call a function that is not
   # a method of an object.
-  #   
+  #
   #   floor = JS.global[:Math][:floor]
   #   floor.apply(3.14) # => 3
   #   JS.global[:Promise].new do |resolve, reject|
