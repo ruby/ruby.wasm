@@ -324,7 +324,8 @@ class JS::TestObject < Test::Unit::TestCase
         return_false() { return false; },
         return_object() { return {}; },
         return_null() { return null; },
-        return_empty_string() { return ''; }
+        return_empty_string() { return ''; },
+        return_number: 42
       };
     JS
 
@@ -342,6 +343,12 @@ class JS::TestObject < Test::Unit::TestCase
     # Return Ruby false when the return value is JavaScript false
     assert_false object.return_null?
     assert_false object.return_empty_string?
+
+    # Return false when the property is not a function
+    assert_false object.return_number?
+
+    # Return false when function is not defined
+    assert_false object.undefined?
   end
 
   def test_respond_to_missing?
