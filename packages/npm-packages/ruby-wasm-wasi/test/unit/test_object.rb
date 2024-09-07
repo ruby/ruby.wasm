@@ -325,7 +325,7 @@ class JS::TestObject < Test::Unit::TestCase
         return_object() { return {}; },
         return_null() { return null; },
         return_empty_string() { return ''; },
-        return_number: 42
+        true_property: true
       };
     JS
 
@@ -345,7 +345,7 @@ class JS::TestObject < Test::Unit::TestCase
     assert_false object.return_empty_string?
 
     # Return false when the property is not a function
-    assert_false object.return_number?
+    assert_false object.true_property?
 
     # Return false when function is not defined
     assert_false object.undefined?
