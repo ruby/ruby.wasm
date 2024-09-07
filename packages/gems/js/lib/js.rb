@@ -173,16 +173,13 @@ class JS::Object
     if sym_str.end_with?("?")
       # When a JS method is called with a ? suffix, it is treated as a predicate method,
       # and the return value is converted to a Ruby boolean value automatically.
-      result = self.call(sym_str[0..-2].to_sym, *args, &block)
-
+      result = invoke_js_method(sym_str[0..-2].to_sym, *args, &block)
       # Type coerce the result to boolean type
       # to match the true/false determination in JavaScript's if statement.
-      JS.global.Boolean(result) == JS::True
-    elsif self[sym].typeof == "function"
-      self.call(sym, *args, &block)
-    else
-      super
+      return JS.global.Boolean(result) == JS::True
     end
+
+    invoke_js_method(sym, *args, &block)
   end
 
   # Check if a JavaScript method exists
@@ -238,6 +235,24 @@ class JS::Object
     # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
     promise = JS.global[:Promise].resolve(self)
     JS.promise_scheduler.await(promise)
+  end
+
+  private
+
+  # Invoke a JavaScript method
+  # If the property of JavaScritp object does not exist, raise a `NoMethodError`.
+  # If the property exists but is not a function, raise a `TypeError`.
+  def invoke_js_method(sym, *args, &block)
+    return self.call(sym, *args, &block) if self[sym].typeof == "function"
+
+    # Check to see if a non-functional property exists.
+    if JS.global[:Reflect].call(:has, self, sym.to_s) == JS::True
+      raise TypeError,
+            "`#{sym}` is not a function. To reference a property, use `[:#{sym}]` syntax instead."
+    end
+
+    raise NoMethodError,
+          "undefined method `#{sym}' for an instance of JS::Object"
   end
 end
 
