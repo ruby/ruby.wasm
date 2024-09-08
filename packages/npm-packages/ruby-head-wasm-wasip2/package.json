@@ -1,7 +1,7 @@
 {
-  "name": "@ruby/head-wasm-wasi",
+  "name": "@ruby/head-wasm-wasip2",
   "version": "2.6.2",
-  "description": "Ruby head built on WASI",
+  "description": "Ruby head built on WASI Preview 2",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "exports": {
@@ -29,7 +29,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasi npm -C ../ruby-wasm-wasi run test:run",
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasi ENABLE_COMPONENT_TESTS=1 npm -C ../ruby-wasm-wasi run test:run",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static:compat": "../ruby-wasm-wasi/tools/pack-compat-shim.mjs --dist=./dist --pkg=ruby-head-wasm-wasi",
@@ -50,6 +50,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@ruby/wasm-wasi": "^2.0.0"
+    "@ruby/wasm-wasi": "^2.0.0",
+    "@bytecodealliance/preview2-shim": "^0.16.5"
   }
 }

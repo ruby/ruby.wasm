@@ -1,5 +1,9 @@
 import { DefaultRubyVM } from "./browser.js";
+import { RubyInitComponentOptions, RubyComponentInstantiator, RubyVM } from "./vm.js";
 
+/**
+ * The main entry point of `<script type="text/ruby">`-based scripting with WebAssembly Core Module.
+ */
 export const main = async (
   pkg: { name: string; version: string },
   options?: Parameters<typeof DefaultRubyVM>[1],
@@ -9,7 +13,32 @@ export const main = async (
   );
   const module = await compileWebAssemblyModule(response);
   const { vm } = await DefaultRubyVM(module, options);
+  await mainWithRubyVM(vm);
+};
 
+/**
+ * The main entry point of `<script type="text/ruby">`-based scripting with WebAssembly Component.
+ */
+export const componentMain = async (
+    pkg: { name: string; version: string },
+    options: {
+        instantiate: RubyComponentInstantiator;
+        wasip2: any;
+    }
+) => {
+    const componentUrl = `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/component`;
+    const fetchComponentFile = (relativePath: string) => fetch(`${componentUrl}/${relativePath}`);
+    const { vm } = await RubyVM.instantiateComponent({
+        ...options,
+        getCoreModule: (relativePath: string) => {
+            const response = fetchComponentFile(relativePath);
+            return compileWebAssemblyModule(response);
+        },
+    });
+    await mainWithRubyVM(vm);
+};
+
+const mainWithRubyVM = async (vm: RubyVM) => {
   vm.printVersion();
 
   globalThis.rubyVM = vm;

@@ -1,0 +1,25 @@
+PATH
+  remote: ../../..
+  specs:
+    ruby_wasm (2.6.2.dev)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    js (2.6.2.dev)
+    power_assert (2.0.3)
+    test-unit (3.6.2)
+      power_assert
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  js (= 2.6.2.dev)
+  power_assert
+  ruby_wasm!
+  test-unit
+
+BUNDLED WITH
+   2.6.0.dev
