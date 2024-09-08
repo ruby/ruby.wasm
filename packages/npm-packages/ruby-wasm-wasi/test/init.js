@@ -4,7 +4,17 @@ import { WASI } from "wasi";
 import { RubyVM } from "../src/index";
 import * as preview2Shim from "@bytecodealliance/preview2-shim"
 
-const rubyModule = (async () => {
+const memoize = (fn) => {
+  let result;
+  return async () => {
+    if (!result) {
+      result = await fn();
+    }
+    return result;
+  };
+};
+
+const getRubyModule = memoize(async () => {
   let binaryPath;
   if (process.env.RUBY_ROOT) {
     binaryPath = path.join(process.env.RUBY_ROOT, "./usr/local/bin/ruby");
@@ -18,7 +28,7 @@ const rubyModule = (async () => {
   }
   const binary = await fs.readFile(binaryPath);
   return await WebAssembly.compile(binary.buffer);
-})();
+});
 
 const initModuleRubyVM = async ({ suppressStderr } = { suppressStderr: false }) => {
   let preopens = {};
@@ -38,7 +48,7 @@ const initModuleRubyVM = async ({ suppressStderr } = { suppressStderr: false }) 
     preopens,
   });
 
-  const module = await rubyModule;
+  const module = await getRubyModule();
   const { vm } = await RubyVM.instantiateModule({ module, wasip1: wasi })
   return vm;
 };
