@@ -1,5 +1,4 @@
 import { BrowserContext, Page, expect } from "@playwright/test";
-import { readFileSync } from "fs";
 import path from "path";
 
 export const waitForRubyVM = async (page: Page) => {
@@ -19,19 +18,14 @@ export const setupDebugLog = (context: BrowserContext) => {
 };
 
 export const setupProxy = (context: BrowserContext) => {
-  const injectingPkgPath = process.env.RUBY_NPM_PACKAGE_ROOT;
-  const injectingPkg = JSON.parse(
-      readFileSync(path.join(injectingPkgPath, "package.json"), "utf-8"),
-  );
-  const cdnPattern = new RegExp(
-    `cdn.jsdelivr.net/npm/${injectingPkg.name}@.+/dist/(.+)`
-  );
+  const cdnPattern =
+    /cdn.jsdelivr.net\/npm\/@ruby\/.+-wasm-wasi@.+\/dist\/(.+)/;
   context.route(cdnPattern, (route) => {
     const request = route.request();
     console.log(">> [MOCK]", request.method(), request.url());
     const relativePath = request.url().match(cdnPattern)[1];
     const mockedPath = path.join(
-      injectingPkgPath,
+      process.env.RUBY_NPM_PACKAGE_ROOT,
       "dist",
       relativePath,
     );
