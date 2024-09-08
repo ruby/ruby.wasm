@@ -15,6 +15,7 @@ compile_commands.json
 html
 
 build_manifest.json
+ci_matrix.json
 
 vendor/bundle
 /pkg
