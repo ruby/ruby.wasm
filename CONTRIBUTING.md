@@ -24,9 +24,9 @@ $ rake build:download_prebuilt
 $ rake build:head-wasm32-unknown-wasip1-full
 
 # Build npm package
-$ rake npm:ruby-head-wasm-wasi
+$ rake npm:ruby-head-wasm-wasip2:build
 # Test npm package
-$ rake npm:ruby-head-wasm-wasi:check
+$ rake npm:ruby-head-wasm-wasip2:check
 ```
 
 If you need to re-build Ruby, please clean `./rubies` directory, and run `rake npm:ruby-head-wasm-wasi` again.
