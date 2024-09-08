@@ -1,4 +1,5 @@
 !.gitkeep
 /coverage
 /playwright-report
+/test-results
 *.tgz
