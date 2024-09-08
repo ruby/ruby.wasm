@@ -39,7 +39,6 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test:run:all": "npm run test:run && ENABLE_COMPONENT_TESTS=1 npm run test:run",
     "test:run": "npm run test:unit && npm run test:vitest -- --run && npm run test:e2e",
     "test:vitest": "vitest ./test/",
     "test:unit": "./tools/run-test-unit.mjs",

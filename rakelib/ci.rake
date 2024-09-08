@@ -62,19 +62,21 @@ def rake_task_matrix
     end
   npm_entries =
     NPM_PACKAGES.map do |pkg|
+      package_json =
+        JSON.parse(
+          File.read("packages/npm-packages/#{pkg[:name]}/package.json")
+        )
       entry = {
         task: "npm:#{pkg[:name]}",
         prerelease: "npm:configure_prerelease",
         artifact: "packages/npm-packages/#{pkg[:name]}/#{pkg[:name]}-*.tgz",
         artifact_name: "npm-#{pkg[:name]}",
+        # Skip publishing packages with `"private": true`
+        should_publish: !package_json["private"],
         builder: pkg[:target],
         rubies_cache_key: npm_pkg_rubies_cache_key(pkg)
       }
       # Run tests only if the package has 'test' script
-      package_json =
-        JSON.parse(
-          File.read("packages/npm-packages/#{pkg[:name]}/package.json")
-        )
       if package_json["scripts"] && package_json["scripts"]["test"]
         entry[:test] = "npm:#{pkg[:name]}:check"
       end
@@ -96,7 +98,9 @@ end
 namespace :ci do
   task :rake_task_matrix do
     content = JSON.generate(rake_task_matrix.flat_map { |_, entries| entries })
-    File.write("ci_matrix.json", content)
+    output = "ci_matrix.json"
+    File.write("#{output}", content)
+    puts "Created \"#{output}\""
   end
 
   task :pin_build_manifest do
@@ -140,6 +144,7 @@ namespace :ci do
         .map { |entry| "release/#{entry[:artifact_name]}/*" }
     File.open("release/note.md", "w") { |f| f.print release_note }
     matrix[:npm].each do |task|
+      next unless task[:should_publish]
       artifact = task[:artifact_name]
       tarball = Dir.glob("release/#{artifact}/*")
       next if tarball.empty?

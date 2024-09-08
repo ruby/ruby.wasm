@@ -32,7 +32,10 @@ const initRubyVM = async (rubyModule, args) => {
 };
 
 describe("Packaging validation", () => {
-  if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
+  if (
+    !process.env.RUBY_NPM_PACKAGE_ROOT ||
+    (process.env.ENABLE_COMPONENT_TESTS && process.env.ENABLE_COMPONENT_TESTS !== 'false')
+  ) {
     test.skip("skip", () => {});
     return;
   }
