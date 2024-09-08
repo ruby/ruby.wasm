@@ -178,15 +178,15 @@ class JS::Object
         result = self.call(sym, *args, &block)
         # Type coerce the result to boolean type
         # to match the true/false determination in JavaScript's if statement.
-        JS.global.Boolean(result) == JS::True
-      else
-        false
+        return JS.global.Boolean(result) == JS::True
       end
-    elsif self[sym].typeof == "function"
-      self.call(sym, *args, &block)
-    else
-      super
     end
+
+    if self[sym].typeof == "function"
+      return self.call(sym, *args, &block)
+    end
+
+    super
   end
 
   # Check if a JavaScript method exists

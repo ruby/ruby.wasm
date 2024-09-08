@@ -310,13 +310,6 @@ class JS::TestObject < Test::Unit::TestCase
     assert_true block_called
   end
 
-  def test_method_missing_with_undefined_method
-    object = JS.eval(<<~JS)
-      return { foo() { return true; } };
-    JS
-    assert_raise(NoMethodError) { object.bar }
-  end
-
   def test_method_missing_with_?
     object = JS.eval(<<~JS)
       return {
@@ -324,8 +317,7 @@ class JS::TestObject < Test::Unit::TestCase
         return_false() { return false; },
         return_object() { return {}; },
         return_null() { return null; },
-        return_empty_string() { return ''; },
-        true_property: true
+        return_empty_string() { return ''; }
       };
     JS
 
@@ -343,12 +335,22 @@ class JS::TestObject < Test::Unit::TestCase
     # Return Ruby false when the return value is JavaScript false
     assert_false object.return_null?
     assert_false object.return_empty_string?
+  end
 
-    # Return false when the property is not a function
-    assert_false object.true_property?
+  def test_method_missing_with_property
+    object = JS.eval(<<~JS)
+      return { property: 42 };
+    JS
+    assert_raise(NoMethodError) { object.property }
+    assert_raise(NoMethodError) { object.property? }
+  end
 
-    # Return false when function is not defined
-    assert_false object.undefined?
+  def test_method_missing_with_undefined_method
+    object = JS.eval(<<~JS)
+      return { foo() { return true; } };
+    JS
+    assert_raise(NoMethodError) { object.bar }
+    assert_raise(NoMethodError) { object.bar? }
   end
 
   def test_respond_to_missing?
