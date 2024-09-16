@@ -341,16 +341,27 @@ class JS::TestObject < Test::Unit::TestCase
     object = JS.eval(<<~JS)
       return { property: 42 };
     JS
-    assert_raise(NoMethodError) { object.property }
-    assert_raise(NoMethodError) { object.property? }
+
+    e = assert_raise(TypeError) { object.property }
+    assert_equal "`property` is not a function. To reference a property, use `[:property]` syntax instead.",
+                 e.message
+
+    e = assert_raise(TypeError) { object.property? }
+    assert_equal "`property` is not a function. To reference a property, use `[:property]` syntax instead.",
+                 e.message
   end
 
   def test_method_missing_with_undefined_method
     object = JS.eval(<<~JS)
       return { foo() { return true; } };
     JS
-    assert_raise(NoMethodError) { object.bar }
-    assert_raise(NoMethodError) { object.bar? }
+    e = assert_raise(NoMethodError) { object.bar }
+    assert_equal "undefined method `bar' for an instance of JS::Object",
+                 e.message
+
+    e = assert_raise(NoMethodError) { object.bar? }
+    assert_equal "undefined method `bar' for an instance of JS::Object",
+                 e.message
   end
 
   def test_respond_to_missing?
