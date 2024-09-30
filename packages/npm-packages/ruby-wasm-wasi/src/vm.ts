@@ -323,7 +323,7 @@ export class RubyVM {
    * an array of strings starting with the Ruby program name.
    * @category Low-level initialization
    */
-  initialize(args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0"]) {
+  initialize(args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0", "--parser=parse.y"]) {
     const c_args = args.map((arg) => arg + "\0");
     this.guest.rubyInit(c_args);
     try {
