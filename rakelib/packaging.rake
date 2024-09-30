@@ -51,6 +51,84 @@ def vendor_gem_cache(pkg)
   JS::VERSION
 end
 
+def build_ruby(pkg, base_dir, pkg_dir, wasi_sdk, clean: false)
+  build_command = npm_pkg_build_command(pkg)
+  # Skip if the package does not require building ruby
+  return unless build_command
+
+  js_gem_version = vendor_gem_cache(pkg)
+
+  env = {
+    # Share ./build and ./rubies in the same workspace
+    "RUBY_WASM_ROOT" => base_dir
+  }
+  cwd = base_dir
+  if gemfile_path = pkg[:gemfile]
+    cwd = File.dirname(gemfile_path)
+  else
+    # Explicitly disable rubygems integration since Bundler finds
+    # Gemfile in the repo root directory.
+    build_command.push "--disable-gems"
+  end
+  dist_dir = File.join(pkg_dir, "dist")
+  mkdir_p dist_dir
+  if pkg[:target].start_with?("wasm32-unknown-wasi")
+    if pkg[:enable_component_model]
+      component_path = File.join(pkg_dir, "tmp", "ruby.component.wasm")
+      FileUtils.mkdir_p(File.dirname(component_path))
+
+      # Remove js gem from the ./bundle directory to force Bundler to re-install it
+      rm_rf FileList[File.join(pkg_dir, "bundle", "**", "js-#{js_gem_version}")]
+
+      Dir.chdir(cwd) do
+        sh env.merge("RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING" => "1"),
+           *build_command, *(clean ? ["--clean"] : []),
+           "-o", component_path
+      end
+      sh "npx", "jco", "transpile",
+        "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization",
+        component_path, "-o", File.join(dist_dir, "component")
+      # ./component/package.json is required to be an ES module
+      File.write(File.join(dist_dir, "component", "package.json"), '{ "type": "module" }')
+    else
+      Dir.chdir(cwd) do
+        # uninstall js gem to re-install just-built js gem
+        sh "gem", "uninstall", "js", "-v", js_gem_version, "--force"
+        # install gems including js gem
+        sh "bundle", "install"
+
+        sh env,
+           "bundle", "exec",
+           *build_command,
+           "--no-stdlib", "--remake",
+           *(clean ? ["--clean"] : []),
+           "-o",
+           File.join(dist_dir, "ruby.wasm")
+        sh env,
+           "bundle", "exec",
+           *build_command,
+           "-o",
+           File.join(dist_dir, "ruby.debug+stdlib.wasm")
+      end
+
+      sh wasi_sdk.wasm_opt,
+         "--strip-debug",
+         File.join(dist_dir, "ruby.wasm"),
+         "-o",
+         File.join(dist_dir, "ruby.wasm")
+      sh wasi_sdk.wasm_opt,
+         "--strip-debug",
+         File.join(dist_dir, "ruby.debug+stdlib.wasm"),
+         "-o",
+         File.join(dist_dir, "ruby+stdlib.wasm")
+    end
+  elsif pkg[:target] == "wasm32-unknown-emscripten"
+    Dir.chdir(cwd || base_dir) do
+      sh env, *build_command, "-o", "/dev/null"
+    end
+  end
+end
+
 namespace :npm do
   NPM_PACKAGES.each do |pkg|
     base_dir = Dir.pwd
@@ -59,84 +137,17 @@ namespace :npm do
     namespace pkg[:name] do
       desc "Build ruby for npm package #{pkg[:name]}"
       task "ruby" do
-        build_command = npm_pkg_build_command(pkg)
-        # Skip if the package does not require building ruby
-        next unless build_command
-
-        js_gem_version = vendor_gem_cache(pkg)
-
-        env = {
-          # Share ./build and ./rubies in the same workspace
-          "RUBY_WASM_ROOT" => base_dir
-        }
-        cwd = base_dir
-        if gemfile_path = pkg[:gemfile]
-          cwd = File.dirname(gemfile_path)
-        else
-          # Explicitly disable rubygems integration since Bundler finds
-          # Gemfile in the repo root directory.
-          build_command.push "--disable-gems"
-        end
-        dist_dir = File.join(pkg_dir, "dist")
-        mkdir_p dist_dir
-        if pkg[:target].start_with?("wasm32-unknown-wasi")
-          if pkg[:enable_component_model]
-            component_path = File.join(pkg_dir, "tmp", "ruby.component.wasm")
-            FileUtils.mkdir_p(File.dirname(component_path))
-
-            # Remove js gem from the ./bundle directory to force Bundler to re-install it
-            rm_rf FileList[File.join(pkg_dir, "bundle", "**", "js-#{js_gem_version}")]
-
-            Dir.chdir(cwd) do
-              sh env.merge("RUBY_WASM_EXPERIMENTAL_DYNAMIC_LINKING" => "1"),
-                 *build_command, "-o", component_path
-            end
-            sh "npx", "jco", "transpile",
-              "--no-wasi-shim", "--instantiation", "--valid-lifting-optimization",
-              component_path, "-o", File.join(dist_dir, "component")
-            # ./component/package.json is required to be an ES module
-            File.write(File.join(dist_dir, "component", "package.json"), '{ "type": "module" }')
-          else
-            Dir.chdir(cwd) do
-              # uninstall js gem to re-install just-built js gem
-              sh "gem", "uninstall", "js", "-v", js_gem_version, "--force"
-              # install gems including js gem
-              sh "bundle", "install"
-
-              sh env,
-                 "bundle", "exec",
-                 *build_command,
-                 "--no-stdlib", "--remake",
-                 "-o",
-                 File.join(dist_dir, "ruby.wasm")
-              sh env,
-                 "bundle", "exec",
-                 *build_command,
-                 "-o",
-                 File.join(dist_dir, "ruby.debug+stdlib.wasm")
-            end
-
-            sh wasi_sdk.wasm_opt,
-               "--strip-debug",
-               File.join(dist_dir, "ruby.wasm"),
-               "-o",
-               File.join(dist_dir, "ruby.wasm")
-            sh wasi_sdk.wasm_opt,
-               "--strip-debug",
-               File.join(dist_dir, "ruby.debug+stdlib.wasm"),
-               "-o",
-               File.join(dist_dir, "ruby+stdlib.wasm")
-          end
-        elsif pkg[:target] == "wasm32-unknown-emscripten"
-          Dir.chdir(cwd || base_dir) do
-            sh env, *build_command, "-o", "/dev/null"
-          end
-        end
+        build_ruby(pkg, base_dir, pkg_dir, wasi_sdk)
       end
 
       desc "Build npm package #{pkg[:name]}"
       task "build" => ["ruby"] do
         sh tools, "npm run build", chdir: pkg_dir
+      end
+
+      desc "Clean and build npm package #{pkg[:name]}"
+      task "clean-build" do
+        build_ruby(pkg, base_dir, pkg_dir, wasi_sdk, clean: true)
       end
 
       desc "Check npm package #{pkg[:name]}"
