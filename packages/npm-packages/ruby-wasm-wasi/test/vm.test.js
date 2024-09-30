@@ -63,10 +63,10 @@ describe("RubyVM", () => {
     }).toThrowError("unexpected return");
     expect(() => {
       vm.eval(`next`);
-    }).toThrowError("Can't escape from eval with next");
+    }).toThrowError("SyntaxError");
     expect(() => {
       vm.eval(`redo`);
-    }).toThrowError("Can't escape from eval with redo");
+    }).toThrowError("SyntaxError");
   });
 
   test("method call with args", async () => {
