@@ -252,8 +252,9 @@ class JS::Object < BasicObject
     ::JS.promise_scheduler.await(promise)
   end
 
-  # https://github.com/rails/rails/blob/5c0b7496ab32c25c80f6d1bdc8b32ec6f75ce1e4/activerecord/lib/active_record/promise.rb#L40-L42
-  [:nil?, :is_a?].each do |method|
+  # I don't know why, but I can't define the respond_to? method in refinements.
+  # I'm defining it here instead.
+  [:nil?, :is_a?, :raise, :respond_to?].each do |method|
     define_method(method, ::Object.instance_method(method))
   end
 
