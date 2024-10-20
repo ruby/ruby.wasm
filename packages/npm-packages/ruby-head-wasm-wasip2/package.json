@@ -30,9 +30,7 @@
     "README.md"
   ],
   "scripts": {
-    "__comment": "FIXME: Enable test:e2e after https://github.com/bytecodealliance/jco/pull/499 is merged",
-    "test": "npm run run-script -- test:unit && npm run run-script -- test:vitest -- --run",
-    "run-script": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasip2 ENABLE_COMPONENT_TESTS=1 npm -C ../ruby-wasm-wasi run",
+    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasip2 ENABLE_COMPONENT_TESTS=1 npm -C ../ruby-wasm-wasi run test:run",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static": "npm run build:static:files",
@@ -53,6 +51,6 @@
   "license": "MIT",
   "dependencies": {
     "@ruby/wasm-wasi": "^2.0.0",
-    "@bytecodealliance/preview2-shim": "^0.16.5"
+    "@bytecodealliance/preview2-shim": "^0.17.0"
   }
 }

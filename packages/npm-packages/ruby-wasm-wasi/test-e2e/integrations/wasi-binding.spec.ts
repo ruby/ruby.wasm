@@ -18,6 +18,10 @@ if (!process.env.RUBY_NPM_PACKAGE_ROOT) {
 
   test.describe('WASI browser binding', () => {
     test("Read/write on in-memory file system", async ({ page }) => {
+      test.skip(
+        process.env.ENABLE_COMPONENT_TESTS != undefined,
+        "@bytecodealliance/preview2-shim does not allow writing to the file system"
+      );
       const resolve = await resolveBinding(page, "checkResolved");
       await page.setContent(`
       <script src="https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@latest/dist/browser.script.iife.js"></script>

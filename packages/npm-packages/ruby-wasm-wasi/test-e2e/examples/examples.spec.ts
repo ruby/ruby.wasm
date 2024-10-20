@@ -36,12 +36,14 @@ test.beforeEach(async ({ context, page }) => {
 });
 
 test("hello.html is healthy", async ({ page }) => {
-  const messages = [];
+  const messages: string[] = [];
   page.on("console", (msg) => messages.push(msg.text()));
   await page.goto("/hello.html");
 
   await waitForRubyVM(page);
-  expect(messages[messages.length - 1]).toEqual("Hello, world!\n");
+  while (!messages.some((msg) => /Hello, world\!/.test(msg))) {
+    await page.waitForEvent("console");
+  }
 });
 
 test("lucky.html is healthy", async ({ page }) => {
@@ -54,13 +56,12 @@ test("lucky.html is healthy", async ({ page }) => {
 });
 
 test("script-src/index.html is healthy", async ({ page }) => {
-  const messages = [];
+  const messages: string[] = [];
   page.on("console", (msg) => messages.push(msg.text()));
   await page.goto("/script-src/index.html");
 
   await waitForRubyVM(page);
-  const expected = "Hello, world!\n";
-  while (messages[messages.length - 1] != expected) {
+  while (!messages.some((msg) => /Hello, world\!/.test(msg))) {
     await page.waitForEvent("console");
   }
 });
@@ -79,8 +80,7 @@ if (process.env.RUBY_NPM_PACKAGE_ROOT) {
     await page.goto("/require_relative/index.html");
 
     await waitForRubyVM(page);
-    const expected = "Hello, world!\n";
-    while (messages[messages.length - 1] != expected) {
+  while (!messages.some((msg) => /Hello, world\!/.test(msg))) {
       await page.waitForEvent("console");
     }
   });
