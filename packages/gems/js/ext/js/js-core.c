@@ -580,7 +580,7 @@ void Init_js() {
   rb_define_module_function(rb_mJS, "global", _rb_js_global_this, 0);
 
   i_to_js = rb_intern("to_js");
-  rb_cJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cObject);
+  rb_cJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cBasicObject);
   VALUE rb_cJS_singleton = rb_singleton_class(rb_cJS_Object);
   rb_define_alloc_func(rb_cJS_Object, jsvalue_s_allocate);
   rb_define_method(rb_cJS_Object, "[]", _rb_js_obj_aref, 1);

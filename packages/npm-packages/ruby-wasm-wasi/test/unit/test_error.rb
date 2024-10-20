@@ -2,6 +2,8 @@ require "test-unit"
 require "js"
 
 class JS::TestError < Test::Unit::TestCase
+  using JsObjectTestable
+
   def test_throw_error
     e = assert_raise(JS::Error) { JS.eval("throw new Error('foo')") }
     assert_match /^Error: foo/, e.message

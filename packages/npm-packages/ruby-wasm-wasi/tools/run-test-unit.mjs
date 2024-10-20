@@ -169,6 +169,18 @@ const test = async (instantiate) => {
 
   await vm.evalAsync(`
     require 'test/unit'
+
+    # Define the methods to be used for unit testing assertions.
+    # Use refinements to limit the scope of influence.
+    require 'pp'
+    module JsObjectTestable
+        refine JS::Object do
+          [:object_id, :pretty_inspect].each do |method|
+            define_method(method, ::Object.instance_method(method))
+          end
+        end
+    end
+
     require_relative '${rootTestFile}'
     ok = Test::Unit::AutoRunner.run
     exit(1) unless ok
