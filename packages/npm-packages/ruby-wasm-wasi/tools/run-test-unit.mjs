@@ -170,8 +170,9 @@ const test = async (instantiate) => {
   await vm.evalAsync(`
     require 'test/unit'
 
-    # Define the methods to be used for unit testing assertions.
-    # Use refinements to limit the scope of influence.
+    # FIXME: This is a workaround for the test-unit gem.
+    # It will be removed when the next pull request is merged and released.
+    # https://github.com/test-unit/test-unit/pull/262
     require 'pp'
     module JsObjectTestable
         refine JS::Object do
