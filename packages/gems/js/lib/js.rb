@@ -252,8 +252,11 @@ class JS::Object < BasicObject
     ::JS.promise_scheduler.await(promise)
   end
 
-  # I don't know why, but I can't define the respond_to? method in refinements.
-  # I'm defining it here instead.
+  # The `respond_to?` method is only used in unit tests.
+  # There is little need to define it here.
+  # However, methods suffixed with `?` do not conflict with JavaScript methods.
+  # As there are no disadvantages, we will define the `respond_to?` method here
+  # in the same way as the `nil?` and `is_a?` methods, prioritizing convenience.
   [:nil?, :is_a?, :raise, :respond_to?].each do |method|
     define_method(method, ::Object.instance_method(method))
   end
