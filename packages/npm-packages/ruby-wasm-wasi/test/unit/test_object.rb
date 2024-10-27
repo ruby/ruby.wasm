@@ -383,14 +383,14 @@ class JS::TestObject < Test::Unit::TestCase
     object = JS.eval(<<~JS)
       return { send(message) { return message; } };
     JS
-    assert_equal "hello", object.send('hello').to_s
+    assert_equal "hello", object.send("hello").to_s
   end
 
   def test_send_method_for_javascript_object_without_send_method
     object = JS.eval(<<~JS)
       return { write(message) { return message; } };
     JS
-    assert_raise(NoMethodError) { object.send('hello') }
+    assert_raise(NoMethodError) { object.send("hello") }
   end
 
   def test_member_get
