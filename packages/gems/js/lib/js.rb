@@ -138,9 +138,6 @@ end
 # This inheritation allows you to call the JavaScript `send` method with the following syntax:
 #
 #   ws.send("Hello, world! from Ruby")
-
-
-
 class JS::Object < BasicObject
   # Create a JavaScript object with the new method
   #
