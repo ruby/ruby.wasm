@@ -175,11 +175,11 @@ const test = async (instantiate) => {
     # https://github.com/test-unit/test-unit/pull/262
     require 'pp'
     module JsObjectTestable
-        refine JS::Object do
-          [:object_id, :pretty_inspect].each do |method|
-            define_method(method, ::Object.instance_method(method))
-          end
+      refine JS::Object do
+        [:object_id, :pretty_inspect].each do |method|
+          define_method(method, ::Object.instance_method(method))
         end
+      end
     end
 
     require_relative '${rootTestFile}'
