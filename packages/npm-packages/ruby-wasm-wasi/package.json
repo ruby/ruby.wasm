@@ -55,7 +55,7 @@
   "devDependencies": {
     "@bytecodealliance/jco": "1.4.4",
     "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-typescript": "^12.1.1",
     "@types/node": "22.7.4",
     "prettier": "^3.3.3",
     "typescript": "^5.4.3",
