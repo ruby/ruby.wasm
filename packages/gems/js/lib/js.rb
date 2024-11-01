@@ -125,7 +125,20 @@ module JS
   end
 end
 
-class JS::Object
+# Inherit BasicObject to prevent define coventional menthods.  #Override the `Object#send` to give priority to `send` method of JavaScript.
+#
+# This is to make it easier to use JavaScript Objects with `send` method such as `WebSocket` and `XMLHttpRequest`.
+# The JavaScript method call short-hand in `JS::Object` is implemented using `method_missing`.
+# If JS::Object inherits from Object, the `send` method defined in Ruby will take precedence over the JavaScript `send` method.
+# If you want to call the JavaScript `send` method, you must use the `call` method as follows:
+#
+#   ws = JS.global[:WebSocket].new("ws://example.com")
+#   ws.call(:send, ["Hello, world! from Ruby"])
+#
+# This inheritation allows you to call the JavaScript `send` method with the following syntax:
+#
+#   ws.send("Hello, world! from Ruby")
+class JS::Object < BasicObject
   # Create a JavaScript object with the new method
   #
   # The below examples show typical usage in Ruby
@@ -141,7 +154,7 @@ class JS::Object
   #
   def new(*args, &block)
     args = args + [block] if block
-    JS.global[:Reflect].construct(self, args.to_js)
+    ::JS.global[:Reflect].construct(self, args.to_js)
   end
 
   # Converts +self+ to an Array:
@@ -149,8 +162,8 @@ class JS::Object
   #   JS.eval("return [1, 2, 3]").to_a.map(&:to_i)    # => [1, 2, 3]
   #   JS.global[:document].querySelectorAll("p").to_a # => [[object HTMLParagraphElement], ...
   def to_a
-    as_array = JS.global[:Array].from(self)
-    Array.new(as_array[:length].to_i) { as_array[_1] }
+    as_array = ::JS.global[:Array].from(self)
+    ::Array.new(as_array[:length].to_i) { as_array[_1] }
   end
 
   # Provide a shorthand form for JS::Object#call
@@ -176,7 +189,7 @@ class JS::Object
       result = invoke_js_method(sym_str[0..-2].to_sym, *args, &block)
       # Type coerce the result to boolean type
       # to match the true/false determination in JavaScript's if statement.
-      return JS.global.Boolean(result) == JS::True
+      return ::JS.global.Boolean(result) == ::JS::True
     end
 
     invoke_js_method(sym, *args, &block)
@@ -186,7 +199,6 @@ class JS::Object
   #
   # See JS::Object#method_missing for details.
   def respond_to_missing?(sym, include_private)
-    return true if super
     sym_str = sym.to_s
     sym = sym_str[0..-2].to_sym if sym_str.end_with?("?")
     self[sym].typeof == "function"
@@ -203,7 +215,7 @@ class JS::Object
   #   end.await # => 42
   def apply(*args, &block)
     args = args + [block] if block
-    JS.global[:Reflect].call(:apply, self, JS::Undefined, args.to_js)
+    ::JS.global[:Reflect].call(:apply, self, ::JS::Undefined, args.to_js)
   end
 
   # Await a JavaScript Promise like `await` in JavaScript.
@@ -233,8 +245,17 @@ class JS::Object
   #   JS.eval("return new Promise((ok, err) => err(new Error())").await           # => raises JS::Error
   def await
     # Promise.resolve wrap a value or flattens promise-like object and its thenable chain
-    promise = JS.global[:Promise].resolve(self)
-    JS.promise_scheduler.await(promise)
+    promise = ::JS.global[:Promise].resolve(self)
+    ::JS.promise_scheduler.await(promise)
+  end
+
+  # The `respond_to?` method is only used in unit tests.
+  # There is little need to define it here.
+  # However, methods suffixed with `?` do not conflict with JavaScript methods.
+  # As there are no disadvantages, we will define the `respond_to?` method here
+  # in the same way as the `nil?` and `is_a?` methods, prioritizing convenience.
+  [:nil?, :is_a?, :raise, :respond_to?].each do |method|
+    define_method(method, ::Object.instance_method(method))
   end
 
   private
@@ -246,12 +267,12 @@ class JS::Object
     return self.call(sym, *args, &block) if self[sym].typeof == "function"
 
     # Check to see if a non-functional property exists.
-    if JS.global[:Reflect].call(:has, self, sym.to_s) == JS::True
-      raise TypeError,
+    if ::JS.global[:Reflect].call(:has, self, sym.to_s) == ::JS::True
+      raise ::TypeError,
             "`#{sym}` is not a function. To reference a property, use `[:#{sym}]` syntax instead."
     end
 
-    raise NoMethodError,
+    raise ::NoMethodError,
           "undefined method `#{sym}' for an instance of JS::Object"
   end
 end

@@ -169,6 +169,19 @@ const test = async (instantiate) => {
 
   await vm.evalAsync(`
     require 'test/unit'
+
+    # FIXME: This is a workaround for the test-unit gem.
+    # It will be removed when the next pull request is merged and released.
+    # https://github.com/test-unit/test-unit/pull/262
+    require 'pp'
+    module JsObjectTestable
+      refine JS::Object do
+        [:object_id, :pretty_inspect].each do |method|
+          define_method(method, ::Object.instance_method(method))
+        end
+      end
+    end
+
     require_relative '${rootTestFile}'
     ok = Test::Unit::AutoRunner.run
     exit(1) unless ok

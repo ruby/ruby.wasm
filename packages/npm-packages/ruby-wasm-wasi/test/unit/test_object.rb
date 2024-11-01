@@ -368,9 +368,29 @@ class JS::TestObject < Test::Unit::TestCase
     object = JS.eval(<<~JS)
       return { foo() { return true; } };
     JS
-    assert_true object.respond_to?(:foo)
-    assert_true object.respond_to?(:new)
-    assert_false object.respond_to?(:bar)
+    assert_true object.__send__(:respond_to_missing?, :foo, false)
+    assert_false object.__send__(:respond_to_missing?, :bar, false)
+
+    # new is method of JS::Object
+    assert_false object.__send__(:respond_to_missing?, :new, false)
+
+    # send is not implemented in JS::Object,
+    # because JS::Object is a subclass of JS::BaseObject
+    assert_false object.__send__(:respond_to_missing?, :send, false)
+  end
+
+  def test_send_method_for_javascript_object_with_send_method
+    object = JS.eval(<<~JS)
+      return { send(message) { return message; } };
+    JS
+    assert_equal "hello", object.send("hello").to_s
+  end
+
+  def test_send_method_for_javascript_object_without_send_method
+    object = JS.eval(<<~JS)
+      return { write(message) { return message; } };
+    JS
+    assert_raise(NoMethodError) { object.send("hello") }
   end
 
   def test_member_get
