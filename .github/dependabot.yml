@@ -2,16 +2,25 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    groups:
+      dependencies:
+        patterns: ["*"]
     schedule:
       interval: monthly
 
   - package-ecosystem: npm
     directory: /
+    groups:
+      dependencies:
+        patterns: ["*"]
     schedule:
       interval: monthly
 
   - package-ecosystem: cargo
     directory: /
+    groups:
+      dependencies:
+        patterns: ["*"]
     schedule:
       interval: monthly
 
