@@ -55,4 +55,11 @@ end
 task :bump_dev_version do
   bump_dev_version_rb("lib/ruby_wasm/version.rb")
   bump_dev_version_rb("packages/gems/js/lib/js/version.rb")
+
+  # Update Gemfile.lock
+  NPM_PACKAGES.each do |pkg|
+    next unless pkg[:gemfile]
+    vendor_gem_cache(pkg)
+    sh "BUNDLE_GEMFILE=#{pkg[:gemfile]} bundle install"
+  end
 end
