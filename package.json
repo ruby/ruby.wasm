@@ -7,6 +7,7 @@
     "devDependencies": {
         "@bytecodealliance/jco": "1.8.1",
         "@playwright/test": "^1.49.0",
+        "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-json": "^6.1.0",
         "rollup": "^4.28.0",
         "typedoc": "^0.27.2"
