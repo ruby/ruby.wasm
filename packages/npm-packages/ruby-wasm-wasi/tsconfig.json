@@ -4,7 +4,6 @@
     "importHelpers": true,
     "allowJs": true,
     "module": "ES2015",
-    "outDir": "./dist/esm",
     "target": "es2017",
     "esModuleInterop": true,
     "moduleResolution": "node",

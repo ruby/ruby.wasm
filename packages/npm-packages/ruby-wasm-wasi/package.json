@@ -49,7 +49,7 @@
     "format": "prettier --write .",
     "build:static": "./tools/pack-bindgen-src.rb ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
-    "build:tsc": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "build:tsc": "tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json",
     "build": "npm run build:rollup && npm run build:tsc && npm run build:static && ./tools/post-build.sh ./dist"
   },
   "devDependencies": {
