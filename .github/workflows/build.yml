@@ -134,6 +134,7 @@ jobs:
           chmod +x ./build-exec
           # wait for docker exec to be ready
           timeout 10 bash -c 'until ./build-exec bundle config set --local without check; do sleep 1; done'
+      - run: ./build-exec bundle config set --local without check
       - run: ./build-exec ./bin/setup
       - run: ./build-exec bundle exec rake compile
       - name: Pre-release configuration
