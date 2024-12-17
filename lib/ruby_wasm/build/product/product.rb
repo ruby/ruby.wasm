@@ -11,7 +11,7 @@ module RubyWasm
       @toolchain = toolchain
     end
     def system_triplet_args
-      args = []
+      args = [] #: Array[String]
       case @target.triple
       when /^wasm32-unknown-wasi/
         args.concat(%W[--host wasm32-wasi])
@@ -24,7 +24,7 @@ module RubyWasm
     end
 
     def tools_args
-      args = []
+      args = [] #: Array[String]
       args << "CC=#{@toolchain.cc}"
       args << "CXX=#{@toolchain.cxx}"
       args << "LD=#{@toolchain.ld}"

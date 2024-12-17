@@ -32,7 +32,7 @@ module RubyWasm
     end
 
     def make_args(crossruby)
-      make_args = []
+      make_args = [] #: Array[String]
       make_args << "CC=#{@toolchain.cc}"
       make_args << "CXX=#{@toolchain.cc}"
       make_args << "LD=#{@toolchain.ld}"
