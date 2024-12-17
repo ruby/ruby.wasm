@@ -14,5 +14,5 @@ end
 
 group :check do
   gem "syntax_tree", "~> 3.5"
-  gem "steep", "~> 1.9"
+  gem "steep", "~> 1.9" if RUBY_VERSION >= "3.1.0"
 end
