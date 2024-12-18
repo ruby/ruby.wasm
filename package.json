@@ -5,7 +5,7 @@
         "packages/npm-packages/*"
     ],
     "devDependencies": {
-        "@bytecodealliance/jco": "1.8.1",
+        "@bytecodealliance/jco": "1.4.4",
         "@playwright/test": "^1.49.0",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-json": "^6.1.0",
