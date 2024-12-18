@@ -49,20 +49,19 @@
     "format": "prettier --write .",
     "build:static": "./tools/pack-bindgen-src.rb ./dist",
     "build:rollup": "rollup -c rollup.config.mjs",
-    "build:tsc": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "build:tsc": "tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json",
     "build": "npm run build:rollup && npm run build:tsc && npm run build:static && ./tools/post-build.sh ./dist"
   },
   "devDependencies": {
-    "@bytecodealliance/jco": "1.4.4",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@types/node": "22.7.4",
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.3",
-    "vitest": "^2.0.5"
+    "@bytecodealliance/jco": "1.8.1",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@types/node": "22.10.1",
+    "prettier": "^3.4.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.6"
   },
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "^0.3.0",
-    "tslib": "^2.7.0"
+    "tslib": "^2.8.1"
   }
 }

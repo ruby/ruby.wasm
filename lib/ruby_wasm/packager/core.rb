@@ -111,7 +111,7 @@ class RubyWasm::Packager::Core
     end
 
     def _link_gem_exts(executor, build, ruby_root, gem_home, module_bytes)
-      libraries = []
+      libraries = [] #: Array[String]
 
       # TODO: Should be computed from dyinfo of ruby binary
       wasi_libc_shared_libs = [
@@ -130,7 +130,7 @@ class RubyWasm::Packager::Core
         wasi_sdk_path = toolchain.wasi_sdk_path
         libraries << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
       end
-      dl_openable_libs = []
+      dl_openable_libs = [] #: Array[[string, Array[String]]]
       dl_openable_libs << [File.dirname(ruby_root), Dir.glob(File.join(ruby_root, "lib", "ruby", "**", "*.so"))]
       dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "**", "*.so"))]
 

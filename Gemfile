@@ -14,5 +14,5 @@ group :check do
   # Use the latest version of webrick for URI change in Ruby 3.4
   gem "webrick", "~> 1.8.2"
   gem "syntax_tree", "~> 3.5"
-  gem "steep"
+  gem "steep", "~> 1.9" if RUBY_VERSION >= "3.1.0"
 end

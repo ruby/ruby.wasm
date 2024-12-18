@@ -14,7 +14,7 @@ interface js-runtime {
     instance-of: func(value: borrow<js-abi-value>, klass: borrow<js-abi-value>) -> bool;
     global-this: func() -> js-abi-value;
     int-to-js-number: func(value: s32) -> js-abi-value;
-    float-to-js-number: func(value: float64) -> js-abi-value;
+    float-to-js-number: func(value: f64) -> js-abi-value;
     string-to-js-string: func(value: string) -> js-abi-value;
     bool-to-js-bool: func(value: bool) -> js-abi-value;
     proc-to-js-function: func() -> js-abi-value;
@@ -23,7 +23,7 @@ interface js-runtime {
     js-value-to-string: func(value: borrow<js-abi-value>) -> string;
 
     variant raw-integer {
-        as-float(float64),
+        as-float(f64),
         bignum(string),
     }
 
