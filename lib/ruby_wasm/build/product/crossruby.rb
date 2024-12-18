@@ -90,10 +90,15 @@ module RubyWasm
         "--disable=gems",
         # HACK: top_srcdir is required to find ruby headers
         "-e",
-        %Q($top_srcdir="#{source.src_dir}"),
+        %Q($top_srcdir=ENV["top_srcdir"]="#{source.src_dir}"),
         # HACK: extout is required to find config.h
         "-e",
-        %Q($extout="#{crossruby.build_dir}/.ext"),
+        %Q($extout=ENV["extout"]="#{crossruby.build_dir}/.ext"),
+        *(@features.support_component_model? ? [] : [
+          # HACK: skip have_devel check since ruby is not installed yet
+          "-e",
+          "$have_devel = true",
+        ]),
         # HACK: force static ext build by imitating extmk
         "-e",
         "$static = true; trace_var(:$static) {|v| $static = true }",
