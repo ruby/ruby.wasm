@@ -9,7 +9,7 @@ require "ruby_wasm/rake_task"
 require "ruby_wasm/packager"
 require "ruby_wasm/cli"
 
-BUILD_SOURCES = %w[3.3 3.2 head]
+BUILD_SOURCES = %w[3.4 3.3 3.2 head]
 BUILD_PROFILES = %w[full minimal]
 
 BUILDS =
@@ -37,6 +37,12 @@ NPM_PACKAGES = [
     gemfile: "packages/npm-packages/ruby-head-wasm-wasip2/Gemfile",
     target: "wasm32-unknown-wasip2",
     enable_component_model: true,
+  },
+  {
+    name: "ruby-3.4-wasm-wasi",
+    ruby_version: "3.4",
+    gemfile: "packages/npm-packages/ruby-3.3-wasm-wasi/Gemfile",
+    target: "wasm32-unknown-wasip1"
   },
   {
     name: "ruby-3.3-wasm-wasi",
