@@ -16,7 +16,7 @@ desc "Generate TypeScript documentation"
 task :typedoc do
   sh "npm install"
   mkdir_p "html/npm/@ruby/wasm-wasi"
-  sh "npx typedoc packages/npm-packages/ruby-wasm-wasi/src/index.ts --sort source-order --out html/npm/@ruby/wasm-wasi"
+  sh "npx typedoc --tsconfig packages/npm-packages/ruby-wasm-wasi/tsconfig.esm.json packages/npm-packages/ruby-wasm-wasi/src/index.ts --sort source-order --out html/npm/@ruby/wasm-wasi"
 end
 
 desc "Generate documentation site"
