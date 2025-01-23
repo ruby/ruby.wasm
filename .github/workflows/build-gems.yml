@@ -33,20 +33,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oxidize-rb/actions/setup-ruby-and-rust@v1
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
-          bundler-cache: true
-          cargo-cache: true
-          cargo-vendor: true
-          cache-version: v2-${{ matrix.ruby-platform }}
+          ruby-version: "3.4"
 
-      - name: Set vars
-        id: vars
-        run: |
-          echo "rb-sys-version=$(bundle exec ruby -rrb_sys -e 'puts RbSys::VERSION')" >> $GITHUB_OUTPUT
-      - uses: oxidize-rb/cross-gem-action@main
+      - uses: oxidize-rb/actions/cross-gem@v1
+        id: cross-gem
         with:
-          version: ${{ steps.vars.outputs.rb-sys-version }}
           platform: ${{ matrix.ruby-platform }}
-          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ', ') }}
+          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cross-gem-${{ matrix.ruby-platform }}
+          path: ${{ steps.cross-gem.outputs.gem-path }}
+          if-no-files-found: error

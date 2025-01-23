@@ -94,11 +94,15 @@ module RubyWasm
         # HACK: extout is required to find config.h
         "-e",
         %Q($extout=ENV["extout"]="#{crossruby.build_dir}/.ext"),
-        *(@features.support_component_model? ? [] : [
+      ]
+      unless @features.support_component_model?
+        extconf_args.concat([
           # HACK: skip have_devel check since ruby is not installed yet
           "-e",
           "$have_devel = true",
-        ]),
+        ])
+      end
+      extconf_args.concat([
         # HACK: force static ext build by imitating extmk
         "-e",
         "$static = true; trace_var(:$static) {|v| $static = true }",
@@ -115,7 +119,7 @@ module RubyWasm
         %Q(require "json"; File.write("#{metadata_json(crossruby)}", JSON.dump({target: $target}))),
         "-I#{crossruby.build_dir}",
         "--",
-      ]
+      ])
       extconf_args << "--disable-component-model" unless @features.support_component_model?
       # Clear RUBYOPT to avoid loading unrelated bundle setup
       executor.system crossruby.baseruby_path,
