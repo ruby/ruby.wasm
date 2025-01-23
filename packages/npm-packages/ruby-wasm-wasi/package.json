@@ -53,15 +53,15 @@
     "build": "npm run build:rollup && npm run build:tsc && npm run build:static && ./tools/post-build.sh ./dist"
   },
   "devDependencies": {
-    "@bytecodealliance/jco": "1.8.1",
+    "@bytecodealliance/jco": "1.9.1",
     "@rollup/plugin-typescript": "^12.1.1",
-    "@types/node": "22.10.1",
+    "@types/node": "22.10.10",
     "prettier": "^3.4.1",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.6"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@bjorn3/browser_wasi_shim": "^0.3.0",
+    "@bjorn3/browser_wasi_shim": "^0.4.0",
     "tslib": "^2.8.1"
   }
 }
