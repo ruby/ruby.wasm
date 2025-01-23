@@ -131,3 +131,43 @@ $ npm install --save @ruby/wasm-wasi@next
 # or you can specify the exact snapshot version
 $ npm install --save @ruby/wasm-wasi@2.7.0-2024-11-11-a
 ```
+
+
+## Adding Support for a New Ruby Version
+
+When a new version of Ruby is released, the following steps need to be taken to add support for it in ruby.wasm:
+
+1. Update `lib/ruby_wasm/cli.rb`:
+   - Add a new entry in the `build_source_aliases` method for the new version
+   - Specify the tarball URL and required default extensions
+
+2. Update `Rakefile`:
+   - Add the new version to `BUILD_SOURCES`
+   - Add a new entry in `NPM_PACKAGES` for the new version
+
+3. Create a new npm package:
+   ```console
+   # Copy from head package
+   $ cp -r packages/npm-packages/ruby-head-wasm-wasi packages/npm-packages/ruby-NEW.VERSION-wasm-wasi
+
+   # Update version references
+   # - In package.json: Update name, version, and description
+   # - In README.md: Update version references
+   ```
+   Note: Most of the package contents can be reused from the head package as is, since the JavaScript API and build configuration remain the same across versions.
+
+4. Update `package-lock.json` by `npm install`
+
+4. Update documentation:
+   - Update version references in `README.md`
+   - Update examples in `docs/cheat_sheet.md`
+   - Update the package list in `packages/npm-packages/ruby-wasm-wasi/README.md`
+
+5. Test the build:
+   ```console
+   $ rake build:NEW.VERSION-wasm32-unknown-wasip1-full
+   $ rake npm:ruby-NEW.VERSION-wasm-wasi:build
+   $ rake npm:ruby-NEW.VERSION-wasm-wasi:check
+   ```
+
+6. Create a pull request with all the changes
