@@ -242,6 +242,11 @@ module RubyWasm
           rev: "master",
           all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
         },
+        "3.4" => {
+          type: "tarball",
+          url: "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz",
+          all_default_exts: "cgi/escape,continuation,coverage,date,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,json,json/generator,json/parser,objspace,pathname,psych,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
+        },
         "3.3" => {
           type: "tarball",
           url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.3.tar.gz",
