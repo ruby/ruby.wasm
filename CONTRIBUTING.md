@@ -129,7 +129,7 @@ $ npm install --save @ruby/wasm-wasi@latest
 # or if you want the nightly snapshot
 $ npm install --save @ruby/wasm-wasi@next
 # or you can specify the exact snapshot version
-$ npm install --save @ruby/wasm-wasi@2.7.0-2024-11-11-a
+$ npm install --save @ruby/wasm-wasi@2.7.1-2025-01-23-a
 ```
 
 
