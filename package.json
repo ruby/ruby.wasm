@@ -5,11 +5,11 @@
         "packages/npm-packages/*"
     ],
     "devDependencies": {
-        "@bytecodealliance/jco": "1.4.4",
-        "@playwright/test": "^1.49.0",
-        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@bytecodealliance/jco": "1.8.1",
+        "@playwright/test": "^1.50.0",
+        "@rollup/plugin-node-resolve": "^16.0.0",
         "@rollup/plugin-json": "^6.1.0",
-        "rollup": "^4.28.0",
-        "typedoc": "^0.27.2"
+        "rollup": "^4.32.0",
+        "typedoc": "^0.27.6"
     }
 }
