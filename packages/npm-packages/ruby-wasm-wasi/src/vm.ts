@@ -132,7 +132,12 @@ export class RubyVM {
     vm.addToImports(imports);
     options.addToImports?.(imports);
     const instance = await WebAssembly.instantiate(module, imports);
-    await vm.setInstance(instance);
+    try {
+      await vm.setInstance(instance);
+    } catch (e) {
+      console.error("Failed to instantiate Ruby VM. Please make sure that you have added `gem \"js\"` to your Gemfile.");
+      throw e;
+    }
     options.setMemory?.(instance.exports.memory as WebAssembly.Memory);
     wasip1.initialize(instance);
     vm.initialize(options.args);
