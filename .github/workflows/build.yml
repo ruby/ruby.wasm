@@ -107,7 +107,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: build-manifest
-      - uses: actions/cache@v4.2.0
+      - uses: actions/cache@v4.2.2
         if: ${{ matrix.entry.rubies_cache_key != null }}
         with:
           path: ./rubies
