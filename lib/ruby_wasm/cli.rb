@@ -266,7 +266,7 @@ module RubyWasm
         source[:patches] = patches_dirs.flat_map do |patches_dir|
           Dir[File.join(patches_dir, name, "*.patch")]
             .map { |p| File.expand_path(p) }
-        end
+        end.uniq
       end
 
       build_manifest = File.join(root, "build_manifest.json")
