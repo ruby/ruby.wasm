@@ -1,0 +1,232 @@
+From 88433e7e9d1389c9dc4b23508176e714c763deec Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E5=88=98=E7=9A=93?= <whiteaxe@tuta.io>
+Date: Thu, 27 Mar 2025 00:34:27 -0400
+Subject: [PATCH 1/3] Fix stack pointer corruption in setjmp handler in WASI
+ builds
+
+---
+ wasm/setjmp.c | 8 ++++++++
+ wasm/setjmp.h | 1 +
+ 2 files changed, 9 insertions(+)
+
+diff --git a/wasm/setjmp.c b/wasm/setjmp.c
+index ebbf8949c1ecf7..32ede68c09997c 100644
+--- a/wasm/setjmp.c
++++ b/wasm/setjmp.c
+@@ -143,9 +143,11 @@ rb_wasm_try_catch_init(struct rb_wasm_try_catch *try_catch,
+     try_catch->try_f = try_f;
+     try_catch->catch_f = catch_f;
+     try_catch->context = context;
++    try_catch->stack_pointer = NULL;
+ }
+ 
+ // NOTE: This function is not processed by Asyncify due to a call of asyncify_stop_rewind
++__attribute__((noinline))
+ void
+ rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf *target)
+ {
+@@ -154,6 +156,10 @@ rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf
+ 
+     target->state = JMP_BUF_STATE_CAPTURED;
+ 
++    if (try_catch->stack_pointer == NULL) {
++        try_catch->stack_pointer = rb_wasm_get_stack_pointer();
++    }
++
+     switch ((enum try_catch_phase)try_catch->state) {
+     case TRY_CATCH_PHASE_MAIN:
+         // may unwind
+@@ -175,6 +181,8 @@ rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf
+             // stop unwinding
+             // (but call stop_rewind to update the asyncify state to "normal" from "unwind")
+             asyncify_stop_rewind();
++            // reset the stack pointer to what it was before the most recent call to try_f or catch_f
++            rb_wasm_set_stack_pointer(try_catch->stack_pointer);
+             // clear the active jmpbuf because it's already stopped
+             _rb_wasm_active_jmpbuf = NULL;
+             // reset jmpbuf state to be able to unwind again
+diff --git a/wasm/setjmp.h b/wasm/setjmp.h
+index cc14df33be1140..e65bfc0ca07e0b 100644
+--- a/wasm/setjmp.h
++++ b/wasm/setjmp.h
+@@ -65,6 +65,7 @@ struct rb_wasm_try_catch {
+     rb_wasm_try_catch_func_t try_f;
+     rb_wasm_try_catch_func_t catch_f;
+     void *context;
++    void *stack_pointer;
+     int state;
+ };
+ 
+
+From 6d2bc7f3ca78d82aaa68a674cfbaa1825685ee8c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E5=88=98=E7=9A=93?= <whiteaxe@tuta.io>
+Date: Thu, 27 Mar 2025 00:37:14 -0400
+Subject: [PATCH 2/3] Fix jump buffer leak in setjmp handler in WASI builds
+
+---
+ cont.c        |  1 +
+ eval_intern.h |  4 +--
+ vm_core.h     | 77 ++++++++++++++++++++++++++++++++++-----------------
+ 3 files changed, 55 insertions(+), 27 deletions(-)
+
+diff --git a/cont.c b/cont.c
+index 072ae4562f4d87..ae68da4e83ff79 100644
+--- a/cont.c
++++ b/cont.c
+@@ -1369,6 +1369,7 @@ cont_init(rb_context_t *cont, rb_thread_t *th)
+     /* save thread context */
+     cont_save_thread(cont, th);
+     cont->saved_ec.thread_ptr = th;
++    cont->saved_ec.tag = NULL;
+     cont->saved_ec.local_storage = NULL;
+     cont->saved_ec.local_storage_recursive_hash = Qnil;
+     cont->saved_ec.local_storage_recursive_hash_for_trace = Qnil;
+diff --git a/eval_intern.h b/eval_intern.h
+index ab0577e8ed2af3..49229fa82d4e05 100644
+--- a/eval_intern.h
++++ b/eval_intern.h
+@@ -102,11 +102,11 @@ extern int select_large_fdset(int, fd_set *, fd_set *, fd_set *, struct timeval
+   _tag.tag = Qundef; \
+   _tag.prev = _ec->tag; \
+   _tag.lock_rec = rb_ec_vm_lock_rec(_ec); \
+-  rb_vm_tag_jmpbuf_init(&_tag.buf); \
++  rb_vm_tag_jmpbuf_init(&_tag);
+ 
+ #define EC_POP_TAG() \
+   _ec->tag = _tag.prev; \
+-  rb_vm_tag_jmpbuf_deinit(&_tag.buf); \
++  rb_vm_tag_jmpbuf_deinit(&_tag); \
+ } while (0)
+ 
+ #define EC_TMPPOP_TAG() \
+diff --git a/vm_core.h b/vm_core.h
+index d9159f5ccf4ae5..28d742feed1886 100644
+--- a/vm_core.h
++++ b/vm_core.h
+@@ -946,52 +946,79 @@ typedef void *rb_jmpbuf_t[5];
+   Therefore, we allocates the buffer on the heap on such
+   environments.
+ */
+-typedef rb_jmpbuf_t *rb_vm_tag_jmpbuf_t;
++typedef struct _rb_vm_tag_jmpbuf {
++    struct _rb_vm_tag_jmpbuf *next;
++    rb_jmpbuf_t buf;
++} *rb_vm_tag_jmpbuf_t;
+ 
+-#define RB_VM_TAG_JMPBUF_GET(buf) (*buf)
++#define RB_VM_TAG_JMPBUF_GET(jmpbuf) ((jmpbuf)->buf)
++#else
++typedef rb_jmpbuf_t rb_vm_tag_jmpbuf_t;
++
++#define RB_VM_TAG_JMPBUF_GET(jmpbuf) (jmpbuf)
++#endif
++
++/*
++  the members which are written in EC_PUSH_TAG() should be placed at
++  the beginning and the end, so that entire region is accessible.
++*/
++struct rb_vm_tag {
++    VALUE tag;
++    VALUE retval;
++    rb_vm_tag_jmpbuf_t buf;
++    struct rb_vm_tag *prev;
++    enum ruby_tag_type state;
++    unsigned int lock_rec;
++};
++
++#if defined(__wasm__) && !defined(__EMSCRIPTEN__)
++static inline void
++_rb_vm_tag_jmpbuf_deinit_internal(rb_vm_tag_jmpbuf_t jmpbuf)
++{
++    rb_vm_tag_jmpbuf_t buf = jmpbuf;
++    while (buf != NULL) {
++        rb_vm_tag_jmpbuf_t next = buf->next;
++        ruby_xfree(buf);
++        buf = next;
++    }
++}
+ 
+ static inline void
+-rb_vm_tag_jmpbuf_init(rb_vm_tag_jmpbuf_t *jmpbuf)
++rb_vm_tag_jmpbuf_init(struct rb_vm_tag *tag)
+ {
+-    *jmpbuf = ruby_xmalloc(sizeof(rb_jmpbuf_t));
++    if (tag->prev != NULL && tag->prev->buf->next != NULL) {
++        _rb_vm_tag_jmpbuf_deinit_internal(tag->prev->buf->next);
++        tag->prev->buf->next = NULL;
++    }
++    tag->buf = ruby_xmalloc(sizeof *tag->buf);
++    tag->buf->next = NULL;
++    if (tag->prev != NULL) {
++        tag->prev->buf->next = tag->buf;
++    }
+ }
+ 
+ static inline void
+-rb_vm_tag_jmpbuf_deinit(const rb_vm_tag_jmpbuf_t *jmpbuf)
++rb_vm_tag_jmpbuf_deinit(struct rb_vm_tag *tag)
+ {
+-    ruby_xfree(*jmpbuf);
++    if (tag->prev != NULL) {
++        tag->prev->buf->next = NULL;
++    }
++    _rb_vm_tag_jmpbuf_deinit_internal(tag->buf);
+ }
+ #else
+-typedef rb_jmpbuf_t rb_vm_tag_jmpbuf_t;
+-
+-#define RB_VM_TAG_JMPBUF_GET(buf) (buf)
+-
+ static inline void
+-rb_vm_tag_jmpbuf_init(rb_vm_tag_jmpbuf_t *jmpbuf)
++rb_vm_tag_jmpbuf_init(struct rb_vm_tag *tag)
+ {
+     // no-op
+ }
+ 
+ static inline void
+-rb_vm_tag_jmpbuf_deinit(const rb_vm_tag_jmpbuf_t *jmpbuf)
++rb_vm_tag_jmpbuf_deinit(struct rb_vm_tag *tag)
+ {
+     // no-op
+ }
+ #endif
+ 
+-/*
+-  the members which are written in EC_PUSH_TAG() should be placed at
+-  the beginning and the end, so that entire region is accessible.
+-*/
+-struct rb_vm_tag {
+-    VALUE tag;
+-    VALUE retval;
+-    rb_vm_tag_jmpbuf_t buf;
+-    struct rb_vm_tag *prev;
+-    enum ruby_tag_type state;
+-    unsigned int lock_rec;
+-};
+-
+ STATIC_ASSERT(rb_vm_tag_buf_offset, offsetof(struct rb_vm_tag, buf) > 0);
+ STATIC_ASSERT(rb_vm_tag_buf_end,
+               offsetof(struct rb_vm_tag, buf) + sizeof(rb_vm_tag_jmpbuf_t) <
+
+From f6525bb5647057a892d11833dc36eb2104b88489 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E5=88=98=E7=9A=93?= <whiteaxe@tuta.io>
+Date: Thu, 27 Mar 2025 01:45:20 -0400
+Subject: [PATCH 3/3] Don't set `saved_ec.tag` to `NULL` in `cont_init()`
+
+---
+ cont.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/cont.c b/cont.c
+index ae68da4e83ff79..072ae4562f4d87 100644
+--- a/cont.c
++++ b/cont.c
+@@ -1369,7 +1369,6 @@ cont_init(rb_context_t *cont, rb_thread_t *th)
+     /* save thread context */
+     cont_save_thread(cont, th);
+     cont->saved_ec.thread_ptr = th;
+-    cont->saved_ec.tag = NULL;
+     cont->saved_ec.local_storage = NULL;
+     cont->saved_ec.local_storage_recursive_hash = Qnil;
+     cont->saved_ec.local_storage_recursive_hash_for_trace = Qnil;
