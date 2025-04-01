@@ -21,13 +21,9 @@
       end
     end
 
-    # "bundle install --standalone" does not care about bundled gems, so we need
-    # to activate them manually.
-    Gem::Dependency.new("csv").to_spec.activate
-
-    # The above patch does not break the original require_relative
-    require 'csv'
-    csv = CSV.new "foo\nbar\n"
+    # The above patch should not break the original require_relative
+    require 'uri'
+    URI.parse('http://example.com')
 
     # Load the main script
     require_relative 'main'

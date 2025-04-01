@@ -46,7 +46,7 @@ module RubyWasm
     %i[cc cxx ranlib ld ar].each do |name|
       define_method(name) do
         @tools_cache ||= {} #: Hash[String, String]
-        @tools_cache[name] ||= find_tool(name)
+        __skip__ = @tools_cache[name] ||= find_tool(name)
         @tools_cache[name]
       end
     end
