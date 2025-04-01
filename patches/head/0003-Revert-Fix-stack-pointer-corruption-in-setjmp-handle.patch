@@ -1,0 +1,63 @@
+From b0af5969522db7e78fd203ff3b8e3f4d7b4f43ea Mon Sep 17 00:00:00 2001
+From: Yuta Saito <kateinoigakukun@gmail.com>
+Date: Tue, 1 Apr 2025 05:48:33 +0000
+Subject: [PATCH 3/3] Revert "Fix stack pointer corruption in setjmp handler in
+ WASI builds"
+
+This reverts commit 72fc9c7b1580251eac7d8db116df7f6e436be8b3.
+---
+ wasm/setjmp.c | 8 --------
+ wasm/setjmp.h | 1 -
+ 2 files changed, 9 deletions(-)
+
+diff --git a/wasm/setjmp.c b/wasm/setjmp.c
+index 32ede68c09..ebbf8949c1 100644
+--- a/wasm/setjmp.c
++++ b/wasm/setjmp.c
+@@ -143,11 +143,9 @@ rb_wasm_try_catch_init(struct rb_wasm_try_catch *try_catch,
+     try_catch->try_f = try_f;
+     try_catch->catch_f = catch_f;
+     try_catch->context = context;
+-    try_catch->stack_pointer = NULL;
+ }
+ 
+ // NOTE: This function is not processed by Asyncify due to a call of asyncify_stop_rewind
+-__attribute__((noinline))
+ void
+ rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf *target)
+ {
+@@ -156,10 +154,6 @@ rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf
+ 
+     target->state = JMP_BUF_STATE_CAPTURED;
+ 
+-    if (try_catch->stack_pointer == NULL) {
+-        try_catch->stack_pointer = rb_wasm_get_stack_pointer();
+-    }
+-
+     switch ((enum try_catch_phase)try_catch->state) {
+     case TRY_CATCH_PHASE_MAIN:
+         // may unwind
+@@ -181,8 +175,6 @@ rb_wasm_try_catch_loop_run(struct rb_wasm_try_catch *try_catch, rb_wasm_jmp_buf
+             // stop unwinding
+             // (but call stop_rewind to update the asyncify state to "normal" from "unwind")
+             asyncify_stop_rewind();
+-            // reset the stack pointer to what it was before the most recent call to try_f or catch_f
+-            rb_wasm_set_stack_pointer(try_catch->stack_pointer);
+             // clear the active jmpbuf because it's already stopped
+             _rb_wasm_active_jmpbuf = NULL;
+             // reset jmpbuf state to be able to unwind again
+diff --git a/wasm/setjmp.h b/wasm/setjmp.h
+index e65bfc0ca0..cc14df33be 100644
+--- a/wasm/setjmp.h
++++ b/wasm/setjmp.h
+@@ -65,7 +65,6 @@ struct rb_wasm_try_catch {
+     rb_wasm_try_catch_func_t try_f;
+     rb_wasm_try_catch_func_t catch_f;
+     void *context;
+-    void *stack_pointer;
+     int state;
+ };
+ 
+-- 
+2.48.1
+
