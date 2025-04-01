@@ -70,8 +70,12 @@ class RubyWasm::Packager
     def build_strategy: () -> BuildStrategy
 
     class BuildStrategy
+      include RubyWasm::_Cacheable
+
       @packager: RubyWasm::Packager
       def initialize: (RubyWasm::Packager) -> void
+      def target: () -> RubyWasm::Target
+      def artifact: () -> string
       def build: (RubyWasm::BuildExecutor, untyped options) -> String
       def specs_with_extensions: () -> Array[[untyped, Array[string]]]
       def build_gem_exts: (RubyWasm::BuildExecutor, string gem_home) -> void

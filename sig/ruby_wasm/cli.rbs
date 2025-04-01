@@ -29,7 +29,10 @@ module RubyWasm
 
     def initialize: (stdout: IO, stderr: IO) -> void
 
+    def run: (Array[String] args) -> void
+
     def build: (Array[String] args) -> void
+    def do_build_with_force_ruby_platform: (cli_options options) -> void
     def pack: (Array[String] args) -> void
 
     private
@@ -49,5 +52,6 @@ module RubyWasm
 
   self.@logger: Logger?
   def self.logger: () -> Logger
+  def self.logger=: (Logger) -> void
   attr_accessor self.log_level: Symbol
 end
