@@ -23,7 +23,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +47,7 @@ jobs:
         entry:
           - { target: wasm32-unknown-wasip1 }
           - { target: wasm32-unknown-emscripten }
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -70,7 +70,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-rake-task-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       entries: ${{ steps.set-matrix.outputs.entries }}
     steps:
@@ -99,7 +99,7 @@ jobs:
       matrix:
         entry: ${{ fromJson(needs.build-rake-task-matrix.outputs.entries) }}
     needs: [build-rake-task-matrix]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -152,6 +152,10 @@ jobs:
         with:
           ruby-version: "3.4.1"
           bundler-cache: false
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.entry.test != '' }}
+        with:
+          node-version: 22
       - name: rake ${{ matrix.entry.test }}
         run: |
           bundle install --with=check --without=development
@@ -160,7 +164,7 @@ jobs:
 
   release-artifacts:
     needs: [rake-tasks]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
     steps:
       - uses: actions/checkout@v4
