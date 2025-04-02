@@ -152,6 +152,10 @@ jobs:
         with:
           ruby-version: "3.4.1"
           bundler-cache: false
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.entry.test != '' }}
+        with:
+          node-version: 22
       - name: rake ${{ matrix.entry.test }}
         run: |
           bundle install --with=check --without=development
