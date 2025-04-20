@@ -17,11 +17,11 @@
       "import": "./dist/esm/*.js",
       "require": "./dist/cjs/*.js"
     },
-    "./*.wasm": {
-      "browser": "./*.wasm",
-      "umd": "./*.wasm",
-      "import": "./*.wasm",
-      "require": "./*.wasm"
+    "./dist/*.wasm": {
+      "browser": "./dist/*.wasm",
+      "umd": "./dist/*.wasm",
+      "import": "./dist/*.wasm",
+      "require": "./dist/*.wasm"
     }
   },
   "files": [
