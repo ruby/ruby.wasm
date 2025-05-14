@@ -30,6 +30,20 @@ RUN set -eux pipefail; \
     sh -s -- -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION; \
   chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
+ADD https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz /buildruby.tar.gz
+RUN set -eux; \
+  mkdir /buildruby; \
+  tar -xf /buildruby.tar.gz -C /buildruby --strip-components=1; \
+  rm /buildruby.tar.gz; \
+  cd /buildruby; \
+  mkdir -p /opt/ruby; \
+  ./configure --prefix=/opt/ruby --disable-install-doc; \
+  make -j$(nproc); \
+  make install; \
+  cd /; \
+  rm -rf /buildruby
+ENV PATH=/opt/ruby/bin:$PATH
+
 ENV BUNDLE_PATH=/usr/local/gems
 RUN set -eux; \
   mkdir -p $BUNDLE_PATH; \
