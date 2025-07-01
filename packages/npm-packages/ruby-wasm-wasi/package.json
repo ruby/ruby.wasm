@@ -54,11 +54,11 @@
   },
   "devDependencies": {
     "@bytecodealliance/jco": "1.8.1",
-    "@rollup/plugin-typescript": "^12.1.1",
-    "@types/node": "22.15.29",
-    "prettier": "^3.5.3",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@types/node": "24.0.8",
+    "prettier": "^3.6.2",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@bjorn3/browser_wasi_shim": "^0.3.0",
