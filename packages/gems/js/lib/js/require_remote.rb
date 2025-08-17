@@ -37,7 +37,13 @@ module JS
   #      rescue LoadError
   #        JS::RequireRemote.instance.load(path)
   #      end
-  #   end
+  #    end
+  #
+  # You can also load included shim to achieve the same.
+  #
+  # == Example
+  #
+  #    require 'js/require_remote/relative_shim'
   #
   class RequireRemote
     include Singleton
