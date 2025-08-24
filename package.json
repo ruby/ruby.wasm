@@ -6,10 +6,10 @@
     ],
     "devDependencies": {
         "@bytecodealliance/jco": "1.4.4",
-        "@playwright/test": "^1.53.2",
+        "@playwright/test": "^1.54.1",
         "@rollup/plugin-node-resolve": "^16.0.1",
         "@rollup/plugin-json": "^6.1.0",
-        "rollup": "^4.44.1",
-        "typedoc": "^0.28.7"
+        "rollup": "^4.46.2",
+        "typedoc": "^0.28.8"
     }
 }
