@@ -67,7 +67,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
   build-rake-task-matrix:
     runs-on: ubuntu-24.04
@@ -121,7 +121,7 @@ jobs:
           context: builders/${{ matrix.entry.builder }}
           load: true
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
       - name: Setup builder container
         run: |
           docker run -dit -v "$GITHUB_WORKSPACE:/home/me/build" -w /home/me/build \
