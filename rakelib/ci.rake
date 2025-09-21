@@ -132,6 +132,40 @@ namespace :ci do
     end
   end
 
+  desc "Purge old caches in GitHub Actions"
+  task :purge_caches, [:days] do |_, args|
+    RubyWasm::Toolchain.check_executable("gh")
+
+    days = (args[:days] || 1).to_i
+    repo = ENV["GITHUB_REPOSITORY"] || "ruby/ruby.wasm"
+    cutoff = (Time.now.utc - days * 86_400).iso8601
+
+    puts "Deleting caches last accessed before #{cutoff}…"
+
+    page = 1
+    deleted = 0
+
+    loop do
+      resp = `gh api -H 'Accept: application/vnd.github+json' "/repos/#{repo}/actions/caches?per_page=100&page=#{page}"`
+      raise "gh api failed" unless $?.success?
+
+      data = JSON.parse(resp)
+      caches = data["actions_caches"]
+
+      old = caches.select { |c| c["last_accessed_at"] < cutoff }
+      old.each do |c|
+        id = c["id"]
+        system("gh api -X DELETE /repos/#{repo}/actions/caches/#{id}")
+        deleted += 1
+      end
+
+      break if caches.size < 100
+      page += 1
+    end
+
+    puts "Deleted #{deleted} caches older than #{days} days."
+  end
+
   desc "Publish artifacts as a GitHub Release"
   task :publish, [:tag] do |t, args|
     RubyWasm::Toolchain.check_executable("gh")
