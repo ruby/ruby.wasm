@@ -13,6 +13,9 @@ jobs:
   prune:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - run: rake ci:prune_caches
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
