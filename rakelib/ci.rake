@@ -132,8 +132,8 @@ namespace :ci do
     end
   end
 
-  desc "Purge old caches in GitHub Actions"
-  task :purge_caches, [:days] do |_, args|
+  desc "Prune old caches in GitHub Actions"
+  task :prune_caches, [:days] do |_, args|
     RubyWasm::Toolchain.check_executable("gh")
 
     days = (args[:days] || 1).to_i
