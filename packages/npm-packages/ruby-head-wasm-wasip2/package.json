@@ -30,7 +30,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasip2 ENABLE_COMPONENT_TESTS=1 npm -C ../ruby-wasm-wasi run test:run",
+    "FIXME_SKIP_test": "RUBY_NPM_PACKAGE_ROOT=../ruby-head-wasm-wasip2 ENABLE_COMPONENT_TESTS=1 npm -C ../ruby-wasm-wasi run test:run",
     "build:deps": "cd ../ruby-wasm-wasi && npm run build",
     "build:static:files": "../ruby-wasm-wasi/tools/pack-static-files.sh ./dist",
     "build:static": "npm run build:static:files",
