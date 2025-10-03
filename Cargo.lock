@@ -1361,7 +1361,7 @@ dependencies = [
  "wasi-virt",
  "wasm-compose 0.219.1",
  "wit-component 0.216.0",
- "wizer",
+ "wizer 6.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1835,13 +1835,13 @@ dependencies = [
 [[package]]
 name = "wasi-vfs-cli"
 version = "0.5.3"
-source = "git+https://github.com/kateinoigakukun/wasi-vfs/?tag=v0.5.3#39d83db2b2518d1f991276960d22d3948d62f7df"
+source = "git+https://github.com/kateinoigakukun/wasi-vfs/?tag=v0.5.3-p1#32437aed43b117fe6905f547924196c15bf7b966"
 dependencies = [
  "anyhow",
  "structopt",
  "wasm-encoder 0.212.0",
  "wasmparser 0.212.0",
- "wizer",
+ "wizer 6.0.0 (git+https://github.com/kateinoigakukun/wizer.git?branch=katei/add-env-option-6.0.0)",
 ]
 
 [[package]]
@@ -2739,6 +2739,21 @@ name = "wizer"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eb1c0491a94f508072223d3dd076816380e2ea2c687f6f412d3b507d065489c8"
+dependencies = [
+ "anyhow",
+ "cap-std",
+ "log",
+ "rayon",
+ "wasi-common",
+ "wasm-encoder 0.202.0",
+ "wasmparser 0.202.0",
+ "wasmtime",
+]
+
+[[package]]
+name = "wizer"
+version = "6.0.0"
+source = "git+https://github.com/kateinoigakukun/wizer.git?branch=katei/add-env-option-6.0.0#8e7158013eb3d1059504229eff834eb1f3e33949"
 dependencies = [
  "anyhow",
  "cap-std",
