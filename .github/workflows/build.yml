@@ -164,7 +164,7 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
     permissions:
       id-token: write # Required for OIDC
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
