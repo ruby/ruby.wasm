@@ -148,7 +148,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: ${{ matrix.entry.test != '' }}
         with:
-          node-version: 22
+          node-version: "22.20.0"
       - name: rake ${{ matrix.entry.test }}
         run: |
           bundle install --with=check --without=development
