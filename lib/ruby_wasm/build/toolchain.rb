@@ -56,7 +56,7 @@ module RubyWasm
     def initialize(
       wasi_sdk_path = ENV["WASI_SDK_PATH"],
       build_dir: nil,
-      version_major: 25,
+      version_major: 21,
       version_minor: 0,
       binaryen_version: 108
     )
@@ -111,9 +111,8 @@ module RubyWasm
     def download_url(version_major, version_minor)
       version = "#{version_major}.#{version_minor}"
       assets = [
-        [/x86_64-linux/, "wasi-sdk-#{version}-x86_64-linux.tar.gz"],
-        [/arm64e?-darwin/, "wasi-sdk-#{version}-arm64-macos.tar.gz"],
-        [/x86_64-darwin/, "wasi-sdk-#{version}-x86_64-macos.tar.gz"]
+        [/x86_64-linux/, "wasi-sdk-#{version}-linux.tar.gz"],
+        [/(arm64e?|x86_64)-darwin/, "wasi-sdk-#{version}-macos.tar.gz"]
       ]
       asset = assets.find { |os, _| os =~ RUBY_PLATFORM }&.at(1)
       if asset.nil?
