@@ -345,6 +345,17 @@ module RubyWasm
         wasi_sdk_path = @toolchain
         args << %Q(WASMOPT=#{wasi_sdk_path.wasm_opt})
         args << %Q(WASI_SDK_PATH=#{wasi_sdk_path.wasi_sdk_path})
+        # NOTE: wasi-libc 22 and later defines stubs for fchmod and chmod
+        # but they just return ENOTSUP, and ruby's configure doesn't check
+        # the runtime behavior. So we need to tell configure that
+        # these functions are not available.
+        # https://github.com/WebAssembly/wasi-libc/pull/463
+        args << %Q(ac_cv_func_fchmod=no)
+        args << %Q(ac_cv_func_chmod=no)
+        # TODO: wasi-libc 22 and later started using musl's realpath impl but
+        # it broke Kernel#require on @bjorn3/browser_wasi_shim setup for some
+        # reason. So we disable it for now.
+        args << %Q(ac_cv_func_realpath=no)
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
         env_emcc_ldflags = ENV["RUBY_WASM_EMCC_LDFLAGS"] || ""
