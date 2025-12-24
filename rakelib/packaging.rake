@@ -1,10 +1,10 @@
 wasi_vfs = RubyWasm::WasiVfsProduct.new(File.join(Dir.pwd, "build"))
-wasi_sdk = TOOLCHAINS["wasi-sdk"]
+binaryen = RubyWasm::Binaryen.new(build_dir: File.join(Dir.pwd, "build"))
 def exe_rbwasm = File.expand_path(File.join(__dir__, "..", "exe", "rbwasm"))
 
 tools = {
   "WASI_VFS_CLI" => exe_rbwasm,
-  "WASMOPT" => wasi_sdk.wasm_opt
+  "WASMOPT" => binaryen.wasm_opt
 }
 
 def npm_pkg_build_command(pkg)

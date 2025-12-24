@@ -255,13 +255,11 @@ module RubyWasm
   class WASISDK < Toolchain
     @wasm_opt_path: String
     @need_fetch_wasi_sdk: bool
-    @need_fetch_binaryen: bool
     @tools: Hash[Symbol, String]
     @wasi_sdk_path: String
-    @binaryen_version: Integer
     @version_major: Integer
     @version_minor: Integer
-    @binaryen_path: String
+    @binaryen: Binaryen
 
     def initialize: (?String? wasi_sdk_path, ?build_dir: String?, ?version_major: Integer, ?version_minor: Integer, ?binaryen_version: Integer) -> void
     def find_tool: (Symbol name) -> String
@@ -271,6 +269,20 @@ module RubyWasm
     def binaryen_download_url: (Integer? version) -> String
     def install_wasi_sdk: ->  void
     def install_binaryen: ->  void
+  end
+
+  class Binaryen
+    @need_fetch_binaryen: bool
+    @binaryen_path: String
+    @binaryen_version: Integer
+    @wasm_opt_path: String
+
+    def initialize: (?build_dir: String?, ?binaryen_version: Integer) -> void
+    def wasm_opt: -> String
+    def binaryen_path: -> String
+    def binaryen_version: -> Integer
+    def download_url: (Integer? version) -> String
+    def install: -> void
   end
 
   class Emscripten < Toolchain

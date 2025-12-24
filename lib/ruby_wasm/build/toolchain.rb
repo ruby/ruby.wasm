@@ -60,10 +60,7 @@ module RubyWasm
       version_minor: 0,
       binaryen_version: 108
     )
-      @wasm_opt_path = Toolchain.find_path("wasm-opt")
       @need_fetch_wasi_sdk = wasi_sdk_path.nil?
-      @need_fetch_binaryen = @wasm_opt_path.nil?
-
       if @need_fetch_wasi_sdk
         if build_dir.nil?
           raise "build_dir is required when WASI_SDK_PATH is not set"
@@ -73,14 +70,7 @@ module RubyWasm
         @version_minor = version_minor
       end
 
-      if @need_fetch_binaryen
-        if build_dir.nil?
-          raise "build_dir is required when wasm-opt not installed in PATH"
-        end
-        @binaryen_path = File.join(build_dir, "toolchain", "binaryen")
-        @binaryen_version = binaryen_version
-        @wasm_opt_path = File.join(@binaryen_path, "bin", "wasm-opt")
-      end
+      @binaryen = Binaryen.new(build_dir: build_dir, binaryen_version: binaryen_version)
 
       @tools = {
         cc: "#{wasi_sdk_path}/bin/clang",
@@ -101,7 +91,7 @@ module RubyWasm
     end
 
     def wasm_opt
-      @wasm_opt_path
+      @binaryen.wasm_opt
     end
 
     def wasi_sdk_path
@@ -121,7 +111,53 @@ module RubyWasm
       "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-#{version_major}/#{asset}"
     end
 
-    def binaryen_download_url(version)
+    def install_wasi_sdk
+      return unless @need_fetch_wasi_sdk
+      wasi_sdk_tarball =
+        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
+      unless File.exist? wasi_sdk_tarball
+        FileUtils.mkdir_p File.dirname(wasi_sdk_tarball)
+        system "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
+      end
+      unless File.exist? @wasi_sdk_path
+        FileUtils.mkdir_p @wasi_sdk_path
+        system "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
+      end
+    end
+
+    def install
+      install_wasi_sdk
+      @binaryen.install
+    end
+  end
+
+  class Binaryen
+    def initialize(build_dir: nil, binaryen_version: 108)
+      @wasm_opt_path = Toolchain.find_path("wasm-opt")
+      @need_fetch_binaryen = @wasm_opt_path.nil?
+      if @need_fetch_binaryen
+        if build_dir.nil?
+          raise "build_dir is required when wasm-opt not installed in PATH"
+        end
+        @binaryen_path = File.join(build_dir, "toolchain", "binaryen")
+        @binaryen_version = binaryen_version
+        @wasm_opt_path = File.join(@binaryen_path, "bin", "wasm-opt")
+      end
+    end
+
+    def wasm_opt
+      @wasm_opt_path
+    end
+
+    def binaryen_path
+      @binaryen_path
+    end
+
+    def binaryen_version
+      @binaryen_version
+    end
+
+    def download_url(version)
       assets = [
         [
           /x86_64-linux/,
@@ -143,26 +179,12 @@ module RubyWasm
       "https://github.com/WebAssembly/binaryen/releases/download/version_#{@binaryen_version}/#{asset}"
     end
 
-    def install_wasi_sdk
-      return unless @need_fetch_wasi_sdk
-      wasi_sdk_tarball =
-        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
-      unless File.exist? wasi_sdk_tarball
-        FileUtils.mkdir_p File.dirname(wasi_sdk_tarball)
-        system "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
-      end
-      unless File.exist? @wasi_sdk_path
-        FileUtils.mkdir_p @wasi_sdk_path
-        system "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
-      end
-    end
-
-    def install_binaryen
+    def install
       return unless @need_fetch_binaryen
       binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
       unless File.exist? binaryen_tarball
         FileUtils.mkdir_p File.dirname(binaryen_tarball)
-        system "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
+        system "curl -L -o #{binaryen_tarball} #{self.download_url(@binaryen_version)}"
       end
 
       unless File.exist? @binaryen_path
@@ -171,10 +193,6 @@ module RubyWasm
       end
     end
 
-    def install
-      install_wasi_sdk
-      install_binaryen
-    end
   end
 
   class Emscripten < Toolchain

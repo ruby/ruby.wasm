@@ -66,16 +66,6 @@ STANDALONE_PACKAGES = [
 
 LIB_ROOT = File.dirname(__FILE__)
 
-TOOLCHAINS = {}
-BUILDS
-  .map { |_, target, _| target }
-  .uniq
-  .each do |target|
-    build_dir = File.join(LIB_ROOT, "build")
-    toolchain = RubyWasm::Toolchain.get(target, build_dir)
-    TOOLCHAINS[toolchain.name] = toolchain
-  end
-
 class BuildTask < Struct.new(:name, :target, :build_command)
   def ruby_cache_key
     return @key if @key
