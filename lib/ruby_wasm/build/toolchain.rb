@@ -19,7 +19,12 @@ module RubyWasm
     def self.get(target, options, build_dir = nil)
       case target
       when /^wasm32-unknown-wasi/
-        return RubyWasm::WASISDK.new(build_dir: build_dir, version: options[:wasi_sdk_version])
+        return(
+          RubyWasm::WASISDK.new(
+            build_dir: build_dir,
+            version: options[:wasi_sdk_version]
+          )
+        )
       when "wasm32-unknown-emscripten"
         return RubyWasm::Emscripten.new
       else
@@ -71,7 +76,8 @@ module RubyWasm
         @version = version
       end
 
-      @binaryen = Binaryen.new(build_dir: build_dir, binaryen_version: binaryen_version)
+      @binaryen =
+        Binaryen.new(build_dir: build_dir, binaryen_version: binaryen_version)
 
       @tools = {
         cc: "#{wasi_sdk_path}/bin/clang",
@@ -103,44 +109,55 @@ module RubyWasm
       major, _ = @version.split(".").map(&:to_i)
       # @type var assets: Array[[Regexp, Array[String]]]
       assets = [
-        [/x86_64-linux/, [
-          "wasi-sdk-#{@version}-x86_64-linux.tar.gz",
-          # For wasi-sdk version < 23.0
-          "wasi-sdk-#{@version}-linux.tar.gz",
-        ]],
-        [/arm64e?-darwin/, [
-          "wasi-sdk-#{@version}-arm64-macos.tar.gz",
-          # For wasi-sdk version < 23.0
-          "wasi-sdk-#{@version}-macos.tar.gz",
-        ]],
-        [/x86_64-darwin/, [
-          "wasi-sdk-#{@version}-x86_64-macos.tar.gz",
-          # For wasi-sdk version < 23.0
-          "wasi-sdk-#{@version}-macos.tar.gz",
-        ]],
+        [
+          /x86_64-linux/,
+          [
+            "wasi-sdk-#{@version}-x86_64-linux.tar.gz",
+            # For wasi-sdk version < 23.0
+            "wasi-sdk-#{@version}-linux.tar.gz"
+          ]
+        ],
+        [
+          /arm64e?-darwin/,
+          [
+            "wasi-sdk-#{@version}-arm64-macos.tar.gz",
+            # For wasi-sdk version < 23.0
+            "wasi-sdk-#{@version}-macos.tar.gz"
+          ]
+        ],
+        [
+          /x86_64-darwin/,
+          [
+            "wasi-sdk-#{@version}-x86_64-macos.tar.gz",
+            # For wasi-sdk version < 23.0
+            "wasi-sdk-#{@version}-macos.tar.gz"
+          ]
+        ]
       ]
-      asset = assets.find do |os, candidates|
-        os =~ RUBY_PLATFORM
-      end
+      asset = assets.find { |os, candidates| os =~ RUBY_PLATFORM }
       if asset.nil?
         raise "unsupported platform for fetching WASI SDK: #{RUBY_PLATFORM}"
       end
       _, candidates = asset
-      candidates_urls = candidates.map do |candidate|
-        "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-#{major}/#{candidate}"
-      end
+      candidates_urls =
+        candidates.map do |candidate|
+          "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-#{major}/#{candidate}"
+        end
       require "net/http"
       # Find an asset that exists by checking HEAD response to see if the asset exists
       candidates_urls.each do |url_str|
         # @type var url: URI::HTTPS
         url = URI.parse(url_str)
-        ok = Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == 'https') do |http|
-          response = http.head(url.request_uri)
-          next response.code == "302"
-        end
-        if ok
-          return url_str
-        end
+        ok =
+          Net::HTTP.start(
+            url.host,
+            url.port,
+            use_ssl: url.scheme == "https"
+          ) do |http|
+            response = http.head(url.request_uri)
+            next response.code == "302"
+          end
+        return url_str if ok
       end
       raise "WASI SDK asset not found: #{candidates_urls.join(", ")}"
     end
@@ -151,11 +168,21 @@ module RubyWasm
         File.join(File.dirname(@wasi_sdk_path), "wasi-sdk-#{@version}.tar.gz")
       unless File.exist? wasi_sdk_tarball
         FileUtils.mkdir_p File.dirname(wasi_sdk_tarball)
-        executor.system "curl", "-fsSL", "-o", wasi_sdk_tarball, self.download_url
+        executor.system "curl",
+                        "-fsSL",
+                        "-o",
+                        wasi_sdk_tarball,
+                        self.download_url
       end
       unless File.exist? @wasi_sdk_path
         FileUtils.mkdir_p @wasi_sdk_path
-        executor.system "tar", "-C", @wasi_sdk_path, "--strip-component", "1", "-xzf", wasi_sdk_tarball
+        executor.system "tar",
+                        "-C",
+                        @wasi_sdk_path,
+                        "--strip-component",
+                        "1",
+                        "-xzf",
+                        wasi_sdk_tarball
       end
     end
 
@@ -218,20 +245,35 @@ module RubyWasm
       binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
       unless File.exist? binaryen_tarball
         FileUtils.mkdir_p File.dirname(binaryen_tarball)
-        executor.system "curl", "-L", "-o", binaryen_tarball, self.download_url(@binaryen_version)
+        executor.system "curl",
+                        "-L",
+                        "-o",
+                        binaryen_tarball,
+                        self.download_url(@binaryen_version)
       end
 
       unless File.exist? @binaryen_path
         FileUtils.mkdir_p @binaryen_path
-        executor.system "tar", "-C", @binaryen_path, "--strip-component", "1", "-xzf", binaryen_tarball
+        executor.system "tar",
+                        "-C",
+                        @binaryen_path,
+                        "--strip-component",
+                        "1",
+                        "-xzf",
+                        binaryen_tarball
       end
     end
-
   end
 
   class Emscripten < Toolchain
     def initialize
-      @tools = { cc: "emcc", cxx: "em++", ld: "emcc", ar: "emar", ranlib: "emranlib" }
+      @tools = {
+        cc: "emcc",
+        cxx: "em++",
+        ld: "emcc",
+        ar: "emar",
+        ranlib: "emranlib"
+      }
       @name = "emscripten"
     end
 

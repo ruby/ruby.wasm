@@ -152,11 +152,7 @@ module RubyWasm
       kwargs = {}
       kwargs[:chdir] = chdir if chdir
       kwargs[:exception] = true
-      if env
-        Kernel.system(env, *args, **kwargs)
-      else
-        Kernel.system(*args, **kwargs)
-      end
+      env ? Kernel.system(env, *args, **kwargs) : Kernel.system(*args, **kwargs)
     end
   end
 
