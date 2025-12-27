@@ -204,7 +204,7 @@ module RubyWasm
     def build(executor, remake: false, reconfigure: false)
       executor.mkdir_p dest_dir
       executor.mkdir_p build_dir
-      @toolchain.install
+      @toolchain.install(executor)
       [@source, @baseruby, @libyaml, @zlib, @openssl, @wasi_vfs].each do |prod|
         next unless prod
         executor.begin_section prod.class, prod.name, "Building"

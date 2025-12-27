@@ -43,7 +43,7 @@ class RubyWasm::Build
     @target = target
     @build_dir = build_dir
     @rubies_dir = rubies_dir
-    @toolchain = (toolchain || RubyWasm::Toolchain.get(target, @build_dir))
+    @toolchain = toolchain || raise("toolchain is required")
 
     @libyaml = RubyWasm::LibYAMLProduct.new(@build_dir, @target, @toolchain)
     @zlib = RubyWasm::ZlibProduct.new(@build_dir, @target, @toolchain)

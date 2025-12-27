@@ -181,12 +181,12 @@ module RubyWasm
     private
 
     def build_config(options)
-      build_source, all_default_exts = compute_build_source(options)
       # @type var config: Packager::build_config
-      config = { target: options[:target_triplet], src: build_source }
+      config = compute_build_alias(options)
+      config[:target] = options[:target_triplet]
       case options[:profile]
       when "full"
-        config[:default_exts] = all_default_exts || ""
+        config[:default_exts] = config[:all_default_exts] || ""
         env_additional_exts = ENV["RUBY_WASM_ADDITIONAL_EXTS"] || ""
         unless env_additional_exts.empty?
           config[:default_exts] += "," + env_additional_exts
@@ -201,24 +201,28 @@ module RubyWasm
       config
     end
 
-    def compute_build_source(options)
+    def compute_build_alias(options)
       src_name = options[:ruby_version]
-      aliases = self.class.build_source_aliases(root)
-      source = aliases[src_name]
-      if source.nil?
+      aliases = self.class.build_config_aliases(root)
+      config = aliases[src_name]
+      if config.nil?
         if File.directory?(src_name)
           # Treat as a local source if the given name is a source directory.
           RubyWasm.logger.debug "Using local source: #{src_name}"
           if options[:patches].any?
             RubyWasm.logger.warn "Patches specified through --patch are ignored for local sources"
           end
-          # @type var local_source: RubyWasm::Packager::build_source_local
-          local_source = { type: "local", path: src_name }
-          # @type var local_source: RubyWasm::Packager::build_source
-          local_source = local_source.merge(name: "local", patches: [])
           # FIXME: We should have a way to specify extensions to be included by users.
           # For now, assume all default extensions available in the head revision are available.
-          return [local_source, RubyWasm::Packager::ALL_DEFAULT_EXTS]
+          return {
+            name: "local",
+            src: {
+              type: "local",
+              path: src_name,
+              patches: []
+            },
+            all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
+          }
         end
         # Otherwise, it's an unknown source.
         raise(
@@ -226,55 +230,74 @@ module RubyWasm
         )
       end
       # Apply user-specified patches in addition to bundled patches.
-      source[:patches].concat(options[:patches])
-      # @type var all_default_exts: String
-      __skip__ = all_default_exts = source[:all_default_exts]
-      [source, all_default_exts]
+      config[:src][:patches].concat(options[:patches])
+      config
     end
 
     # Retrieves the alias definitions for the Ruby sources.
-    def self.build_source_aliases(root)
-      # @type var sources: Hash[string, RubyWasm::Packager::build_source]
-      sources = {
-        "head" => {
-          type: "github",
-          repo: "ruby/ruby",
-          rev: "master",
+    def self.build_config_aliases(root)
+      # @type var aliases: Array[RubyWasm::Packager::build_source]
+      aliases = [
+        {
+          name: "head",
+          src: {
+            type: "github",
+            repo: "ruby/ruby",
+            rev: "master",
+          },
           all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
+          wasi_sdk_version: "23.0",
         },
-        "3.4" => {
-          type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz",
+        {
+          name: "3.4",
+          src: {
+            type: "tarball",
+            url: "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz",
+          },
           all_default_exts: "cgi/escape,continuation,coverage,date,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,json,json/generator,json/parser,objspace,pathname,psych,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
+          wasi_sdk_version: "22.0",
         },
-        "3.3" => {
-          type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.3.tar.gz",
+        {
+          name: "3.3",
+          src: {
+            type: "tarball",
+            url: "https://cache.ruby-lang.org/pub/ruby/3.3/ruby-3.3.3.tar.gz",
+          },
           all_default_exts: "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
+          wasi_sdk_version: "22.0",
         },
-        "3.2" => {
-          type: "tarball",
-          url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.4.tar.gz",
+        {
+          name: "3.2",
+          src: {
+            type: "tarball",
+            url: "https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.4.tar.gz",
+          },
           all_default_exts: "bigdecimal,cgi/escape,continuation,coverage,date,dbm,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,fiber,gdbm,json,json/generator,json/parser,nkf,objspace,pathname,psych,racc/cparse,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
+          wasi_sdk_version: "22.0",
         }
-      }
+      ]
+
+      # Set the name in the source config.
+      aliases.each do |config|
+        config[:src][:name] = config[:name]
+      end
 
       # Apply bundled and user-specified `<root>/patches` directories.
-      sources.each do |name, source|
-        source[:name] = name
+      aliases.each do |config|
         patches_dirs = [bundled_patches_path, File.join(root, "patches")]
-        source[:patches] = patches_dirs.flat_map do |patches_dir|
-          Dir[File.join(patches_dir, name, "*.patch")]
+        config[:src][:patches] = patches_dirs.flat_map do |patches_dir|
+          Dir[File.join(patches_dir, config[:name], "*.patch")]
             .map { |p| File.expand_path(p) }
         end.uniq
       end
 
+      # Pin the revisions based on build_manifest.json if available.
       build_manifest = File.join(root, "build_manifest.json")
       if File.exist?(build_manifest)
         begin
           manifest = JSON.parse(File.read(build_manifest))
           manifest["ruby_revisions"].each do |name, rev|
-            source = sources[name]
+            source = aliases[name][:src]
             next unless source[:type] == "github"
             # @type var source: RubyWasm::Packager::build_source_github
             source[:rev] = rev
@@ -283,7 +306,7 @@ module RubyWasm
           RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
         end
       end
-      sources
+      aliases.to_h { |config| [config[:name], config] }
     end
 
     # Retrieves the root directory of the Ruby project.

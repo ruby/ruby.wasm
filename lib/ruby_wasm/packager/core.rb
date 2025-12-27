@@ -179,7 +179,7 @@ class RubyWasm::Packager::Core
     end
 
     def _build_gem_exts(executor, build, gem_home)
-      build.toolchain.install
+      build.toolchain.install(executor)
       baseruby = build.baseruby
       unless Dir.exist?(baseruby.install_dir)
         baseruby.build(executor)

@@ -240,7 +240,7 @@ module RubyWasm
     def initialize: -> void
     def find_tool: (Symbol name) -> String
     def check_envvar: (untyped name) -> void
-    def self.get: (Target target, ?String? build_dir) -> (Toolchain)
+    def self.get: (Target target, Hash[untyped, untyped] config, ?String? build_dir) -> (Toolchain)
     def self.find_path: (String command) -> String?
     def self.check_executable: (String command) -> String
     def cc: -> String
@@ -257,15 +257,14 @@ module RubyWasm
     @need_fetch_wasi_sdk: bool
     @tools: Hash[Symbol, String]
     @wasi_sdk_path: String
-    @version_major: Integer
-    @version_minor: Integer
+    @version: String
     @binaryen: Binaryen
 
-    def initialize: (?String? wasi_sdk_path, ?build_dir: String?, ?version_major: Integer, ?version_minor: Integer, ?binaryen_version: Integer) -> void
+    def initialize: (?String? wasi_sdk_path, ?build_dir: String?, ?version: String, ?binaryen_version: Integer) -> void
     def find_tool: (Symbol name) -> String
     def wasm_opt: -> String
     def wasi_sdk_path: -> String
-    def download_url: (Integer? version_major, Integer? version_minor) -> String
+    def download_url: () -> String
     def binaryen_download_url: (Integer? version) -> String
     def install_wasi_sdk: ->  void
     def install_binaryen: ->  void
@@ -331,6 +330,8 @@ module RubyWasm
     def format_size: (Integer size) -> String
 
     def download: (String url, String dest, String message) -> void
+    def head: (String url) -> bool
+    private def _head: (URI::HTTPS uri, Integer limit) -> bool
   end
 
   class BuildTask
