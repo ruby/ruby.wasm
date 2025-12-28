@@ -1,7 +1,8 @@
 def latest_build_sources
   BUILD_SOURCES
     .filter_map do |name|
-      src = RubyWasm::CLI.build_source_aliases(LIB_ROOT)[name]
+      config = RubyWasm::CLI.build_config_aliases(LIB_ROOT)[name]
+      src = config[:src]
       case src[:type]
       when "github"
         url = "repos/#{src[:repo]}/commits/#{src[:rev]}"
@@ -23,7 +24,8 @@ def release_note
 EOS
 
   BUILD_SOURCES.each do |name|
-    source = RubyWasm::CLI.build_source_aliases(LIB_ROOT)[name]
+    config = RubyWasm::CLI.build_config_aliases(LIB_ROOT)[name]
+    source = config[:src]
     case source[:type]
     when "github"
       output +=
