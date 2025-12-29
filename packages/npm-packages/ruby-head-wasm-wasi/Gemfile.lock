@@ -1,13 +1,13 @@
 PATH
   remote: ../../..
   specs:
-    ruby_wasm (2.7.2.dev)
+    ruby_wasm (2.8.0)
       logger
 
 GEM
   remote: https://rubygems.org/
   specs:
-    js (2.7.2.dev)
+    js (2.8.0)
     logger (1.7.0)
     power_assert (2.0.3)
     test-unit (3.6.2)
@@ -18,7 +18,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  js (= 2.7.2.dev)
+  js (= 2.8.0)
   power_assert
   ruby_wasm!
   test-unit
