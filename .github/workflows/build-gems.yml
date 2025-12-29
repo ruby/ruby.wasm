@@ -20,7 +20,7 @@ jobs:
           supported-ruby-platforms: |
             exclude: [arm-linux, x64-mingw32, aarch64-mingw-ucrt]
           stable-ruby-versions: |
-            exclude: [head]
+            exclude: [head, "4.0"]
 
   cross-gem:
     name: Compile native gem for ${{ matrix.ruby-platform }}

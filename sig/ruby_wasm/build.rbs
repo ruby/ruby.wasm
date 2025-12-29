@@ -240,7 +240,7 @@ module RubyWasm
     def initialize: -> void
     def find_tool: (Symbol name) -> String
     def check_envvar: (untyped name) -> void
-    def self.get: (Target target, ?String? build_dir) -> (Toolchain)
+    def self.get: (Target target, Hash[untyped, untyped] config, ?String? build_dir) -> (Toolchain)
     def self.find_path: (String command) -> String?
     def self.check_executable: (String command) -> String
     def cc: -> String
@@ -249,28 +249,38 @@ module RubyWasm
     def ld: -> String
     def ar: -> String
 
-    def install: -> void
+    def install: (_CommandExecutor executor) -> void
   end
 
   class WASISDK < Toolchain
     @wasm_opt_path: String
     @need_fetch_wasi_sdk: bool
-    @need_fetch_binaryen: bool
     @tools: Hash[Symbol, String]
     @wasi_sdk_path: String
-    @binaryen_version: Integer
-    @version_major: Integer
-    @version_minor: Integer
-    @binaryen_path: String
+    @version: String
+    @binaryen: Binaryen
 
-    def initialize: (?String? wasi_sdk_path, ?build_dir: String?, ?version_major: Integer, ?version_minor: Integer, ?binaryen_version: Integer) -> void
+    def initialize: (?String? wasi_sdk_path, ?build_dir: String?, ?version: String, ?binaryen_version: Integer) -> void
     def find_tool: (Symbol name) -> String
     def wasm_opt: -> String
     def wasi_sdk_path: -> String
-    def download_url: (Integer? version_major, Integer? version_minor) -> String
-    def binaryen_download_url: (Integer? version) -> String
-    def install_wasi_sdk: ->  void
-    def install_binaryen: ->  void
+    def download_url: () -> String
+    def install_wasi_sdk: (_CommandExecutor executor) -> void
+    def install: (_CommandExecutor executor) -> void
+  end
+
+  class Binaryen
+    @need_fetch_binaryen: bool
+    @binaryen_path: String
+    @binaryen_version: Integer
+    @wasm_opt_path: String
+
+    def initialize: (?build_dir: String?, ?binaryen_version: Integer) -> void
+    def wasm_opt: -> String
+    def binaryen_path: -> String
+    def binaryen_version: -> Integer
+    def download_url: (Integer version) -> String
+    def install: (_CommandExecutor executor) -> void
   end
 
   class Emscripten < Toolchain
@@ -280,7 +290,12 @@ module RubyWasm
     def find_tool: (Symbol name) -> String
   end
 
+  interface _CommandExecutor
+    def system: (*_ToS args, ?chdir: String?, ?env: Hash[String, String]?) -> void
+  end
+
   class BuildExecutor
+    include _CommandExecutor
     @verbose: bool
     @github_actions_markup: bool
     @process_count: Integer
@@ -289,7 +304,6 @@ module RubyWasm
     attr_reader process_count: Integer
 
     def initialize: (?verbose: bool) -> void
-    def system: (*_ToS args, ?chdir: String?, ?env: Hash[String, String]?) -> void
     def rm_rf: (FileUtils::pathlist list) -> void
     def rm_f: (FileUtils::pathlist list) -> void
     def cp_r: (FileUtils::pathlist src, path dest) -> void
@@ -302,6 +316,10 @@ module RubyWasm
     def end_section: (Class klass, String name) -> void
 
     private def _print_command: (Array[_ToS] command, Hash[String, String]? env) -> void
+  end
+
+  class SilentExecutor
+    include _CommandExecutor
   end
 
   class StatusPrinter
@@ -319,6 +337,8 @@ module RubyWasm
     def format_size: (Integer size) -> String
 
     def download: (String url, String dest, String message) -> void
+    def head: (String url) -> bool
+    private def _head: (URI::HTTPS uri, Integer limit) -> bool
   end
 
   class BuildTask

@@ -138,7 +138,7 @@ $ npm install --save @ruby/wasm-wasi@2.7.2-2025-10-03-a
 When a new version of Ruby is released, the following steps need to be taken to add support for it in ruby.wasm:
 
 1. Update `lib/ruby_wasm/cli.rb`:
-   - Add a new entry in the `build_source_aliases` method for the new version
+   - Add a new entry in the `build_config_aliases` method for the new version
    - Specify the tarball URL and required default extensions
 
 2. Update `Rakefile`:

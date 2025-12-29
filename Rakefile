@@ -29,14 +29,14 @@ NPM_PACKAGES = [
     name: "ruby-head-wasm-wasi",
     ruby_version: "head",
     gemfile: "packages/npm-packages/ruby-head-wasm-wasi/Gemfile",
-    target: "wasm32-unknown-wasip1",
+    target: "wasm32-unknown-wasip1"
   },
   {
     name: "ruby-head-wasm-wasip2",
     ruby_version: "head",
     gemfile: "packages/npm-packages/ruby-head-wasm-wasip2/Gemfile",
     target: "wasm32-unknown-wasip2",
-    enable_component_model: true,
+    enable_component_model: true
   },
   {
     name: "ruby-3.4-wasm-wasi",
@@ -65,16 +65,6 @@ STANDALONE_PACKAGES = [
 ]
 
 LIB_ROOT = File.dirname(__FILE__)
-
-TOOLCHAINS = {}
-BUILDS
-  .map { |_, target, _| target }
-  .uniq
-  .each do |target|
-    build_dir = File.join(LIB_ROOT, "build")
-    toolchain = RubyWasm::Toolchain.get(target, build_dir)
-    TOOLCHAINS[toolchain.name] = toolchain
-  end
 
 class BuildTask < Struct.new(:name, :target, :build_command)
   def ruby_cache_key

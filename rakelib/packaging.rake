@@ -1,10 +1,10 @@
 wasi_vfs = RubyWasm::WasiVfsProduct.new(File.join(Dir.pwd, "build"))
-wasi_sdk = TOOLCHAINS["wasi-sdk"]
+binaryen = RubyWasm::Binaryen.new(build_dir: File.join(Dir.pwd, "build"))
 def exe_rbwasm = File.expand_path(File.join(__dir__, "..", "exe", "rbwasm"))
 
 tools = {
   "WASI_VFS_CLI" => exe_rbwasm,
-  "WASMOPT" => wasi_sdk.wasm_opt
+  "WASMOPT" => binaryen.wasm_opt
 }
 
 def npm_pkg_build_command(pkg)
@@ -51,7 +51,7 @@ def vendor_gem_cache(pkg)
   JS::VERSION
 end
 
-def build_ruby(pkg, base_dir, pkg_dir, wasi_sdk, clean: false)
+def build_ruby(pkg, base_dir, pkg_dir, binaryen, clean: false)
   build_command = npm_pkg_build_command(pkg)
   # Skip if the package does not require building ruby
   return unless build_command
@@ -111,12 +111,12 @@ def build_ruby(pkg, base_dir, pkg_dir, wasi_sdk, clean: false)
            File.join(dist_dir, "ruby.debug+stdlib.wasm")
       end
 
-      sh wasi_sdk.wasm_opt,
+      sh binaryen.wasm_opt,
          "--strip-debug",
          File.join(dist_dir, "ruby.wasm"),
          "-o",
          File.join(dist_dir, "ruby.wasm")
-      sh wasi_sdk.wasm_opt,
+      sh binaryen.wasm_opt,
          "--strip-debug",
          File.join(dist_dir, "ruby.debug+stdlib.wasm"),
          "-o",
@@ -137,7 +137,7 @@ namespace :npm do
     namespace pkg[:name] do
       desc "Build ruby for npm package #{pkg[:name]}"
       task "ruby" do
-        build_ruby(pkg, base_dir, pkg_dir, wasi_sdk)
+        build_ruby(pkg, base_dir, pkg_dir, binaryen)
       end
 
       desc "Build npm package #{pkg[:name]}"
@@ -147,7 +147,7 @@ namespace :npm do
 
       desc "Clean and build npm package #{pkg[:name]}"
       task "clean-build" do
-        build_ruby(pkg, base_dir, pkg_dir, wasi_sdk, clean: true)
+        build_ruby(pkg, base_dir, pkg_dir, binaryen, clean: true)
       end
 
       desc "Check npm package #{pkg[:name]}"
@@ -158,7 +158,8 @@ namespace :npm do
 
     desc "Make tarball for npm package #{pkg[:name]}"
     task pkg[:name] do
-      wasi_sdk.install_binaryen
+      executor = RubyWasm::BuildExecutor.new
+      binaryen.install(executor)
       Rake::Task["npm:#{pkg[:name]}:build"].invoke
       sh "npm pack", chdir: pkg_dir
     end
@@ -201,7 +202,8 @@ namespace :standalone do
 
     desc "Build standalone package #{pkg[:name]}"
     task "#{pkg[:name]}" => ["build:#{pkg[:build]}"] do
-      wasi_sdk.install_binaryen
+      executor = RubyWasm::SilentExecutor.new
+      binaryen.install(executor)
       base_dir = Dir.pwd
       sh tools,
          "./build-package.sh #{base_dir}/rubies/ruby-#{pkg[:build]}",

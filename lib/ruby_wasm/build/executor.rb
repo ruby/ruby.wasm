@@ -147,6 +147,16 @@ module RubyWasm
     end
   end
 
+  class SilentExecutor
+    def system(*args, chdir: nil, env: nil)
+      # @type var kwargs: Hash[Symbol, untyped]
+      kwargs = {}
+      kwargs[:chdir] = chdir if chdir
+      kwargs[:exception] = true
+      __skip__ = env ? Kernel.system(env, *args, **kwargs) : Kernel.system(*args, **kwargs)
+    end
+  end
+
   # Human readable status printer for the build.
   class StatusPrinter
     def initialize

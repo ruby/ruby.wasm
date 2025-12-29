@@ -111,7 +111,7 @@ class RubyWasm::Packager
     options = build_options
     build_dir = File.join(@root, "build")
     rubies_dir = File.join(@root, "rubies")
-    toolchain = RubyWasm::Toolchain.get(options[:target], build_dir)
+    toolchain = RubyWasm::Toolchain.get(options[:target], options, build_dir)
     options.merge(
       toolchain: toolchain,
       build_dir: build_dir,

@@ -13,18 +13,9 @@ class RubyWasm::Packager
     type: "local",
     path: String,
   }
-  type build_source = (build_source_github | build_source_tarball | build_source_local) & {
-    name: string,
-    patches: Array[String],
-  }
+  type build_source = untyped
 
-  type build_config = {
-    target: String,
-    src: RubyWasm::Packager::build_source,
-    default_exts: String,
-    suffix: String,
-    gem_home: String?,
-  }
+  type build_config = untyped
 
   type bytes = String
 

@@ -16,10 +16,15 @@ module RubyWasm
       raise "missing environment variable: #{name}" if ENV[name].nil?
     end
 
-    def self.get(target, build_dir = nil)
+    def self.get(target, options, build_dir = nil)
       case target
       when /^wasm32-unknown-wasi/
-        return RubyWasm::WASISDK.new(build_dir: build_dir)
+        return(
+          RubyWasm::WASISDK.new(
+            build_dir: build_dir,
+            version: options[:wasi_sdk_version]
+          )
+        )
       when "wasm32-unknown-emscripten"
         return RubyWasm::Emscripten.new
       else
@@ -56,31 +61,23 @@ module RubyWasm
     def initialize(
       wasi_sdk_path = ENV["WASI_SDK_PATH"],
       build_dir: nil,
-      version_major: 22,
-      version_minor: 0,
+      version: "23.0",
       binaryen_version: 108
     )
-      @wasm_opt_path = Toolchain.find_path("wasm-opt")
       @need_fetch_wasi_sdk = wasi_sdk_path.nil?
-      @need_fetch_binaryen = @wasm_opt_path.nil?
-
       if @need_fetch_wasi_sdk
         if build_dir.nil?
           raise "build_dir is required when WASI_SDK_PATH is not set"
         end
-        wasi_sdk_path = File.join(build_dir, "toolchain", "wasi-sdk")
-        @version_major = version_major
-        @version_minor = version_minor
+        wasi_sdk_path = File.join(build_dir, "toolchain", "wasi-sdk-#{version}")
+        if version.nil?
+          raise "version is required when WASI_SDK_PATH is not set"
+        end
+        @version = version
       end
 
-      if @need_fetch_binaryen
-        if build_dir.nil?
-          raise "build_dir is required when wasm-opt not installed in PATH"
-        end
-        @binaryen_path = File.join(build_dir, "toolchain", "binaryen")
-        @binaryen_version = binaryen_version
-        @wasm_opt_path = File.join(@binaryen_path, "bin", "wasm-opt")
-      end
+      @binaryen =
+        Binaryen.new(build_dir: build_dir, binaryen_version: binaryen_version)
 
       @tools = {
         cc: "#{wasi_sdk_path}/bin/clang",
@@ -101,27 +98,127 @@ module RubyWasm
     end
 
     def wasm_opt
-      @wasm_opt_path
+      @binaryen.wasm_opt
     end
 
     def wasi_sdk_path
       @wasi_sdk_path
     end
 
-    def download_url(version_major, version_minor)
-      version = "#{version_major}.#{version_minor}"
+    def download_url
+      major, _ = @version.split(".").map(&:to_i)
+      # @type var assets: Array[[Regexp, Array[String]]]
       assets = [
-        [/x86_64-linux/, "wasi-sdk-#{version}-linux.tar.gz"],
-        [/(arm64e?|x86_64)-darwin/, "wasi-sdk-#{version}-macos.tar.gz"]
+        [
+          /x86_64-linux/,
+          [
+            "wasi-sdk-#{@version}-x86_64-linux.tar.gz",
+            # For wasi-sdk version < 23.0
+            "wasi-sdk-#{@version}-linux.tar.gz"
+          ]
+        ],
+        [
+          /arm64e?-darwin/,
+          [
+            "wasi-sdk-#{@version}-arm64-macos.tar.gz",
+            # For wasi-sdk version < 23.0
+            "wasi-sdk-#{@version}-macos.tar.gz"
+          ]
+        ],
+        [
+          /x86_64-darwin/,
+          [
+            "wasi-sdk-#{@version}-x86_64-macos.tar.gz",
+            # For wasi-sdk version < 23.0
+            "wasi-sdk-#{@version}-macos.tar.gz"
+          ]
+        ]
       ]
-      asset = assets.find { |os, _| os =~ RUBY_PLATFORM }&.at(1)
+      asset = assets.find { |os, candidates| os =~ RUBY_PLATFORM }
       if asset.nil?
         raise "unsupported platform for fetching WASI SDK: #{RUBY_PLATFORM}"
       end
-      "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-#{version_major}/#{asset}"
+      _, candidates = asset
+      candidates_urls =
+        candidates.map do |candidate|
+          "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-#{major}/#{candidate}"
+        end
+      require "net/http"
+      # Find an asset that exists by checking HEAD response to see if the asset exists
+      candidates_urls.each do |url_str|
+        # @type var url: URI::HTTPS
+        url = URI.parse(url_str)
+        ok =
+          __skip__ = Net::HTTP.start(
+            url.host,
+            url.port,
+            use_ssl: url.scheme == "https"
+          ) do |http|
+            response = http.head(url.request_uri)
+            next response.code == "302"
+          end
+        return url_str if ok
+      end
+      raise "WASI SDK asset not found: #{candidates_urls.join(", ")}"
     end
 
-    def binaryen_download_url(version)
+    def install_wasi_sdk(executor)
+      return unless @need_fetch_wasi_sdk
+      wasi_sdk_tarball =
+        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk-#{@version}.tar.gz")
+      unless File.exist? wasi_sdk_tarball
+        FileUtils.mkdir_p File.dirname(wasi_sdk_tarball)
+        executor.system "curl",
+                        "-fsSL",
+                        "-o",
+                        wasi_sdk_tarball,
+                        self.download_url
+      end
+      unless File.exist? @wasi_sdk_path
+        FileUtils.mkdir_p @wasi_sdk_path
+        executor.system "tar",
+                        "-C",
+                        @wasi_sdk_path,
+                        "--strip-component",
+                        "1",
+                        "-xzf",
+                        wasi_sdk_tarball
+      end
+    end
+
+    def install(executor)
+      install_wasi_sdk(executor)
+      @binaryen.install(executor)
+    end
+  end
+
+  class Binaryen
+    def initialize(build_dir: nil, binaryen_version: 108)
+      @wasm_opt_path = Toolchain.find_path("wasm-opt")
+      @need_fetch_binaryen = @wasm_opt_path.nil?
+      if @need_fetch_binaryen
+        if build_dir.nil?
+          raise "build_dir is required when wasm-opt not installed in PATH"
+        end
+        @binaryen_path = File.join(build_dir, "toolchain", "binaryen")
+        @binaryen_version = binaryen_version
+        @wasm_opt_path = File.join(@binaryen_path, "bin", "wasm-opt")
+      end
+    end
+
+    def wasm_opt
+      @wasm_opt_path
+    end
+
+    def binaryen_path
+      @binaryen_path
+    end
+
+    def binaryen_version
+      @binaryen_version
+    end
+
+    def download_url(version)
       assets = [
         [
           /x86_64-linux/,
@@ -143,47 +240,44 @@ module RubyWasm
       "https://github.com/WebAssembly/binaryen/releases/download/version_#{@binaryen_version}/#{asset}"
     end
 
-    def install_wasi_sdk
-      return unless @need_fetch_wasi_sdk
-      wasi_sdk_tarball =
-        File.join(File.dirname(@wasi_sdk_path), "wasi-sdk.tar.gz")
-      unless File.exist? wasi_sdk_tarball
-        FileUtils.mkdir_p File.dirname(wasi_sdk_tarball)
-        system "curl -L -o #{wasi_sdk_tarball} #{self.download_url(@version_major, @version_minor)}"
-      end
-      unless File.exist? @wasi_sdk_path
-        FileUtils.mkdir_p @wasi_sdk_path
-        system "tar -C #{@wasi_sdk_path} --strip-component 1 -xzf #{wasi_sdk_tarball}"
-      end
-    end
-
-    def install_binaryen
+    def install(executor)
       return unless @need_fetch_binaryen
       binaryen_tarball = File.expand_path("../binaryen.tar.gz", @binaryen_path)
       unless File.exist? binaryen_tarball
         FileUtils.mkdir_p File.dirname(binaryen_tarball)
-        system "curl -L -o #{binaryen_tarball} #{self.binaryen_download_url(@binaryen_version)}"
+        executor.system "curl",
+                        "-L",
+                        "-o",
+                        binaryen_tarball,
+                        self.download_url(@binaryen_version)
       end
 
       unless File.exist? @binaryen_path
         FileUtils.mkdir_p @binaryen_path
-        system "tar -C #{@binaryen_path} --strip-component 1 -xzf #{binaryen_tarball}"
+        executor.system "tar",
+                        "-C",
+                        @binaryen_path,
+                        "--strip-component",
+                        "1",
+                        "-xzf",
+                        binaryen_tarball
       end
-    end
-
-    def install
-      install_wasi_sdk
-      install_binaryen
     end
   end
 
   class Emscripten < Toolchain
     def initialize
-      @tools = { cc: "emcc", cxx: "em++", ld: "emcc", ar: "emar", ranlib: "emranlib" }
+      @tools = {
+        cc: "emcc",
+        cxx: "em++",
+        ld: "emcc",
+        ar: "emar",
+        ranlib: "emranlib"
+      }
       @name = "emscripten"
     end
 
-    def install
+    def install(executor)
     end
 
     def find_tool(name)
