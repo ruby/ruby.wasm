@@ -8,10 +8,10 @@
 
 ## Node.js
 
-To install the package, install `@ruby/3.4-wasm-wasi` and `@ruby/wasm-wasi` from npm:
+To install the package, install `@ruby/4.0-wasm-wasi` and `@ruby/wasm-wasi` from npm:
 
 ```console
-npm install --save @ruby/3.4-wasm-wasi @ruby/wasm-wasi
+npm install --save @ruby/4.0-wasm-wasi @ruby/wasm-wasi
 ```
 
 Then instantiate a Ruby VM by the following code:
@@ -20,7 +20,7 @@ Then instantiate a Ruby VM by the following code:
 import fs from "fs/promises";
 import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/node";
 
-const binary = await fs.readFile("./node_modules/@ruby/3.4-wasm-wasi/dist/ruby.wasm");
+const binary = await fs.readFile("./node_modules/@ruby/4.0-wasm-wasi/dist/ruby.wasm");
 const module = await WebAssembly.compile(binary);
 const { vm } = await DefaultRubyVM(module);
 vm.eval(`puts "hello world"`);
@@ -38,7 +38,7 @@ The easiest way to run Ruby on browser is to use `browser.script.iife.js` script
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/@ruby/3.4-wasm-wasi@2.7.2/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.7.2/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     require "js"
     JS.global[:document].write "Hello, world!"
@@ -52,7 +52,7 @@ If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` pa
 <html>
   <script type="module">
     import { DefaultRubyVM } from "https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.7.2/dist/browser/+esm";
-    const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/3.4-wasm-wasi@2.7.2/dist/ruby+stdlib.wasm");
+    const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.7.2/dist/ruby+stdlib.wasm");
     const module = await WebAssembly.compileStreaming(response);
     const { vm } = await DefaultRubyVM(module);
 
@@ -73,7 +73,7 @@ If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` pa
   <script>
     const main = async () => {
       const { DefaultRubyVM } = window["ruby-wasm-wasi"];
-      const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/3.4-wasm-wasi@2.7.2/dist/ruby+stdlib.wasm");
+      const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.7.2/dist/ruby+stdlib.wasm");
       const module = await WebAssembly.compileStreaming(response);
       const { vm } = await DefaultRubyVM(module);
 
@@ -128,7 +128,7 @@ end
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/@ruby/3.4-wasm-wasi@2.7.2/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.7.2/dist/browser.script.iife.js"></script>
   <script type="text/ruby" data-eval="async">
     require "js"
 
@@ -144,7 +144,7 @@ Or using `@ruby/wasm-wasi` package API `RubyVM#evalAsync`:
 <html>
   <script type="module">
     import { DefaultRubyVM } from "https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.7.2/dist/browser/+esm";
-    const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/3.4-wasm-wasi@2.7.2/dist/ruby+stdlib.wasm");
+    const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.7.2/dist/ruby+stdlib.wasm");
     const module = await WebAssembly.compileStreaming(response);
     const { vm } = await DefaultRubyVM(module);
 

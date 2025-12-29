@@ -253,6 +253,16 @@ module RubyWasm
           wasi_sdk_version: "24.0"
         },
         {
+          name: "4.0",
+          src: {
+            type: "tarball",
+            url: "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.0.tar.gz"
+          },
+          all_default_exts:
+            "cgi/escape,continuation,coverage,date,digest/bubblebabble,digest,digest/md5,digest/rmd160,digest/sha1,digest/sha2,etc,fcntl,json,json/generator,json/parser,objspace,pathname,psych,rbconfig/sizeof,ripper,stringio,strscan,monitor,zlib,openssl",
+          wasi_sdk_version: "24.0"
+        },
+        {
           name: "3.4",
           src: {
             type: "tarball",
