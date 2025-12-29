@@ -248,7 +248,7 @@ module RubyWasm
             rev: "master"
           },
           all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
-          wasi_sdk_version: "23.0"
+          wasi_sdk_version: "24.0"
         },
         {
           name: "3.4",
