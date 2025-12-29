@@ -309,22 +309,25 @@ module RubyWasm
           .uniq
       end
 
+      aliases_by_name = aliases.to_h { |config| [config[:name], config] }
+
       # Pin the revisions based on build_manifest.json if available.
       build_manifest = File.join(root, "build_manifest.json")
       if File.exist?(build_manifest)
         begin
           manifest = JSON.parse(File.read(build_manifest))
           manifest["ruby_revisions"].each do |name, rev|
-            source = aliases[name][:src]
+            source = aliases_by_name[name][:src]
             next unless source[:type] == "github"
             # @type var source: RubyWasm::Packager::build_source_github
             source[:rev] = rev
           end
         rescue StandardError => e
           RubyWasm.logger.warn "Failed to load build_manifest.json: #{e}"
+          raise e
         end
       end
-      aliases.to_h { |config| [config[:name], config] }
+      aliases_by_name
     end
 
     # Retrieves the root directory of the Ruby project.
