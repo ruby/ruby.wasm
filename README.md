@@ -23,7 +23,7 @@ Create and save `index.html` page with the following contents:
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/@ruby/3.4-wasm-wasi@2.7.2/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.7.2/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     require "js"
 
@@ -40,18 +40,18 @@ Dependencies: [wasmtime](https://github.com/bytecodealliance/wasmtime)
 ```console
 $ gem install ruby_wasm
 # Download a prebuilt Ruby release
-$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-3.4-wasm32-unknown-wasip1-full.tar.gz
-$ tar xfz ruby-3.4-wasm32-unknown-wasip1-full.tar.gz
+$ curl -LO https://github.com/ruby/ruby.wasm/releases/latest/download/ruby-4.0-wasm32-unknown-wasip1-full.tar.gz
+$ tar xfz ruby-4.0-wasm32-unknown-wasip1-full.tar.gz
 
 # Extract ruby binary not to pack itself
-$ mv ruby-3.4-wasm32-unknown-wasip1-full/usr/local/bin/ruby ruby.wasm
+$ mv ruby-4.0-wasm32-unknown-wasip1-full/usr/local/bin/ruby ruby.wasm
 
 # Put your app code
 $ mkdir src
 $ echo "puts 'Hello'" > src/my_app.rb
 
 # Pack the whole directory under /usr and your app dir
-$ rbwasm pack ruby.wasm --dir ./src::/src --dir ./ruby-3.4-wasm32-unknown-wasip1-full/usr::/usr -o my-ruby-app.wasm
+$ rbwasm pack ruby.wasm --dir ./src::/src --dir ./ruby-4.0-wasm32-unknown-wasip1-full/usr::/usr -o my-ruby-app.wasm
 
 # Run the packed scripts
 $ wasmtime my-ruby-app.wasm /src/my_app.rb
@@ -71,6 +71,11 @@ See the `README.md` of each package for more detail and its usage.
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <td><a href="/packages/npm-packages/ruby-4.0-wasm-wasi">@ruby/4.0-wasm-wasi</a></td>
+      <td>CRuby 4.0 built on WASI with JS interop support</td>
+      <td><a href="https://www.npmjs.com/package/@ruby/4.0-wasm-wasi" rel="nofollow"><img src="https://badge.fury.io/js/@ruby%2F4.0-wasm-wasi.svg" alt="npm version" style="max-width: 100%;"></a></td>
+    </tr>
     <tr>
       <td><a href="/packages/npm-packages/ruby-3.4-wasm-wasi">@ruby/3.4-wasm-wasi</a></td>
       <td>CRuby 3.4 built on WASI with JS interop support</td>
