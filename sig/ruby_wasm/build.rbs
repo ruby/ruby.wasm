@@ -249,7 +249,7 @@ module RubyWasm
     def ld: -> String
     def ar: -> String
 
-    def install: -> void
+    def install: (_CommandExecutor executor) -> void
   end
 
   class WASISDK < Toolchain
@@ -265,9 +265,8 @@ module RubyWasm
     def wasm_opt: -> String
     def wasi_sdk_path: -> String
     def download_url: () -> String
-    def binaryen_download_url: (Integer? version) -> String
-    def install_wasi_sdk: ->  void
-    def install_binaryen: ->  void
+    def install_wasi_sdk: (_CommandExecutor executor) -> void
+    def install: (_CommandExecutor executor) -> void
   end
 
   class Binaryen
@@ -280,8 +279,8 @@ module RubyWasm
     def wasm_opt: -> String
     def binaryen_path: -> String
     def binaryen_version: -> Integer
-    def download_url: (Integer? version) -> String
-    def install: -> void
+    def download_url: (Integer version) -> String
+    def install: (_CommandExecutor executor) -> void
   end
 
   class Emscripten < Toolchain
@@ -291,7 +290,12 @@ module RubyWasm
     def find_tool: (Symbol name) -> String
   end
 
+  interface _CommandExecutor
+    def system: (*_ToS args, ?chdir: String?, ?env: Hash[String, String]?) -> void
+  end
+
   class BuildExecutor
+    include _CommandExecutor
     @verbose: bool
     @github_actions_markup: bool
     @process_count: Integer
@@ -300,7 +304,6 @@ module RubyWasm
     attr_reader process_count: Integer
 
     def initialize: (?verbose: bool) -> void
-    def system: (*_ToS args, ?chdir: String?, ?env: Hash[String, String]?) -> void
     def rm_rf: (FileUtils::pathlist list) -> void
     def rm_f: (FileUtils::pathlist list) -> void
     def cp_r: (FileUtils::pathlist src, path dest) -> void
@@ -313,6 +316,10 @@ module RubyWasm
     def end_section: (Class klass, String name) -> void
 
     private def _print_command: (Array[_ToS] command, Hash[String, String]? env) -> void
+  end
+
+  class SilentExecutor
+    include _CommandExecutor
   end
 
   class StatusPrinter

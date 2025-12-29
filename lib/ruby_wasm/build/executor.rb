@@ -149,10 +149,11 @@ module RubyWasm
 
   class SilentExecutor
     def system(*args, chdir: nil, env: nil)
+      # @type var kwargs: Hash[Symbol, untyped]
       kwargs = {}
       kwargs[:chdir] = chdir if chdir
       kwargs[:exception] = true
-      env ? Kernel.system(env, *args, **kwargs) : Kernel.system(*args, **kwargs)
+      __skip__ = env ? Kernel.system(env, *args, **kwargs) : Kernel.system(*args, **kwargs)
     end
   end
 

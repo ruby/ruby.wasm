@@ -149,7 +149,7 @@ module RubyWasm
         # @type var url: URI::HTTPS
         url = URI.parse(url_str)
         ok =
-          Net::HTTP.start(
+          __skip__ = Net::HTTP.start(
             url.host,
             url.port,
             use_ssl: url.scheme == "https"

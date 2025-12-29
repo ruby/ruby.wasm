@@ -214,13 +214,15 @@ module RubyWasm
           end
           # FIXME: We should have a way to specify extensions to be included by users.
           # For now, assume all default extensions available in the head revision are available.
+          # @type var patches: Array[String]
+          patches = []
           return(
             {
               name: "local",
               src: {
                 type: "local",
                 path: src_name,
-                patches: []
+                patches: patches
               },
               all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS
             }

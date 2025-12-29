@@ -19,7 +19,6 @@ target :lib do
   library "logger"
   library "pathname"
   library "forwardable"
-  library "net/http"
 
   configure_code_diagnostics(D::Ruby.default)
 end
