@@ -2,7 +2,6 @@ name: Build ruby.wasm
 on:
   push:
     branches: [main]
-    tags: ["*"]
     paths-ignore:
       - "*.md"
       - "docs/**"
@@ -12,13 +11,14 @@ on:
       publish:
         type: boolean
         description: "Whether to publish or not"
-        default: true
+        default: false
       prerel_name:
         type: string
         description: "Pre-release name to be released"
-        required: true
+        default: ""
 
 jobs:
+
   lint:
     runs-on: ubuntu-24.04
     if: ${{ github.event_name == 'pull_request' }}

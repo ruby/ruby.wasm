@@ -1,17 +1,22 @@
-name: Nightly release
+name: Release ruby.wasm
 on:
   schedule:
-    - cron: '0 15 * * *'
+    - cron: "0 15 * * *"
   workflow_dispatch:
     inputs:
       tag-name:
         type: string
-        description: 'Nightly release tag'
+        description: "Nightly release tag"
         required: true
+  push:
+    tags: ["*"]
 
 jobs:
   create-nightly-tag:
+    if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     outputs:
       tag-name: ${{ steps.generate-tag.outputs.TAG_NAME }}
     steps:
@@ -26,9 +31,27 @@ jobs:
           echo "TAG_NAME=${MANUAL_TAG:-$(date +'%Y-%m-%d')-a}" >> $GITHUB_OUTPUT
       - run: git tag "${{ steps.generate-tag.outputs.TAG_NAME }}"
       - run: git push origin "${{ steps.generate-tag.outputs.TAG_NAME }}"
-  build-and-publish:
-    needs: [create-nightly-tag]
+
+  release-nightly:
+    if: ${{ github.event_name != 'push' }}
+    needs:
+      - create-nightly-tag
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       publish: true
       prerel_name: ${{ needs.create-nightly-tag.outputs.tag-name }}
+    secrets: inherit
+
+  release-tag:
+    if: ${{ github.event_name == 'push' && github.actor != 'github-actions[bot]' }}
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/build.yml
+    with:
+      publish: true
+      prerel_name: ${{ github.ref_name }}
+    secrets: inherit
