@@ -51,7 +51,7 @@ If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` pa
 ```html
 <html>
   <script type="module">
-    import { DefaultRubyVM } from "https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.8.0/dist/browser/+esm";
+    import { DefaultRubyVM } from "https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.8.1/dist/browser/+esm";
     const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.8.1/dist/ruby+stdlib.wasm");
     const module = await WebAssembly.compileStreaming(response);
     const { vm } = await DefaultRubyVM(module);
@@ -69,7 +69,7 @@ If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` pa
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.8.0/dist/browser.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.8.1/dist/browser.umd.js"></script>
   <script>
     const main = async () => {
       const { DefaultRubyVM } = window["ruby-wasm-wasi"];
@@ -143,7 +143,7 @@ Or using `@ruby/wasm-wasi` package API `RubyVM#evalAsync`:
 ```html
 <html>
   <script type="module">
-    import { DefaultRubyVM } from "https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.8.0/dist/browser/+esm";
+    import { DefaultRubyVM } from "https://cdn.jsdelivr.net/npm/@ruby/wasm-wasi@2.8.1/dist/browser/+esm";
     const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.8.1/dist/ruby+stdlib.wasm");
     const module = await WebAssembly.compileStreaming(response);
     const { vm } = await DefaultRubyVM(module);
