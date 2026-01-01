@@ -39,6 +39,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      packages: write
     uses: ./.github/workflows/build.yml
     with:
       publish: true
@@ -50,6 +51,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      packages: write
     uses: ./.github/workflows/build.yml
     with:
       publish: true
