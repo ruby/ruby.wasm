@@ -8,6 +8,7 @@ group :development do
   gem "rake"
   gem "rake-compiler"
   gem "rb_sys", "0.9.108"
+  gem "rdoc", "~> 7.0"
 end
 
 group :check do
