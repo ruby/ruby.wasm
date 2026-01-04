@@ -21,7 +21,7 @@ jobs:
     env:
       HUGO_VERSION: 0.102.3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
@@ -32,7 +32,7 @@ jobs:
       - name: Build HTML
         run: rake doc
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./html
 
