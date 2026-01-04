@@ -1,7 +1,7 @@
 use std::{collections::HashMap, env, path::PathBuf, time::SystemTime};
 
 use magnus::{
-    eval, exception, function, method,
+    eval, function, method,
     prelude::*,
     value::{self, InnerValue},
     wrap, Error, ExceptionClass, RModule, Ruby,
@@ -37,14 +37,19 @@ struct WasiVfsInner {
 #[wrap(class = "RubyWasmExt::WasiVfs")]
 struct WasiVfs(std::cell::RefCell<WasiVfsInner>);
 
+/// Create a `magnus::Error` using Ruby's `StandardError`.
+///
+/// Panics if called when no Ruby VM is available.
+fn ruby_standard_error(message: impl Into<String>) -> Error {
+    let ruby = magnus::Ruby::get().expect("Ruby VM is not available");
+    Error::new(ruby.exception_standard_error(), message.into())
+}
+
 impl WasiVfs {
     fn run_cli(args: Vec<String>) -> Result<(), Error> {
-        wasi_vfs_cli::App::from_iter(args).execute().map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to run wasi vfs cli: {}", e),
-            )
-        })
+        wasi_vfs_cli::App::from_iter(args)
+            .execute()
+            .map_err(|e| ruby_standard_error(format!("failed to run wasi vfs cli: {}", e)))
     }
 
     fn new() -> Self {
@@ -60,12 +65,7 @@ impl WasiVfs {
 
     fn pack(&self, wasm_bytes: bytes::Bytes) -> Result<bytes::Bytes, Error> {
         let output_bytes = wasi_vfs_cli::pack(&wasm_bytes, self.0.borrow().map_dirs.clone())
-            .map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to pack wasi vfs: {}", e),
-                )
-            })?;
+            .map_err(|e| ruby_standard_error(format!("failed to pack wasi vfs: {}", e)))?;
         Ok(output_bytes.into())
     }
 }
@@ -83,12 +83,10 @@ impl ComponentLink {
         &self,
         body: impl FnOnce(wit_component::Linker) -> Result<wit_component::Linker, Error>,
     ) -> Result<(), Error> {
-        let mut linker = self.0.take().ok_or_else(|| {
-            Error::new(
-                exception::standard_error(),
-                "linker is already consumed".to_string(),
-            )
-        })?;
+        let mut linker = self
+            .0
+            .take()
+            .ok_or_else(|| ruby_standard_error("linker is already consumed"))?;
         linker = body(linker)?;
         self.0.replace(Some(linker));
         Ok(())
@@ -96,22 +94,16 @@ impl ComponentLink {
 
     fn library(&self, name: String, module: bytes::Bytes, dl_openable: bool) -> Result<(), Error> {
         self.linker(|linker| {
-            linker.library(&name, &module, dl_openable).map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to link library: {}", e),
-                )
-            })
+            linker
+                .library(&name, &module, dl_openable)
+                .map_err(|e| ruby_standard_error(format!("failed to link library: {}", e)))
         })
     }
     fn adapter(&self, name: String, module: bytes::Bytes) -> Result<(), Error> {
         self.linker(|linker| {
-            linker.adapter(&name, &module).map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to link adapter: {}", e),
-                )
-            })
+            linker
+                .adapter(&name, &module)
+                .map_err(|e| ruby_standard_error(format!("failed to link adapter: {}", e)))
         })
     }
     fn validate(&self, validate: bool) -> Result<(), Error> {
@@ -128,18 +120,14 @@ impl ComponentLink {
     }
     fn encode(&self) -> Result<bytes::Bytes, Error> {
         // Take the linker out of the cell and consume it
-        let linker = self.0.borrow_mut().take().ok_or_else(|| {
-            Error::new(
-                exception::standard_error(),
-                "linker is already consumed".to_string(),
-            )
-        })?;
-        let encoded = linker.encode().map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to encode linker: {}", e),
-            )
-        })?;
+        let linker = self
+            .0
+            .borrow_mut()
+            .take()
+            .ok_or_else(|| ruby_standard_error("linker is already consumed"))?;
+        let encoded = linker
+            .encode()
+            .map_err(|e| ruby_standard_error(format!("failed to encode linker: {}", e)))?;
         Ok(encoded.into())
     }
 }
@@ -160,12 +148,10 @@ impl ComponentEncode {
             wit_component::ComponentEncoder,
         ) -> Result<wit_component::ComponentEncoder, Error>,
     ) -> Result<(), Error> {
-        let mut encoder = self.0.take().ok_or_else(|| {
-            Error::new(
-                exception::standard_error(),
-                "encoder is already consumed".to_string(),
-            )
-        })?;
+        let mut encoder = self
+            .0
+            .take()
+            .ok_or_else(|| ruby_standard_error("encoder is already consumed"))?;
         encoder = body(encoder)?;
         self.0.replace(Some(encoder));
         Ok(())
@@ -177,23 +163,17 @@ impl ComponentEncode {
 
     fn adapter(&self, name: String, module: bytes::Bytes) -> Result<(), Error> {
         self.encoder(|encoder| {
-            encoder.adapter(&name, &module).map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to encode adapter: {}", e),
-                )
-            })
+            encoder
+                .adapter(&name, &module)
+                .map_err(|e| ruby_standard_error(format!("failed to encode adapter: {}", e)))
         })
     }
 
     fn module(&self, module: bytes::Bytes) -> Result<(), Error> {
         self.encoder(|encoder| {
-            encoder.module(&module).map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to encode module: {}", e),
-                )
-            })
+            encoder
+                .module(&module)
+                .map_err(|e| ruby_standard_error(format!("failed to encode module: {}", e)))
         })
     }
 
@@ -207,18 +187,14 @@ impl ComponentEncode {
 
     fn encode(&self) -> Result<bytes::Bytes, Error> {
         // Take the encoder out of the cell and consume it
-        let encoder = self.0.borrow_mut().take().ok_or_else(|| {
-            Error::new(
-                exception::standard_error(),
-                "encoder is already consumed".to_string(),
-            )
-        })?;
-        let encoded = encoder.encode().map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to encode component: {}", e),
-            )
-        })?;
+        let encoder = self
+            .0
+            .borrow_mut()
+            .take()
+            .ok_or_else(|| ruby_standard_error("encoder is already consumed"))?;
+        let encoded = encoder
+            .encode()
+            .map_err(|e| ruby_standard_error(format!("failed to encode component: {}", e)))?;
         Ok(encoded.into())
     }
 }
@@ -235,12 +211,10 @@ impl WasiVirt {
         &self,
         body: impl FnOnce(&mut wasi_virt::WasiVirt) -> Result<R, Error>,
     ) -> Result<R, Error> {
-        let mut virt = self.0.take().ok_or_else(|| {
-            Error::new(
-                exception::standard_error(),
-                "wasi virt is already consumed".to_string(),
-            )
-        })?;
+        let mut virt = self
+            .0
+            .take()
+            .ok_or_else(|| ruby_standard_error("wasi virt is already consumed"))?;
         let result = body(&mut virt)?;
         self.0.replace(Some(virt));
         Ok(result)
@@ -269,10 +243,7 @@ impl WasiVirt {
     fn finish(&self) -> Result<bytes::Bytes, Error> {
         self.virt(|virt| {
             let result = virt.finish().map_err(|e| {
-                Error::new(
-                    exception::standard_error(),
-                    format!("failed to generate virtualization adapter: {}", e),
-                )
+                ruby_standard_error(format!("failed to generate virtualization adapter: {}", e))
             })?;
             Ok(result.adapter.into())
         })
@@ -282,19 +253,11 @@ impl WasiVirt {
         let virt_adapter = self.finish()?;
         let tmpdir = env::temp_dir();
         let tmp_virt = tmpdir.join(format!("virt{}.wasm", timestamp()));
-        std::fs::write(&tmp_virt, &virt_adapter).map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to write virt adapter: {}", e),
-            )
-        })?;
+        std::fs::write(&tmp_virt, &virt_adapter)
+            .map_err(|e| ruby_standard_error(format!("failed to write virt adapter: {}", e)))?;
         let tmp_component = tmpdir.join(format!("component{}.wasm", timestamp()));
-        std::fs::write(&tmp_component, &component_bytes).map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to write component: {}", e),
-            )
-        })?;
+        std::fs::write(&tmp_component, &component_bytes)
+            .map_err(|e| ruby_standard_error(format!("failed to write component: {}", e)))?;
 
         use wasm_compose::{composer, config};
         let config = config::Config {
@@ -302,12 +265,9 @@ impl WasiVirt {
             ..Default::default()
         };
         let composer = composer::ComponentComposer::new(&tmp_component, &config);
-        let composed = composer.compose().map_err(|e| {
-            Error::new(
-                exception::standard_error(),
-                format!("failed to compose component: {}", e),
-            )
-        })?;
+        let composed = composer
+            .compose()
+            .map_err(|e| ruby_standard_error(format!("failed to compose component: {}", e)))?;
         return Ok(composed.into());
 
         fn timestamp() -> u64 {
@@ -322,7 +282,7 @@ impl WasiVirt {
 #[magnus::init]
 fn init(ruby: &Ruby) -> Result<(), Error> {
     let module = RUBY_WASM.get_inner_with(ruby);
-    module.define_error("Error", exception::standard_error())?;
+    module.define_error("Error", ruby.exception_standard_error())?;
 
     module.define_singleton_method("preinitialize", function!(preinit, 1))?;
 
