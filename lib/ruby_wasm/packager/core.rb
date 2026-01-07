@@ -221,7 +221,47 @@ class RubyWasm::Packager::Core
       ]
 
       executor.system(*args, env: env)
+      patch_bundler_standalone_setup(local_path)
       executor.cp_r(local_path, gem_home)
+    end
+
+    # Bundler standalone setup.rb assumes that once `Gem` is defined,
+    # Gem.ruby_api_version and Gem.extension_api_version are also available.
+    # In ruby-head packaging this assumption can fail (Gem exists, but these
+    # API-version helpers are missing), so we inject a compatibility shim
+    # before Bundler's load-path setup runs.
+    def patch_bundler_standalone_setup(local_path)
+      setup_rb = File.join(local_path, "bundler", "setup.rb")
+      return unless File.file?(setup_rb)
+
+      content = File.read(setup_rb)
+      marker = "# ruby.wasm compatibility shim for missing Gem API version methods"
+      return if content.include?(marker)
+
+      shim = <<~RUBY
+        #{marker}
+        if defined?(Gem)
+          module Gem
+            def self.ruby_api_version
+              RbConfig::CONFIG["ruby_version"]
+            end unless respond_to?(:ruby_api_version)
+
+            def self.extension_api_version
+              if "no" == RbConfig::CONFIG["ENABLE_SHARED"]
+                "\#{ruby_api_version}-static"
+              else
+                ruby_api_version
+              end
+            end unless respond_to?(:extension_api_version)
+          end
+        end
+      RUBY
+
+      patched = content.sub(/^require 'rbconfig'\n/, "require 'rbconfig'\n#{shim}\n")
+      return if patched == content
+
+      RubyWasm.logger.info("Patching #{setup_rb} for RubyGems API compatibility")
+      File.write(setup_rb, patched)
     end
 
     def cache_key(digest)
