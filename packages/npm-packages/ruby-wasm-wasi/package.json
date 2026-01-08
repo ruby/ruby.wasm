@@ -61,7 +61,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@bjorn3/browser_wasi_shim": "^0.3.0",
+    "@bjorn3/browser_wasi_shim": "^0.4.2",
     "tslib": "^2.8.1"
   }
 }
