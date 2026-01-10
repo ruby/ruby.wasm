@@ -60,7 +60,7 @@ Hello
 
 ## npm packages (for JavaScript host environments)
 
-See the `README.md` from each package for more detail and its usage.
+See the `README.md` of each package for more detail and its usage.
 
 <table>
   <thead>
