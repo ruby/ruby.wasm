@@ -2,12 +2,12 @@
 
 [![Build ruby.wasm](https://github.com/ruby/ruby.wasm/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ruby/ruby.wasm/actions/workflows/build.yml)
 
-ruby.wasm is a collection of WebAssembly ports of the [CRuby](https://github.com/ruby/ruby).
-It enables running Ruby application on browsers, WASI compatible WebAssembly runtimes, and Edge Computing platforms.
+ruby.wasm is a collection of WebAssembly ports of [CRuby](https://github.com/ruby/ruby).
+It enables running Ruby applications in browsers, WASI compatible WebAssembly runtimes, and Edge Computing platforms.
 
 ## Try ruby.wasm (no installation needed)
 
-Try ruby.wasm in [TryRuby](https://try.ruby-lang.org/playground#code=puts+RUBY_DESCRIPTION&engine=cruby-3.2.0dev) in your browser.
+Try ruby.wasm on [TryRuby](https://try.ruby-lang.org/playground#code=puts+RUBY_DESCRIPTION&engine=cruby-3.2.0dev) in your browser.
 
 ## Quick Links
 
@@ -17,9 +17,9 @@ Try ruby.wasm in [TryRuby](https://try.ruby-lang.org/playground#code=puts+RUBY_D
 - [Complete Examples](https://github.com/ruby/ruby.wasm/tree/main/packages/npm-packages/ruby-wasm-wasi/example)
 - [Community Showcase](https://github.com/ruby/ruby.wasm/wiki/Showcase)
 
-## Quick Example: Ruby on Web browser
+## Quick Example: Ruby in a Web browser
 
-Create and save `index.html` page with the following contents:
+Create and save an `index.html` page with the following contents:
 
 ```html
 <html>
@@ -60,7 +60,7 @@ Hello
 
 ## npm packages (for JavaScript host environments)
 
-See the `README.md` of each package for more detail and its usage.
+See the `README.md` from each package for more detail and its usage.
 
 <table>
   <thead>
@@ -155,7 +155,7 @@ A _build_ is a combination of ruby version, _profile_, and _target_.
 
 The current WASI target build does not yet support `Thread` related APIs. Specifically, WASI does not yet have an API for creating and managing threads yet.
 
-Also there is no support for networking. It is one of the goal of WASI to support networking in the future, but it is not yet implemented.
+Also there is no support for networking. It is one of the goals of WASI to support networking in the future, but it is not yet implemented.
 
 
 ## Contributing
