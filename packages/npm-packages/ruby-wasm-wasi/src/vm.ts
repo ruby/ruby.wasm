@@ -335,6 +335,11 @@ export class RubyVM {
       this.eval(`
         # Require Bundler standalone setup
         if File.exist?("/bundle/bundler/setup.rb")
+          # Some ruby-head + ruby.wasm revisions return from rubyInit with a partial
+          # Gem module: Gem is defined, but RubyGems is not loaded yet and its API
+          # helpers are still missing. Bundler standalone treats defined?(Gem) as
+          # sufficient, so load RubyGems explicitly before requiring its setup file.
+          require "rubygems" if defined?(Gem) && !Gem.respond_to?(:ruby_api_version)
           require "/bundle/bundler/setup.rb"
         elsif File.exist?("/bundle/setup.rb")
           # For non-CM builds, which doesn't use Bundler's standalone mode

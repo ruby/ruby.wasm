@@ -81,7 +81,6 @@ class RubyWasm::Packager
       def name: () -> string
 
       private def _build_gem_exts: (RubyWasm::BuildExecutor, RubyWasm::Build, string gem_home) -> void
-      private def patch_bundler_standalone_setup: (string local_path) -> void
       private def _link_gem_exts: (RubyWasm::BuildExecutor, RubyWasm::Build, string ruby_root, string gem_home, bytes module_bytes) -> bytes
     end
 
