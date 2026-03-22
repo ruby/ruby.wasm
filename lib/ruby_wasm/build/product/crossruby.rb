@@ -322,6 +322,10 @@ module RubyWasm
       File.join(@baseruby.install_dir, "bin/ruby")
     end
 
+    def dump_ast_path
+      File.join(@baseruby.product_build_dir, "dump_ast")
+    end
+
     def configure_args(build_triple, toolchain)
       target = @params.target.triple
       default_exts = @params.default_exts
@@ -336,6 +340,9 @@ module RubyWasm
       args << %Q(--with-zlib-dir=#{@zlib.install_root})
       args << %Q(--with-openssl-dir=#{@openssl.install_root}) if @openssl
       args << %Q(--with-baseruby=#{baseruby_path})
+      # Use the host-built dump_ast so cross builds don't try to execute the
+      # target-side wasm dump_ast while generating .rbinc files.
+      args << %Q(--with-dump-ast=#{dump_ast_path})
 
       case target
       when /^wasm32-unknown-wasi/
