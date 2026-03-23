@@ -66,6 +66,11 @@ const instantiateNodeWasi = async (rootTestFile) => {
       "RUBY_FIBER_MACHINE_STACK_SIZE": String(1024 * 1024 * 20),
     },
     preopens,
+    // This test runner initializes WASI and then drives Ruby from JS via
+    // vm.evalAsync(). In this setup, Node's WASI implementation throws
+    // Symbol(kExitCode) on proc_exit. Set returnOnExit to false so Node exits
+    // with the WASI status instead.
+    returnOnExit: false,
     version: "preview1",
   });
 
