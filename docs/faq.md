@@ -6,9 +6,9 @@
 
 # FAQ
 
-## Where my `puts` output goes?
+## Where does my `puts` output go?
 
-By default, `puts` output goes to `STDOUT` which is a JavaScript `console.log` function. You can override it by setting `$stdout` to a Ruby object which has `write` method.
+By default, `puts` output goes to `STDOUT` which is a JavaScript `console.log` function. You can override it by setting `$stdout` to a Ruby object which has a `write` method.
 
 ```ruby
 $stdout = Object.new.tap do |obj|
