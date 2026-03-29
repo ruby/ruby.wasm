@@ -6,14 +6,22 @@ on:
     inputs:
       tag-name:
         type: string
-        description: "Nightly release tag"
+        description: "Release tag"
         required: true
+      type:
+        type: choice
+        description: "Release type"
+        required: true
+        options:
+          - "nightly"
+          - "stable"
+
   push:
     tags: ["*"]
 
 jobs:
-  create-nightly-tag:
-    if: ${{ github.event_name != 'push' }}
+  create-tag:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -29,13 +37,18 @@ jobs:
         run: |
           MANUAL_TAG="${{ inputs.tag-name }}"
           echo "TAG_NAME=${MANUAL_TAG:-$(date +'%Y-%m-%d')-a}" >> $GITHUB_OUTPUT
+      - run: rake 'bump_version[${{ steps.generate-tag.outputs.TAG_NAME }}]'
+        if: ${{ inputs.type == 'stable' }}
+      - run: git commit -am "Release ${{ steps.generate-tag.outputs.TAG_NAME }}"
+        if: ${{ inputs.type == 'stable' }}
       - run: git tag "${{ steps.generate-tag.outputs.TAG_NAME }}"
       - run: git push origin "${{ steps.generate-tag.outputs.TAG_NAME }}"
 
-  release-nightly:
-    if: ${{ github.event_name != 'push' }}
+  # For nightly releases, we just build and publish npm packages
+  release-nightly-npm-packages:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.type == 'nightly') }}
     needs:
-      - create-nightly-tag
+      - create-tag
     permissions:
       contents: write
       id-token: write
@@ -43,11 +56,14 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       publish: true
-      prerel_name: ${{ needs.create-nightly-tag.outputs.tag-name }}
+      prerel_name: ${{ needs.create-tag.outputs.tag-name }}
     secrets: inherit
 
-  release-tag:
-    if: ${{ github.event_name == 'push' && github.actor != 'github-actions[bot]' }}
+  # For stable releases, we build and publish npm packages, ruby_wasm gem, and js gem
+  release-tag-npm-packages:
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.type == 'stable') }}
+    needs:
+      - create-tag
     permissions:
       contents: write
       id-token: write
@@ -55,5 +71,41 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       publish: true
-      prerel_name: ${{ github.ref_name }}
+      prerel_name: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
     secrets: inherit
+
+  release-tag-ruby_wasm-gem:
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.type == 'stable') }}
+    needs:
+      - create-tag
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/build-gems.yml
+    with:
+      publish: true
+      ref: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
+    secrets: inherit
+
+  release-tag-js-gem:
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.type == 'stable') }}
+    runs-on: ubuntu-24.04
+    needs:
+      - create-tag
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+      - run: |
+          cd packages/gems/js
+          gem build
+          gem push js-*.gem

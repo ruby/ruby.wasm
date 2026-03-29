@@ -2,11 +2,18 @@ name: Build gems
 on:
   push:
     branches: [main]
-    tags: ["*"]
     paths-ignore:
       - "*.md"
       - "docs/**"
   pull_request:
+  workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        default: false
+      ref:
+        type: string
+        required: true
 
 jobs:
   ci-data:
@@ -32,6 +39,8 @@ jobs:
         ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -48,3 +57,9 @@ jobs:
           name: cross-gem-${{ matrix.ruby-platform }}
           path: ${{ steps.cross-gem.outputs.gem-path }}
           if-no-files-found: error
+
+      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+        if: ${{ inputs.publish }}
+
+      - run: gem push "${{ steps.cross-gem.outputs.gem-path }}"
+        if: ${{ inputs.publish }}
