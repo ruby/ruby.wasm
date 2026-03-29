@@ -37,6 +37,10 @@ jobs:
         run: |
           MANUAL_TAG="${{ inputs.tag-name }}"
           echo "TAG_NAME=${MANUAL_TAG:-$(date +'%Y-%m-%d')-a}" >> $GITHUB_OUTPUT
+      - uses: ruby/setup-ruby@v1
+        if: ${{ inputs.type == 'stable' }}
+        with:
+          ruby-version: "3.4"
       - run: rake 'bump_version[${{ steps.generate-tag.outputs.TAG_NAME }}]'
         if: ${{ inputs.type == 'stable' }}
       - run: git commit -am "Release ${{ steps.generate-tag.outputs.TAG_NAME }}"
