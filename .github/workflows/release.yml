@@ -47,6 +47,8 @@ jobs:
         if: ${{ inputs.type == 'stable' }}
       - run: git tag "${{ steps.generate-tag.outputs.TAG_NAME }}"
       - run: git push origin "${{ steps.generate-tag.outputs.TAG_NAME }}"
+      - run: git push origin HEAD:main
+        if: ${{ inputs.type == 'stable' }}
 
   # For nightly releases, we just build and publish npm packages
   release-nightly-npm-packages:
