@@ -63,3 +63,17 @@ jobs:
 
       - run: gem push "${{ steps.cross-gem.outputs.gem-path }}"
         if: ${{ inputs.publish }}
+
+  push-src-gem:
+    name: Push source gem
+    runs-on: ubuntu-latest
+    if: ${{ inputs.publish }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - run: gem build
+      - run: gem push ruby_wasm-*.gem
