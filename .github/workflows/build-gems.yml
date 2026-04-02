@@ -56,12 +56,23 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - uses: oxidize-rb/actions/cross-gem@v1
+      - name: Build native gem with rb-sys-dock
         id: cross-gem
-        with:
-          platform: ${{ matrix.ruby-platform }}
-          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
-          tag: ${{ steps.rb-sys.outputs.version }}
+        env:
+          PLATFORM: ${{ matrix.ruby-platform }}
+          RUBY_VERSIONS: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+          RB_SYS_VERSION: ${{ steps.rb-sys.outputs.version }}
+        run: |
+          gem install rb_sys -v "$RB_SYS_VERSION"
+          rb-sys-dock --platform "$PLATFORM" --directory . --ruby-versions "$RUBY_VERSIONS" --tag "$RB_SYS_VERSION" --build
+
+          gem_path="$(find ./pkg -name "*-${PLATFORM}.gem" | head -n1)"
+          if [ -z "$gem_path" ]; then
+            echo "Failed to find built gem for ${PLATFORM}" >&2
+            ls -la ./pkg || true
+            exit 1
+          fi
+          echo "gem-path=$gem_path" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
         with:
