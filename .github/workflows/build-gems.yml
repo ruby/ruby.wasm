@@ -46,11 +46,22 @@ jobs:
         with:
           ruby-version: "3.4"
 
+      - name: Detect rb-sys version from Cargo.lock
+        id: rb-sys
+        run: |
+          version="$(awk '/name = "rb-sys"/{flag=1; next} flag && /version = / {gsub(/"/, "", $3); print $3; exit}' Cargo.lock)"
+          if [ -z "$version" ]; then
+            echo "Failed to detect rb-sys version from Cargo.lock" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - uses: oxidize-rb/actions/cross-gem@v1
         id: cross-gem
         with:
           platform: ${{ matrix.ruby-platform }}
           ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+          tag: ${{ steps.rb-sys.outputs.version }}
 
       - uses: actions/upload-artifact@v7
         with:
