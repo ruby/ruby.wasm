@@ -94,8 +94,10 @@ def build_ruby(pkg, base_dir, pkg_dir, binaryen, clean: false)
       Dir.chdir(cwd) do
         # uninstall js gem to re-install just-built js gem
         sh "gem", "uninstall", "js", "-v", js_gem_version, "--force"
-        # install gems including js gem
-        sh "bundle", "install"
+        # install gems including js gem. Bundler may compare checksums with
+        # rubygems.org for the same version and reject our just-built local gem.
+        # Disable checksum validation only for this install command.
+        sh({ "BUNDLE_DISABLE_CHECKSUM_VALIDATION" => "true" }, "bundle", "install")
 
         sh env,
            "bundle", "exec",
