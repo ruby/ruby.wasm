@@ -46,11 +46,33 @@ jobs:
         with:
           ruby-version: "3.4"
 
-      - uses: oxidize-rb/actions/cross-gem@v1
+      - name: Detect rb-sys version from Cargo.lock
+        id: rb-sys
+        run: |
+          version="$(awk '/name = "rb-sys"/{flag=1; next} flag && /version = / {gsub(/"/, "", $3); print $3; exit}' Cargo.lock)"
+          if [ -z "$version" ]; then
+            echo "Failed to detect rb-sys version from Cargo.lock" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build native gem with rb-sys-dock
         id: cross-gem
-        with:
-          platform: ${{ matrix.ruby-platform }}
-          ruby-versions: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+        env:
+          PLATFORM: ${{ matrix.ruby-platform }}
+          RUBY_VERSIONS: ${{ join(fromJSON(needs.ci-data.outputs.result).stable-ruby-versions, ',') }}
+          RB_SYS_VERSION: ${{ steps.rb-sys.outputs.version }}
+        run: |
+          gem install rb_sys -v "$RB_SYS_VERSION"
+          rb-sys-dock --platform "$PLATFORM" --directory . --ruby-versions "$RUBY_VERSIONS" --tag "$RB_SYS_VERSION" --build
+
+          gem_path="$(find ./pkg -name "*-${PLATFORM}.gem" | head -n1)"
+          if [ -z "$gem_path" ]; then
+            echo "Failed to find built gem for ${PLATFORM}" >&2
+            ls -la ./pkg || true
+            exit 1
+          fi
+          echo "gem-path=$gem_path" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
         with:
