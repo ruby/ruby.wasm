@@ -62,6 +62,9 @@ def build_ruby(pkg, base_dir, pkg_dir, binaryen, clean: false)
     # Share ./build and ./rubies in the same workspace
     "RUBY_WASM_ROOT" => base_dir
   }
+  # We vendor a freshly built js gem in package workspaces. Bundler checksum
+  # validation against rubygems.org can fail for the same version.
+  env["BUNDLE_DISABLE_CHECKSUM_VALIDATION"] = "true" if pkg[:gemfile]
   cwd = base_dir
   if gemfile_path = pkg[:gemfile]
     cwd = File.dirname(gemfile_path)
