@@ -27,7 +27,7 @@ jobs:
           supported-ruby-platforms: |
             exclude: [arm-linux, x64-mingw32, aarch64-mingw-ucrt]
           stable-ruby-versions: |
-            exclude: [head, "4.0"]
+            exclude: [head]
 
   cross-gem:
     name: Compile native gem for ${{ matrix.ruby-platform }}
@@ -64,7 +64,7 @@ jobs:
           RB_SYS_VERSION: ${{ steps.rb-sys.outputs.version }}
         run: |
           gem install rb_sys -v "$RB_SYS_VERSION"
-          rb-sys-dock --platform "$PLATFORM" --directory . --ruby-versions "$RUBY_VERSIONS" --tag "$RB_SYS_VERSION" --build
+          rb-sys-dock --platform "$PLATFORM" --directory . --ruby-versions "$RUBY_VERSIONS" --build
 
           gem_path="$(find ./pkg -name "*-${PLATFORM}.gem" | head -n1)"
           if [ -z "$gem_path" ]; then
