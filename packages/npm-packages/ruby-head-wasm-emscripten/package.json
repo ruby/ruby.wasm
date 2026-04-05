@@ -1,6 +1,6 @@
 {
   "name": "@ruby/head-wasm-emscripten",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "description": "Ruby head built on Emscripten",
   "type": "commonjs",
   "main": "dist/index.js",
