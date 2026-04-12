@@ -1,34 +1,16 @@
 use std::{collections::HashMap, env, path::PathBuf, time::SystemTime};
 
 use magnus::{
-    eval, function, method,
+    function, method,
     prelude::*,
     value::{self, InnerValue},
-    wrap, Error, ExceptionClass, RModule, Ruby,
+    wrap, Error, RModule, Ruby,
 };
 use structopt::StructOpt;
-use wizer::Wizer;
 use wasi_virt;
 
 static RUBY_WASM: value::Lazy<RModule> =
     value::Lazy::new(|ruby| ruby.define_module("RubyWasmExt").unwrap());
-
-fn preinit(core_module: bytes::Bytes) -> Result<bytes::Bytes, Error> {
-    let rbwasm_error = eval("RubyWasmExt::Error")?;
-    let rbwasm_error = ExceptionClass::from_value(rbwasm_error).unwrap();
-    let mut wizer = Wizer::new();
-    wizer
-        .wasm_bulk_memory(true)
-        .inherit_stdio(true)
-        .inherit_env(true)
-        .allow_wasi(true)
-        .map_err(|e| Error::new(rbwasm_error, format!("failed to create wizer: {}", e)))?;
-
-    wizer
-        .run(&core_module)
-        .map_err(|e| Error::new(rbwasm_error, format!("failed to run wizer: {}", e)))
-        .map(|output| output.into())
-}
 
 struct WasiVfsInner {
     map_dirs: Vec<(String, PathBuf)>,
@@ -283,8 +265,6 @@ impl WasiVirt {
 fn init(ruby: &Ruby) -> Result<(), Error> {
     let module = RUBY_WASM.get_inner_with(ruby);
     module.define_error("Error", ruby.exception_standard_error())?;
-
-    module.define_singleton_method("preinitialize", function!(preinit, 1))?;
 
     let wasi_vfs = module.define_class("WasiVfs", ruby.class_object())?;
     wasi_vfs.define_singleton_method("new", function!(WasiVfs::new, 0))?;
