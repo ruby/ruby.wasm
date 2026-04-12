@@ -5,7 +5,6 @@ module RubyWasm
       save_temps: bool,
       output: String,
 
-      optimize: bool,
       remake: bool,
       reconfigure: bool,
       clean: bool,

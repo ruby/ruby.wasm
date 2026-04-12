@@ -1,8 +1,6 @@
 module RubyWasmExt
   type bytes = String
 
-  def self.preinitialize: (bytes module_bytes) -> bytes
-
   class WasiVfs
     def initialize: () -> void
 

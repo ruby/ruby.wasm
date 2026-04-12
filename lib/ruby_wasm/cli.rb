@@ -45,7 +45,6 @@ module RubyWasm
       # @type var options: cli_options
       options = {
         save_temps: false,
-        optimize: false,
         remake: false,
         reconfigure: false,
         clean: false,
@@ -83,10 +82,6 @@ module RubyWasm
             "--build-profile PROFILE",
             "Build profile. full or minimal"
           ) { |profile| options[:profile] = profile }
-
-          opts.on("--optimize", "Optimize the output") do
-            options[:optimize] = true
-          end
 
           opts.on("--remake", "Re-execute make for Ruby") do
             options[:remake] = true

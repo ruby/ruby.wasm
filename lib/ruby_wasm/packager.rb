@@ -68,7 +68,6 @@ class RubyWasm::Packager
       wasm_bytes = wasi_virt.compose(wasm_bytes)
     end
 
-    wasm_bytes = RubyWasmExt.preinitialize(wasm_bytes) if options[:optimize]
     wasm_bytes
   end
 
