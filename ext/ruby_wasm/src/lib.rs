@@ -31,7 +31,7 @@ fn preinit(core_module: bytes::Bytes) -> Result<bytes::Bytes, Error> {
 }
 
 struct WasiVfsInner {
-    map_dirs: Vec<(PathBuf, PathBuf)>,
+    map_dirs: Vec<(String, PathBuf)>,
 }
 
 #[wrap(class = "RubyWasmExt::WasiVfs")]
