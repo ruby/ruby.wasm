@@ -220,11 +220,13 @@ module RubyWasm
             {
               name: "local",
               src: {
+                name: "local",
                 type: "local",
                 path: src_name,
                 patches: patches
               },
-              all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS
+              all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
+              wasi_sdk_version: aliases.fetch("head").fetch(:wasi_sdk_version)
             }
           )
         end
