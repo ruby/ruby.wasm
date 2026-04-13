@@ -34,6 +34,7 @@ js-value-equal: func(lhs: js-abi-value, rhs: js-abi-value) -> bool
 js-value-strictly-equal: func(lhs: js-abi-value, rhs: js-abi-value) -> bool
 
 reflect-apply: func(target: js-abi-value, this-argument: js-abi-value, arguments: list<js-abi-value>) -> js-abi-result
+await-promise: func(promise: js-abi-value) -> js-abi-result
 reflect-construct: func(target: js-abi-value, arguments: list<js-abi-value>) -> js-abi-value
 reflect-delete-property: func(target: js-abi-value, property-key: string) -> bool
 reflect-get: func(target: js-abi-value, property-key: string) -> js-abi-result

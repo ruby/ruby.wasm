@@ -36,6 +36,7 @@ export interface RbJsAbiHost {
   jsValueEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
   jsValueStrictlyEqual(lhs: JsAbiValue, rhs: JsAbiValue): boolean;
   reflectApply(target: JsAbiValue, thisArgument: JsAbiValue, arguments: JsAbiValue[]): JsAbiResult;
+  awaitPromise(promise: JsAbiValue): JsAbiResult;
   reflectConstruct(target: JsAbiValue, arguments: JsAbiValue[]): JsAbiValue;
   reflectDeleteProperty(target: JsAbiValue, propertyKey: string): boolean;
   reflectGet(target: JsAbiValue, propertyKey: string): JsAbiResult;

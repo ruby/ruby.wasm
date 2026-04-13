@@ -43,6 +43,13 @@ require_relative "js/nil_class.rb"
 #   end
 #
 module JS
+  AWAIT_ENTRYPOINT_ERROR = (
+    "JS::Object#await can be called only from RubyVM#evalAsync or RbValue#callAsync JS API\n" +
+      "If you are using browser.script.iife.js, please ensure that you specify `data-eval=\"async\"` in your script tag\n" +
+      "e.g. <script type=\"text/ruby\" data-eval=\"async\">puts :hello</script>\n" +
+      "Or <script type=\"text/ruby\" data-eval=\"async\" src=\"path/to/script.rb\"></script>"
+  )
+
   Undefined = JS.eval("return undefined")
   Null = JS.eval("return null")
 
@@ -71,6 +78,12 @@ module JS
   False = JS.eval("return false;")
 
   class PromiseScheduler
+    def await(_promise)
+      raise NotImplementedError
+    end
+  end
+
+  class FiberPromiseScheduler < PromiseScheduler
     def initialize(loop)
       @loop = loop
     end
@@ -83,12 +96,7 @@ module JS
         ->(value) { current.transfer(value, :failure); nil }
       )
       if @loop == current
-        raise (
-                "JS::Object#await can be called only from RubyVM#evalAsync or RbValue#callAsync JS API\n" +
-                  "If you are using browser.script.iife.js, please ensure that you specify `data-eval=\"async\"` in your script tag\n" +
-                  "e.g. <script type=\"text/ruby\" data-eval=\"async\">puts :hello</script>\n" +
-                  "Or <script type=\"text/ruby\" data-eval=\"async\" src=\"path/to/script.rb\"></script>"
-              )
+        raise AWAIT_ENTRYPOINT_ERROR
       end
       value, status = @loop.transfer
       raise JS::Error.new(value) if status == :failure
@@ -96,22 +104,97 @@ module JS
     end
   end
 
-  @promise_scheduler = PromiseScheduler.new Fiber.current
+  class JspiPromiseScheduler < PromiseScheduler
+    def await(promise)
+      status, value = JS.send(:__await_promise_under_jspi, promise)
+      raise JS::Error.new(value) if status == :failure
+      value
+    end
+  end
+
+  class UnsupportedPromiseScheduler < PromiseScheduler
+    def await(_promise)
+      raise AWAIT_ENTRYPOINT_ERROR
+    end
+  end
 
   def self.promise_scheduler
-    @promise_scheduler
+    @promise_scheduler ||= build_promise_scheduler
+  end
+
+  def self.__set_await_backend(backend)
+    @promise_scheduler =
+      case backend.to_sym
+      when :fiber
+        FiberPromiseScheduler.new(Fiber.current)
+      when :jspi
+        JspiPromiseScheduler.new
+      else
+        UnsupportedPromiseScheduler.new
+      end
+  end
+
+  def self.build_promise_scheduler
+    backend = asyncify_enabled? ? __await_backend : :jspi
+    __set_await_backend(backend)
+  end
+
+  def self.__undefined_like?(value)
+    return true if value.nil?
+
+    value.to_s == "undefined"
+  rescue
+    false
+  end
+
+  def self.__await_backend
+    # Runtime can set this marker from JS host side.
+    backend = JS.global[:__ruby_wasm_await_backend]
+    return :fiber if __undefined_like?(backend)
+
+    backend.to_s.to_sym
+  rescue
+    :fiber
+  end
+
+  def self.__await_promise_under_jspi(promise)
+    entry = JS.global[:__ruby_wasm_jspi_entry]
+    raise AWAIT_ENTRYPOINT_ERROR unless entry == JS::True
+
+    await_impl = JS.global[:__ruby_wasm_jspi_await]
+    raise AWAIT_ENTRYPOINT_ERROR if __undefined_like?(await_impl)
+
+    JS.__await_promise_native(promise)
   end
 
   private
 
-  def self.__eval_async_rb(rb_code, future)
-    self.__async(future) do
-      JS::Object.wrap(Kernel.eval(rb_code.to_s, TOPLEVEL_BINDING, "eval_async"))
+  def self.__eval_async_rb(rb_code, future = nil)
+    if __await_backend == :jspi
+      result = JS::Object.wrap(Kernel.eval(rb_code.to_s, TOPLEVEL_BINDING, "eval_async"))
+      if future
+        future.resolve(result)
+      else
+        result
+      end
+    else
+      self.__async(future) do
+        JS::Object.wrap(Kernel.eval(rb_code.to_s, TOPLEVEL_BINDING, "eval_async"))
+      end
     end
   end
 
-  def self.__call_async_method(recv, method_name, future, *args)
-    self.__async(future) { recv.send(method_name.to_s, *args) }
+  def self.__call_async_method(recv, method_name, future = nil, *args)
+    if __await_backend == :jspi
+      result = recv.send(method_name.to_s, *args)
+      if future
+        future.resolve(result)
+      else
+        result
+      end
+    else
+      self.__async(future) { recv.send(method_name.to_s, *args) }
+    end
   end
 
   def self.__async(future, &block)
@@ -122,6 +205,12 @@ module JS
         future.reject JS::Object.wrap(e)
       end
       .transfer
+  end
+
+  def self.__async_jspi(future, &block)
+    future.resolve block.call
+  rescue => e
+    future.reject JS::Object.wrap(e)
   end
 end
 

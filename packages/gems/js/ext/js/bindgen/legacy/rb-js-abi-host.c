@@ -238,6 +238,28 @@ void rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_ab
   }
   *ret0 = variant;
 }
+__attribute__((import_module("rb-js-abi-host"), import_name("await-promise: func(promise: handle<js-abi-value>) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }")))
+void __wasm_import_rb_js_abi_host_await_promise(int32_t, int32_t);
+void rb_js_abi_host_await_promise(rb_js_abi_host_js_abi_value_t promise, rb_js_abi_host_js_abi_result_t *ret0) {
+  
+  __attribute__((aligned(4)))
+  uint8_t ret_area[8];
+  int32_t ptr = (int32_t) &ret_area;
+  __wasm_import_rb_js_abi_host_await_promise((promise).idx, ptr);
+  rb_js_abi_host_js_abi_result_t variant;
+  variant.tag = (int32_t) (*((uint8_t*) (ptr + 0)));
+  switch ((int32_t) variant.tag) {
+    case 0: {
+      variant.val.success = (rb_js_abi_host_js_abi_value_t){ *((int32_t*) (ptr + 4)) };
+      break;
+    }
+    case 1: {
+      variant.val.failure = (rb_js_abi_host_js_abi_value_t){ *((int32_t*) (ptr + 4)) };
+      break;
+    }
+  }
+  *ret0 = variant;
+}
 __attribute__((import_module("rb-js-abi-host"), import_name("reflect-construct: func(target: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> handle<js-abi-value>")))
 int32_t __wasm_import_rb_js_abi_host_reflect_construct(int32_t, int32_t, int32_t);
 rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_construct(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_list_js_abi_value_t *arguments) {

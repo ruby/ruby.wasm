@@ -22,6 +22,7 @@ static VALUE rb_eval_string_value_protect(const rb_abi_guest_string_t *str,
 
 #define TAG_NONE 0
 
+#ifndef RUBY_WASI_NO_ASYNCIFY
 __attribute__((import_module("asyncify"), import_name("start_unwind"))) void
 asyncify_start_unwind(void *buf);
 #define asyncify_start_unwind(buf)                                             \
@@ -48,6 +49,7 @@ void *rb_wasm_handle_scan_unwind(void);
 void *rb_wasm_handle_fiber_unwind(void (**new_fiber_entry)(void *, void *),
                                   void **arg0, void **arg1,
                                   bool *is_new_fiber_started);
+#endif
 #define RB_WASM_ENABLE_DEBUG_LOG 0
 
 #if RB_WASM_ENABLE_DEBUG_LOG
@@ -71,6 +73,7 @@ __attribute__((noreturn)) void
 rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
 #endif
 
+#ifndef RUBY_WASI_NO_ASYNCIFY
 #define RB_WASM_CHECK_REWIND_PROHIBITED(msg)                                   \
   /*                                                                           \
     If the unwond source and rewinding destination are same, it's acceptable   \
@@ -128,6 +131,12 @@ rb_wasm_throw_prohibit_rewind_exception(const char *c_msg, size_t msg_len);
       break;                                                                   \
     }                                                                          \
   }
+#else
+#define RB_WASM_LIB_RT(MAIN_ENTRY)                                             \
+  {                                                                            \
+    MAIN_ENTRY;                                                                \
+  }
+#endif
 
 #define c_strings_from_abi(list, new_args)                                     \
   {                                                                            \

@@ -2318,8 +2318,8 @@ checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
 name = "wasi-vfs-cli"
-version = "0.6.2"
-source = "git+https://github.com/kateinoigakukun/wasi-vfs/?tag=v0.6.2#6190c80014aa9148c7ef3aa580478fe462059bdf"
+version = "0.6.3"
+source = "git+https://github.com/kateinoigakukun/wasi-vfs/?tag=v0.6.3#0f4db4b64882db50ef8c04018e7e98bf59a63f92"
 dependencies = [
  "anyhow",
  "structopt",

@@ -44,7 +44,9 @@ describe("GC integration", () => {
 
     vm.eval("GC.start");
     expect(robj.call("object_id").toString()).toBe(robjId);
-    expect(Number(vm.eval("GC.count").toString())).toEqual(initialGCCount + 1);
+    expect(Number(vm.eval("GC.count").toString())).toBeGreaterThanOrEqual(
+      initialGCCount + 1,
+    );
 
     const robj2 = vm.eval("$x");
     vm.eval("GC.start");

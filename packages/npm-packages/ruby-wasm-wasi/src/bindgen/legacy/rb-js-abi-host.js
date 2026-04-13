@@ -152,6 +152,27 @@ export function addRbJsAbiHostToImports(imports, obj, get_export) {
       throw new RangeError("invalid variant specified for JsAbiResult");
     }
   };
+  imports["rb-js-abi-host"]["await-promise: func(promise: handle<js-abi-value>) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }"] = function(arg0, arg1) {
+    const memory = get_export("memory");
+    const ret0 = obj.awaitPromise(resources0.get(arg0));
+    const variant1 = ret0;
+    switch (variant1.tag) {
+      case "success": {
+        const e = variant1.val;
+        data_view(memory).setInt8(arg1 + 0, 0, true);
+        data_view(memory).setInt32(arg1 + 4, resources0.insert(e), true);
+        break;
+      }
+      case "failure": {
+        const e = variant1.val;
+        data_view(memory).setInt8(arg1 + 0, 1, true);
+        data_view(memory).setInt32(arg1 + 4, resources0.insert(e), true);
+        break;
+      }
+      default:
+      throw new RangeError("invalid variant specified for JsAbiResult");
+    }
+  };
   imports["rb-js-abi-host"]["reflect-construct: func(target: handle<js-abi-value>, arguments: list<handle<js-abi-value>>) -> handle<js-abi-value>"] = function(arg0, arg1, arg2) {
     const memory = get_export("memory");
     const len0 = arg2;

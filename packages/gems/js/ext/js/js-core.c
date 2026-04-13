@@ -182,6 +182,28 @@ static VALUE _rb_js_global_this(VALUE _) {
   return jsvalue_s_new(rb_js_abi_host_global_this());
 }
 
+static VALUE _rb_js_asyncify_enabled(VALUE _) {
+#ifdef RUBY_WASI_NO_ASYNCIFY
+  return Qfalse;
+#else
+  return Qtrue;
+#endif
+}
+
+static VALUE _rb_js_await_promise_native(VALUE _, VALUE promise) {
+  VALUE js_promise = _rb_js_try_convert(rb_mJS, promise);
+  if (js_promise == Qnil) {
+    rb_raise(rb_eTypeError,
+             "wrong argument type %s (expected JS::Object like object)",
+             rb_class2name(rb_obj_class(promise)));
+  }
+  struct jsvalue *p = check_jsvalue(js_promise);
+  rb_js_abi_host_js_abi_result_t ret;
+  rb_js_abi_host_await_promise(p->abi, &ret);
+  raise_js_error_if_failure(&ret);
+  return jsvalue_s_new(ret.val.success);
+}
+
 /*
  * call-seq:
  *   self[prop] -> JS::Object
@@ -578,6 +600,10 @@ void Init_js() {
   rb_define_module_function(rb_mJS, "try_convert", _rb_js_try_convert, 1);
   rb_define_module_function(rb_mJS, "eval", _rb_js_eval_js, 1);
   rb_define_module_function(rb_mJS, "global", _rb_js_global_this, 0);
+  rb_define_module_function(rb_mJS, "asyncify_enabled?", _rb_js_asyncify_enabled,
+                            0);
+  rb_define_module_function(rb_mJS, "__await_promise_native",
+                            _rb_js_await_promise_native, 1);
 
   i_to_js = rb_intern("to_js");
   rb_cJS_Object = rb_define_class_under(rb_mJS, "Object", rb_cBasicObject);

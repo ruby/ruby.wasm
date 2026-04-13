@@ -56,6 +56,34 @@ describe("Async Ruby code evaluation", () => {
     expect(ret2.toString()).toBe("3");
   });
 
+  test("reject nested async entry while vm is active", async () => {
+    const vm = await initRubyVM();
+    const blocker = vm.eval(`
+      require "js"
+      class AsyncBlocker
+        def run
+          JS.eval("return new Promise((resolve) => { globalThis.__rubyWasmTestRelease = resolve; })").await
+        end
+      end
+      AsyncBlocker.new
+    `);
+
+    const pending = blocker.callAsync("run");
+    await Promise.resolve();
+
+    expect(() => vm.eval("1 + 1")).toThrow(
+      "RubyVM is not reentrant: attempted sync entry while VM is suspended",
+    );
+
+    await expect(vm.evalAsync("1 + 1")).rejects.toThrow(
+      "RubyVM is not reentrant: attempted async entry while VM is suspended",
+    );
+
+    globalThis.__rubyWasmTestRelease(7);
+    const resumed = await pending;
+    expect(resumed.toString()).toBe("7");
+  });
+
   test("await outside of evalAsync or callAsync", async () => {
     const vm = await initRubyVM();
     expect(() => {

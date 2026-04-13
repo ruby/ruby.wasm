@@ -194,14 +194,23 @@ eval:11:in \`<main>'`
     },
   );
 
-  test("caught raise in nested eval is ok", async () => {
+  test("caught raise in nested eval", async () => {
     const vm = await initRubyVM({ suppressStderr: true });
     const setVM = vm.eval(`proc { |vm| JS::RubyVM = vm }`);
     setVM.call("call", vm.wrap(vm));
-    expect(() => {
+
+    const evalCaughtRaise = () => {
       vm.eval(
         `JS::RubyVM.eval("begin; raise 'Exception from nested eval'; rescue; end")`,
       );
-    }).not.toThrowError();
+    };
+
+    if ((await rubyVersion).isGreaterThanOrEqualTo("4.1.0")) {
+      expect(evalCaughtRaise).toThrowError(
+        "Ruby APIs that may rewind the VM stack are prohibited",
+      );
+    } else {
+      expect(evalCaughtRaise).not.toThrowError();
+    }
   });
 });

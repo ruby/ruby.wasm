@@ -107,6 +107,8 @@ export class RubyVM {
   private interfaceState: RbAbiInterfaceState = {
     hasJSFrameAfterRbFrame: false,
   };
+  private state: VmExecutionState = "idle";
+  readonly jspi: JspiSupport = new JspiSupport();
 
   /**
    * Instantiate a Ruby VM with the given WebAssembly Core module with WASI Preview 1 implementation.
@@ -331,6 +333,7 @@ export class RubyVM {
   initialize(args: string[] = ["ruby.wasm", "-EUTF-8", "-e_=0"]) {
     const c_args = args.map((arg) => arg + "\0");
     this.guest.rubyInit(c_args);
+    this.installRuntimeAwaitBridge();
     try {
       this.eval(`
         # Require Bundler standalone setup
@@ -394,6 +397,66 @@ export class RubyVM {
         return this.instance.exports[name];
       },
     );
+    this.installJspiImportWrappers(imports);
+  }
+
+  private installJspiImportWrappers(imports: WebAssembly.Imports) {
+    if (!this.jspi.available) return;
+    const hostImports = imports["rb-js-abi-host"] as Record<string, any> | undefined;
+    if (!hostImports) return;
+
+    const awaitPromiseImportName =
+      "await-promise: func(promise: handle<js-abi-value>) -> variant { success(handle<js-abi-value>), failure(handle<js-abi-value>) }";
+    const awaitPromise = hostImports[awaitPromiseImportName];
+    if (typeof awaitPromise !== "function") return;
+
+    const wasm = WebAssembly as any;
+    hostImports[awaitPromiseImportName] = new wasm.Suspending(awaitPromise);
+  }
+
+  private assertEntryAllowed(kind: "sync" | "async") {
+    if (this.state === "idle") {
+      return;
+    }
+
+    // Preserve existing nested sync behavior (JS -> Ruby -> JS -> Ruby)
+    // so low-level rewind protections can raise the canonical fatal error.
+    if (
+      kind === "sync" &&
+      this.state === "running" &&
+      this.interfaceState.hasJSFrameAfterRbFrame
+    ) {
+      return;
+    }
+
+    throw new RbError(
+      `RubyVM is not reentrant: attempted ${kind} entry while VM is ${this.state}`,
+    );
+  }
+
+  withSyncEntry<T>(body: () => T): T {
+    this.assertEntryAllowed("sync");
+    this.state = "running";
+    try {
+      return body();
+    } finally {
+      this.state = "finishing";
+      this.state = "idle";
+    }
+  }
+
+  async withAsyncEntry<T>(body: () => Promise<T>): Promise<T> {
+    this.assertEntryAllowed("async");
+    this.state = "running";
+    const global: any = globalThis as any;
+    if (this.jspi.available) global.__ruby_wasm_jspi_entry = true;
+    try {
+      return await body();
+    } finally {
+      if (this.jspi.available) global.__ruby_wasm_jspi_entry = false;
+      this.state = "finishing";
+      this.state = "idle";
+    }
   }
 
   private throwProhibitRewindException(str: string) {
@@ -536,6 +599,9 @@ export class RubyVM {
         const jsArgs = args.map((arg) => fromJSAbiValue(arg));
         return toJSAbiValue(Reflect.apply(fromJSAbiValue(target as any), fromJSAbiValue(thisArgument), jsArgs));
       }),
+      awaitPromise: wrapTry(async (promise) => {
+        return toJSAbiValue(await Promise.resolve(fromJSAbiValue(promise)));
+      }),
       reflectConstruct: function (target, args) {
         throw new Error("Function not implemented.");
       },
@@ -595,7 +661,7 @@ export class RubyVM {
    *
    */
   eval(code: string): RbValue {
-    return evalRbCode(this, this.privateObject(), code);
+    return this.withSyncEntry(() => evalRbCode(this, this.privateObject(), code));
   }
 
   /**
@@ -614,9 +680,14 @@ export class RubyVM {
    * console.log(text.toString()); // <html>...</html>
    */
   evalAsync(code: string): Promise<RbValue> {
-    const JS = this.eval("require 'js'; JS");
-    return newRbPromise(this, this.privateObject(), (future) => {
-      JS.call("__eval_async_rb", this.wrap(code), future);
+    return this.withAsyncEntry(async () => {
+      const JS = evalRbCode(this, this.privateObject(), "require 'js'; JS");
+      if (this.jspi.available) {
+        return JS.callAsyncInternal("__eval_async_rb", this.wrap(code));
+      }
+      return this.newHostPromise((future) => {
+        JS.call("__eval_async_rb", this.wrap(code), future);
+      });
     });
   }
 
@@ -630,7 +701,8 @@ export class RubyVM {
    * hash.call("store", vm.eval(`"key1"`), vm.wrap(new Object()));
    */
   wrap(value: any): RbValue {
-    return this.transport.importJsValue(value, this);
+    this.transport.takeJsValue(value);
+    return evalRbCode(this, this.privateObject(), 'require "js"; JS::Object').call("__import_from_js");
   }
 
   /** @private */
@@ -646,6 +718,41 @@ export class RubyVM {
     const abiValue = new (RbAbi.RbAbiValue as any)(pointer, this.guest);
     return new RbValue(abiValue, this, this.privateObject());
   }
+
+  private installRuntimeAwaitBridge() {
+    const global: any = globalThis as any;
+    global.__ruby_wasm_await_backend = this.jspi.available ? "jspi" : "fiber";
+    global.__ruby_wasm_jspi_await = this.jspi.awaitAdapter;
+    global.__ruby_wasm_jspi_entry = false;
+  }
+
+  newHostPromise(body: (future: RbValue) => void): Promise<RbValue> {
+    return new Promise((resolve, reject) => {
+      const future = this.wrap({
+        resolve: (value: RbValue) => {
+          this.state = "running";
+          resolve(value);
+        },
+        reject: (error: RbValue) => {
+          this.state = "running";
+          const rbError = new RbError(
+            this.privateObject().exceptionFormatter.format(error, this, this.privateObject()),
+          );
+          reject(rbError);
+        },
+      });
+
+      this.state = "suspended";
+      body(future);
+    });
+  }
+
+  withSuspendedState<T>(body: () => Promise<T>): Promise<T> {
+    this.state = "suspended";
+    return body().finally(() => {
+      this.state = "running";
+    });
+  }
 }
 
 type RbAbiInterfaceState = {
@@ -655,6 +762,8 @@ type RbAbiInterfaceState = {
    **/
   hasJSFrameAfterRbFrame: boolean;
 };
+
+type VmExecutionState = "idle" | "running" | "suspended" | "finishing";
 
 /**
  * Export a JS value held by the Ruby VM to the JS environment.
@@ -732,6 +841,20 @@ export class RbValue {
     );
   }
 
+  async callAsyncInternal(callee: string, ...args: RbValue[]): Promise<RbValue> {
+    const innerArgs = args.map((arg) => arg.inner);
+    const value = await this.vm.withSuspendedState(() =>
+      callRbMethodAsync(
+        this.vm,
+        this.privateObject,
+        this.inner,
+        callee,
+        innerArgs,
+      ),
+    );
+    return new RbValue(value, this.vm, this.privateObject);
+  }
+
   /**
    * Call a given method that may call `JS::Object#await` with given arguments
    *
@@ -752,15 +875,25 @@ export class RbValue {
    * const response = await client.callAsync("get", vm.eval(`"https://example.com"`));
    */
   callAsync(callee: string, ...args: RbValue[]): Promise<RbValue> {
-    const JS = this.vm.eval("require 'js'; JS");
-    return newRbPromise(this.vm, this.privateObject, (future) => {
-      JS.call(
-        "__call_async_method",
-        this,
-        this.vm.wrap(callee),
-        future,
-        ...args,
-      );
+    return this.vm.withAsyncEntry(async () => {
+      const JS = evalRbCode(this.vm, this.privateObject, "require 'js'; JS");
+      if (this.vm.jspi.available) {
+        return JS.callAsyncInternal(
+          "__call_async_method",
+          this,
+          this.vm.wrap(callee),
+          ...args,
+        );
+      }
+      return this.vm.newHostPromise((future) => {
+        JS.call(
+          "__call_async_method",
+          this,
+          this.vm.wrap(callee),
+          future,
+          ...args,
+        );
+      });
     });
   }
 
@@ -798,7 +931,7 @@ export class RbValue {
    * Returns null if the value is not convertible to a JavaScript object.
    */
   toJS(): any {
-    const JS = this.vm.eval("JS");
+    const JS = evalRbCode(this.vm, this.privateObject, "JS");
     const jsValue = JS.call("try_convert", this);
     if (jsValue.call("nil?").toString() === "true") {
       return null;
@@ -992,6 +1125,20 @@ const callRbMethod = (
     return value;
   });
 };
+
+const callRbMethodAsync = async (
+  vm: RubyVM,
+  privateObject: RubyVMPrivate,
+  recv: RbAbiValue,
+  callee: string,
+  args: RbAbiValue[],
+): Promise<RbAbiValue> => {
+  const mid = vm.guest.rbIntern(callee + "\0");
+  const [value, status] = await vm.guest.rbFuncallvProtectAsync(recv, mid, args);
+  checkStatusTag(status, vm, privateObject);
+  return value;
+};
+
 const evalRbCode = (vm: RubyVM, privateObject: RubyVMPrivate, code: string) => {
   return wrapRbOperation(vm, () => {
     const [value, status] = vm.guest.rbEvalStringProtect(code + "\0");
@@ -1041,5 +1188,27 @@ export class RbFatalError extends RbError {
    */
   constructor(message: string) {
     super("Ruby Fatal Error: " + message);
+  }
+}
+
+class JspiSupport {
+  readonly available: boolean;
+  readonly awaitAdapter: ((promise: any) => Promise<{ status: "success" | "failure", value: any }>) | undefined;
+
+  constructor() {
+    const wasm = WebAssembly as any;
+    const hasSuspending = typeof wasm.Suspending === "function";
+    const hasPromising = typeof wasm.promising === "function";
+    this.available = hasSuspending && hasPromising;
+    if (this.available) {
+      this.awaitAdapter = async (promise: any) => {
+        try {
+          const value = await Promise.resolve(promise);
+          return { status: "success", value };
+        } catch (value) {
+          return { status: "failure", value };
+        }
+      };
+    }
   }
 }

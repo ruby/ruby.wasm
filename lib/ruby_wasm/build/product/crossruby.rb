@@ -264,6 +264,7 @@ module RubyWasm
     def cache_key(digest)
       @params.target.cache_key(digest)
       digest << @params.default_exts
+      digest << (ENV["RUBY_WASM_WASI_PROFILE"] || "")
       @wasmoptflags.each { |f| digest << f }
       @cppflags.each { |f| digest << f }
       @cflags.each { |f| digest << f }
@@ -352,6 +353,7 @@ module RubyWasm
         wasi_sdk_path = @toolchain
         args << %Q(WASMOPT=#{wasi_sdk_path.wasm_opt})
         args << %Q(WASI_SDK_PATH=#{wasi_sdk_path.wasi_sdk_path})
+        args << %Q(--with-wasi-profile=minimal)
         # NOTE: wasi-libc 22 and later defines stubs for fchmod and chmod
         # but they just return ENOTSUP, and ruby's configure doesn't check
         # the runtime behavior. So we need to tell configure that

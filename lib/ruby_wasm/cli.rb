@@ -242,9 +242,8 @@ module RubyWasm
         {
           name: "head",
           src: {
-            type: "github",
-            repo: "ruby/ruby",
-            rev: "master"
+            type: "local",
+            path: "/workspace/worktrees/ruby/gc-safe-points"
           },
           all_default_exts: RubyWasm::Packager::ALL_DEFAULT_EXTS,
           wasi_sdk_version: "24.0"

@@ -65,6 +65,7 @@ extern "C"
   bool rb_js_abi_host_js_value_equal(rb_js_abi_host_js_abi_value_t lhs, rb_js_abi_host_js_abi_value_t rhs);
   bool rb_js_abi_host_js_value_strictly_equal(rb_js_abi_host_js_abi_value_t lhs, rb_js_abi_host_js_abi_value_t rhs);
   void rb_js_abi_host_reflect_apply(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_js_abi_value_t this_argument, rb_js_abi_host_list_js_abi_value_t *arguments, rb_js_abi_host_js_abi_result_t *ret0);
+  void rb_js_abi_host_await_promise(rb_js_abi_host_js_abi_value_t promise, rb_js_abi_host_js_abi_result_t *ret0);
   rb_js_abi_host_js_abi_value_t rb_js_abi_host_reflect_construct(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_list_js_abi_value_t *arguments);
   bool rb_js_abi_host_reflect_delete_property(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key);
   void rb_js_abi_host_reflect_get(rb_js_abi_host_js_abi_value_t target, rb_js_abi_host_string_t *property_key, rb_js_abi_host_js_abi_result_t *ret0);
