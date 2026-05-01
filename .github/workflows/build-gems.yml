@@ -80,7 +80,7 @@ jobs:
           path: ${{ steps.cross-gem.outputs.gem-path }}
           if-no-files-found: error
 
-      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+      - uses: rubygems/configure-rubygems-credentials@v2.0.0
         if: ${{ inputs.publish }}
 
       - run: gem push "${{ steps.cross-gem.outputs.gem-path }}"
@@ -97,6 +97,6 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
-      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+      - uses: rubygems/configure-rubygems-credentials@v2.0.0
       - run: gem build
       - run: gem push ruby_wasm-*.gem
