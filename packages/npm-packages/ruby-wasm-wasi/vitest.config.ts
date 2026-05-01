@@ -5,7 +5,7 @@ export default defineConfig({
     pool: "forks",
     poolOptions: {
       forks: {
-        execArgv: ["--experimental-wasi-unstable-preview1", "--expose-gc"],
+        execArgv: ["--expose-gc"],
       }
     },
     testTimeout: 300000,

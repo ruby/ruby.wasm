@@ -26,10 +26,10 @@ const { vm } = await DefaultRubyVM(module);
 vm.eval(`puts "hello world"`);
 ```
 
-Then run the example code with `--experimental-wasi-unstable-preview1` flag to enable WASI support:
+Then run the example code:
 
 ```console
-$ node --experimental-wasi-unstable-preview1 index.mjs
+$ node index.mjs
 ```
 
 ## Browser

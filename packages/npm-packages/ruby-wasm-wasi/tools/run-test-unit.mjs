@@ -1,5 +1,5 @@
 #!/bin/sh
-":" //# ; exec /usr/bin/env node --experimental-wasi-unstable-preview1 "$0" "$@"
+":" //# ; exec /usr/bin/env node "$0" "$@"
 
 import * as browserWasi from "@bjorn3/browser_wasi_shim";
 import * as preview2Shim from "@bytecodealliance/preview2-shim"
