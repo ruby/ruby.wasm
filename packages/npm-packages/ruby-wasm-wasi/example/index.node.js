@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/node";
 
-// $ node --experimental-wasi-unstable-preview1 index.node.js
+// $ node index.node.js
 
 const main = async () => {
   const binary = await fs.readFile(
