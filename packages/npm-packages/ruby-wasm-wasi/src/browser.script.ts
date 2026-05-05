@@ -8,11 +8,18 @@ export const main = async (
   pkg: { name: string; version: string },
   options?: Parameters<typeof DefaultRubyVM>[1],
 ) => {
+  const scriptEnv = deriveEnv(document.currentScript);
   const response = fetch(
     `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`,
   );
   const module = await compileWebAssemblyModule(response);
-  const { vm } = await DefaultRubyVM(module, options);
+  const { vm } = await DefaultRubyVM(module, {
+    ...options,
+    env: {
+      ...scriptEnv,
+      ...options?.env,
+    },
+  });
   await mainWithRubyVM(vm);
 };
 
@@ -24,12 +31,18 @@ export const componentMain = async (
     options: {
         instantiate: RubyComponentInstantiator;
         wasip2: any;
+        env?: Record<string, string> | undefined;
     }
 ) => {
+    const scriptEnv = deriveEnv(document.currentScript);
     const componentUrl = `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/component`;
     const fetchComponentFile = (relativePath: string) => fetch(`${componentUrl}/${relativePath}`);
     const { vm } = await RubyVM.instantiateComponent({
         ...options,
+        env: {
+            ...scriptEnv,
+            ...options.env,
+        },
         getCoreModule: (relativePath: string) => {
             const response = fetchComponentFile(relativePath);
             return compileWebAssemblyModule(response);
@@ -88,6 +101,34 @@ const deriveEvalStyle = (tag: Element): "async" | "sync" => {
     return "sync";
   }
   return rawEvalStyle;
+};
+
+const deriveEnv = (tag: Element | null): Record<string, string> => {
+  const rawEnv = tag?.getAttribute("data-env");
+  if (!rawEnv) {
+    return {};
+  }
+
+  const trimmedEnv = rawEnv.trim();
+  if (!trimmedEnv) {
+    return {};
+  }
+
+  return trimmedEnv
+    .split(/\s+/)
+    .reduce<Record<string, string>>((env, entry) => {
+      const delimiterIndex = entry.indexOf("=");
+      if (delimiterIndex <= 0) {
+        console.warn(
+          `data-env entry must be in the KEY=value format. ${entry} is ignored.`,
+        );
+        return env;
+      }
+
+      // Only the first "=" separates key and value so values can contain "=".
+      env[entry.slice(0, delimiterIndex)] = entry.slice(delimiterIndex + 1);
+      return env;
+    }, {});
 };
 
 const loadScriptAsync = async (

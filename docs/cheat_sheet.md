@@ -46,6 +46,15 @@ The easiest way to run Ruby on browser is to use `browser.script.iife.js` script
 </html>
 ```
 
+Use `data-env` on the `browser.script.iife.js` script tag to pass environment variables when the Ruby VM starts:
+
+```html
+<script
+  src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.9.3-2.9.4/dist/browser.script.iife.js"
+  data-env="RUBY_BOX=1 RUBY_FIBER_MACHINE_STACK_SIZE=1048576"
+></script>
+```
+
 If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` package API:
 
 ```html

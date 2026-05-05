@@ -1,0 +1,22 @@
+<html>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@ruby/head-wasm-wasi@2.9.3-2.9.4/dist/browser.script.iife.js"
+    data-env="RUBY_BOX=1"
+  ></script>
+  <div id="result">
+    <div id="enabled"></div>
+    <div id="constant"></div>
+  </div>
+  <script type="text/ruby">
+    require "js"
+
+    box = Ruby::Box.new
+    box.eval <<~RUBY
+      X = 123
+    RUBY
+
+    document = JS.global[:document]
+    document.getElementById("enabled")[:innerText] = "Ruby::Box.enabled?: #{Ruby::Box.enabled?}"
+    document.getElementById("constant")[:innerText] = "box::X: #{box::X}"
+  </script>
+</html>
