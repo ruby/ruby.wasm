@@ -16,4 +16,5 @@ $ # Open http://localhost:8000/script-src
 ```console
 $ npm install
 $ node --experimental-wasi-unstable-preview1 index.node.js
+$ node ruby-box.node.js
 ```
