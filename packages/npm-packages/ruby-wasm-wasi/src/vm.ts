@@ -1,5 +1,5 @@
-import type { RubyJsJsRuntime } from "./bindgen/interfaces/ruby-js-js-runtime.js";
-import type { RubyJsRubyRuntime } from "./bindgen/interfaces/ruby-js-ruby-runtime.js";
+import type * as RubyJsJsRuntime from "./bindgen/interfaces/ruby-js-js-runtime.js";
+import type * as RubyJsRubyRuntime from "./bindgen/interfaces/ruby-js-ruby-runtime.js";
 import * as RbAbi from "./bindgen/legacy/rb-abi-guest.js";
 import {
   RbJsAbiHost,
