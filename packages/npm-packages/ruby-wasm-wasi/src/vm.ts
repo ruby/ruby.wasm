@@ -55,6 +55,11 @@ export type RubyInitComponentOptions = {
   wasip2: any;
 
   /**
+   * Environment variables to pass to the Ruby VM.
+   */
+  env?: Record<string, string> | undefined;
+
+  /**
    * The arguments to pass to the Ruby VM. Note that the first argument must be the Ruby program name.
    *
    * @default ["ruby.wasm", "-EUTF-8", "-e_=0"]
@@ -179,9 +184,18 @@ export class RubyVM {
       initComponent = async (jsRuntime) => {
         const { instantiate, getCoreModule, wasip2 } = options;
         const { cli, clocks, filesystem, io, random, sockets, http } = wasip2;
+        const environment = options.env ? {
+          ...cli.environment,
+          getEnvironment: () => Array.from(
+            new Map([
+              ...cli.environment.getEnvironment(),
+              ...Object.entries(options.env ?? {}),
+            ]).entries(),
+          ),
+        } : cli.environment;
         const importObject = {
           "ruby:js/js-runtime": jsRuntime,
-          "wasi:cli/environment": cli.environment,
+          "wasi:cli/environment": environment,
           "wasi:cli/exit": cli.exit,
           "wasi:cli/stderr": cli.stderr,
           "wasi:cli/stdin": cli.stdin,
