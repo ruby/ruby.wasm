@@ -51,9 +51,11 @@ Use `data-env` on the `browser.script.iife.js` script tag to pass environment va
 ```html
 <script
   src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.9.3-2.9.4/dist/browser.script.iife.js"
-  data-env="RUBY_BOX=1 RUBY_FIBER_MACHINE_STACK_SIZE=1048576"
+  data-env='{"RUBY_BOX":"1","RUBY_FIBER_MACHINE_STACK_SIZE":"1048576"}'
 ></script>
 ```
+
+The `data-env` value must be a JSON object string whose values are strings.
 
 If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` package API:
 
