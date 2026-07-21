@@ -8,11 +8,18 @@ export const main = async (
   pkg: { name: string; version: string },
   options?: Parameters<typeof DefaultRubyVM>[1],
 ) => {
+  const scriptEnv = parseDataEnv(document.currentScript);
   const response = fetch(
     `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`,
   );
   const module = await compileWebAssemblyModule(response);
-  const { vm } = await DefaultRubyVM(module, options);
+  const { vm } = await DefaultRubyVM(module, {
+    ...options,
+    env: {
+      ...scriptEnv,
+      ...options?.env,
+    },
+  });
   await mainWithRubyVM(vm);
 };
 
@@ -24,12 +31,18 @@ export const componentMain = async (
     options: {
         instantiate: RubyComponentInstantiator;
         wasip2: any;
+        env?: Record<string, string> | undefined;
     }
 ) => {
+    const scriptEnv = parseDataEnv(document.currentScript);
     const componentUrl = `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/component`;
     const fetchComponentFile = (relativePath: string) => fetch(`${componentUrl}/${relativePath}`);
     const { vm } = await RubyVM.instantiateComponent({
         ...options,
+        env: {
+            ...scriptEnv,
+            ...options.env,
+        },
         getCoreModule: (relativePath: string) => {
             const response = fetchComponentFile(relativePath);
             return compileWebAssemblyModule(response);
@@ -88,6 +101,66 @@ const deriveEvalStyle = (tag: Element): "async" | "sync" => {
     return "sync";
   }
   return rawEvalStyle;
+};
+
+/**
+ * Parses the data-env attribute as a JSON object string, for example:
+ * data-env='{"RUBY_BOX":"1","MSG":"hello world"}'
+ *
+ * The parsed value must be a non-null object, not an array. Each key must not
+ * contain "=" or NUL, and each value must be a string.
+ *
+ * JSON is used instead of a shell-like KEY=value list so keys and values can
+ * contain spaces and values can contain "=" without custom escaping rules.
+ */
+const parseDataEnv = (tag: Element | null): Record<string, string> => {
+  const rawEnv = tag?.getAttribute("data-env");
+  if (!rawEnv) {
+    return {};
+  }
+
+  const trimmedEnv = rawEnv.trim();
+  if (!trimmedEnv) {
+    return {};
+  }
+
+  let parsedEnv: unknown;
+  try {
+    parsedEnv = JSON.parse(trimmedEnv);
+  } catch (error) {
+    console.warn(`data-env must be a JSON object string. ${rawEnv} is ignored.`);
+    return {};
+  }
+
+  if (
+    typeof parsedEnv !== "object" ||
+    parsedEnv === null ||
+    Array.isArray(parsedEnv)
+  ) {
+    console.warn(`data-env must be a JSON object string. ${rawEnv} is ignored.`);
+    return {};
+  }
+
+  return Object.entries(parsedEnv).reduce<Record<string, string>>(
+    (env, [key, value]) => {
+      if (key.includes("=") || key.includes("\0")) {
+        console.warn(
+          `data-env key must not contain "=" or NUL. ${key} is ignored.`,
+        );
+        return env;
+      }
+
+      // POSIX environment values may contain arbitrary bytes, but data-env only accepts strings.
+      if (typeof value !== "string") {
+        console.warn(`data-env value for ${key} must be a string. It is ignored.`);
+        return env;
+      }
+
+      env[key] = value;
+      return env;
+    },
+    {},
+  );
 };
 
 const loadScriptAsync = async (

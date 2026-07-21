@@ -26,10 +26,10 @@ const { vm } = await DefaultRubyVM(module);
 vm.eval(`puts "hello world"`);
 ```
 
-Then run the example code with `--experimental-wasi-unstable-preview1` flag to enable WASI support:
+Then run the example code:
 
 ```console
-$ node --experimental-wasi-unstable-preview1 index.mjs
+$ node index.mjs
 ```
 
 ## Browser
@@ -45,6 +45,17 @@ The easiest way to run Ruby on browser is to use `browser.script.iife.js` script
   </script>
 </html>
 ```
+
+Use `data-env` on the `browser.script.iife.js` script tag to pass environment variables when the Ruby VM starts:
+
+```html
+<script
+  src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.9.3-2.9.4/dist/browser.script.iife.js"
+  data-env='{"RUBY_BOX":"1","RUBY_FIBER_MACHINE_STACK_SIZE":"1048576"}'
+></script>
+```
+
+The `data-env` value must be a JSON object string whose values are strings.
 
 If you want to control Ruby VM from JavaScript, you can use `@ruby/wasm-wasi` package API:
 

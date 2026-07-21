@@ -8,6 +8,7 @@ This is a simple example of how to use the `ruby-wasm-wasi` family packages
 $ ruby -run -e httpd . -p 8000
 $ # Open http://localhost:8000/hello.html
 $ # Open http://localhost:8000/lucky.html
+$ # Open http://localhost:8000/ruby-box.html
 $ # Open http://localhost:8000/script-src
 ```
 
@@ -15,6 +16,6 @@ $ # Open http://localhost:8000/script-src
 
 ```console
 $ npm install
-$ node --experimental-wasi-unstable-preview1 index.node.js
+$ node index.node.js
 $ node ruby-box.node.js
 ```

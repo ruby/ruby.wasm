@@ -10,6 +10,29 @@ import { readFileSync } from "fs";
 import http from "http";
 import https from "https";
 
+const ruby4OrLater = () => {
+  const packageName = path.basename(
+    process.env.RUBY_NPM_PACKAGE_ROOT ?? "ruby-head-wasm-wasi",
+  );
+  if (packageName.startsWith("ruby-head-")) {
+    return true;
+  }
+
+  const match = packageName.match(/^ruby-(\d+)\.(\d+)-wasm-wasi/);
+  if (!match) {
+    return false;
+  }
+
+  return Number(match[1]) >= 4;
+};
+
+const wasiPreview1 = () => {
+  const packageName = path.basename(
+    process.env.RUBY_NPM_PACKAGE_ROOT ?? "ruby-head-wasm-wasi",
+  );
+  return packageName.endsWith("-wasm-wasi");
+};
+
 test.beforeEach(async ({ context, page }) => {
   setupDebugLog(context);
   setupUncaughtExceptionRejection(page);
@@ -55,6 +78,26 @@ test("lucky.html is healthy", async ({ page }) => {
   expect(result).toMatch(/(Lucky|Unlucky)/);
 });
 
+test.describe("ruby-box.html", () => {
+  // Ruby::Box hooks require/load and copies extension libraries to a temporary
+  // file before loading them. The browser WASI Preview 2 setup does not
+  // currently provide writable /tmp, so the Ruby::Box example is limited to
+  // WASI Preview 1.
+  test.skip(
+    !ruby4OrLater() || !wasiPreview1(),
+    "Ruby::Box browser example requires Ruby 4.0 or later with WASI Preview 1. WASI Preview 2 does not currently provide writable /tmp.",
+  );
+
+  test("is healthy", async ({ page }) => {
+    await page.goto("/ruby-box.html");
+    await waitForRubyVM(page);
+    await expect(page.locator("#enabled")).toHaveText(
+      "Ruby::Box.enabled?: true",
+    );
+    await expect(page.locator("#constant")).toHaveText("box::X: 123");
+  });
+});
+
 test("script-src/index.html is healthy", async ({ page }) => {
   const messages: string[] = [];
   page.on("console", (msg) => messages.push(msg.text()));
@@ -80,7 +123,7 @@ if (process.env.RUBY_NPM_PACKAGE_ROOT) {
     await page.goto("/require_relative/index.html");
 
     await waitForRubyVM(page);
-  while (!messages.some((msg) => /Hello, world\!/.test(msg))) {
+    while (!messages.some((msg) => /Hello, world\!/.test(msg))) {
       await page.waitForEvent("console");
     }
   });
