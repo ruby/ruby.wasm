@@ -44,6 +44,7 @@ typedef ext_list_string_t rb_abi_guest_list_string_t;
     ruby_js_js_runtime_export_js_value_to_host(borrow_js_value(value))
 #  define rb_js_abi_host_raw_integer_free(ptr)                                 \
     ruby_js_js_runtime_raw_integer_free(ptr)
+#  define rb_js_abi_host_string_free(ptr) ext_string_free(ptr)
 #  define rb_js_abi_host_rb_object_to_js_rb_value(val)                         \
     ruby_js_js_runtime_rb_object_to_js_rb_value(val)
 #  define rb_js_abi_host_int_to_js_number(val)                                 \

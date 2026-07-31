@@ -101,6 +101,7 @@ static VALUE _rb_js_eval_js(VALUE _, VALUE code_str) {
   rstring_to_abi_string(code_str, &abi_str);
   rb_js_abi_host_js_abi_result_t ret;
   rb_js_abi_host_eval_js(&abi_str, &ret);
+  rb_js_abi_host_string_free(&abi_str);
   raise_js_error_if_failure(&ret);
   return jsvalue_s_new(ret.val.success);
 }
@@ -197,6 +198,7 @@ static VALUE _rb_js_obj_aref(VALUE obj, VALUE key) {
   rstring_to_abi_string(key, &key_abi_str);
   rb_js_abi_host_js_abi_result_t ret;
   rb_js_abi_host_reflect_get(p->abi, &key_abi_str, &ret);
+  rb_js_abi_host_string_free(&key_abi_str);
   raise_js_error_if_failure(&ret);
   return jsvalue_s_new(ret.val.success);
 }
@@ -224,6 +226,7 @@ static VALUE _rb_js_obj_aset(VALUE obj, VALUE key, VALUE val) {
   rstring_to_abi_string(key, &key_abi_str);
   rb_js_abi_host_js_abi_result_t ret;
   rb_js_abi_host_reflect_set(p->abi, &key_abi_str, v->abi, &ret);
+  rb_js_abi_host_string_free(&key_abi_str);
   raise_js_error_if_failure(&ret);
   rb_js_abi_host_js_abi_value_free(&ret.val.success);
   RB_GC_GUARD(rv);
@@ -346,7 +349,9 @@ static VALUE _rb_js_obj_typeof(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   rb_js_abi_host_string_t ret0;
   rb_js_abi_host_js_value_typeof(p->abi, &ret0);
-  return rb_str_new((const char *)ret0.ptr, ret0.len);
+  VALUE typeof_str = rb_str_new((const char *)ret0.ptr, ret0.len);
+  rb_js_abi_host_string_free(&ret0);
+  return typeof_str;
 }
 
 /*
@@ -366,7 +371,9 @@ static VALUE _rb_js_obj_to_s(VALUE obj) {
   struct jsvalue *p = check_jsvalue(obj);
   rb_js_abi_host_string_t ret0;
   rb_js_abi_host_js_value_to_string(p->abi, &ret0);
-  return rb_utf8_str_new((const char *)ret0.ptr, ret0.len);
+  VALUE to_s_str = rb_utf8_str_new((const char *)ret0.ptr, ret0.len);
+  rb_js_abi_host_string_free(&ret0);
+  return to_s_str;
 }
 
 /*
@@ -494,7 +501,10 @@ static VALUE _rb_js_float_to_js(VALUE obj) {
 static VALUE _rb_js_string_to_js(VALUE obj) {
   rb_js_abi_host_string_t abi_str;
   rstring_to_abi_string(obj, &abi_str);
-  return jsvalue_s_new(rb_js_abi_host_string_to_js_string(&abi_str));
+  rb_js_abi_host_own_js_abi_value_t js_str =
+      rb_js_abi_host_string_to_js_string(&abi_str);
+  rb_js_abi_host_string_free(&abi_str);
+  return jsvalue_s_new(js_str);
 }
 
 /*

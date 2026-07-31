@@ -441,4 +441,29 @@ class JS::TestObject < Test::Unit::TestCase
     floor = JS.global[:Math][:floor]
     assert_equal 3, floor.apply(3.14).to_i
   end
+
+  # Every string crossing the boundary now frees its ABI buffer, in both
+  # directions. Freeing one too early would hand back another allocation's
+  # bytes, so each round trip below carries a value distinct from its
+  # neighbours - garbage or a stale repeat fails the assertion rather than
+  # passing by luck. GC.stress shakes out an early free that only shows when
+  # the allocator reuses the block promptly.
+  def test_string_round_trips_survive_their_abi_buffers
+    object = JS.eval("return {};")
+    64.times do |i|
+      key = "key_#{i}_#{"x" * i}"
+      value = "value_#{i}_#{"y" * i}"
+      object[key] = value
+      assert_equal value, object[key].to_s
+      assert_equal "string", object[key].typeof
+    end
+    GC.stress = true
+    16.times do |i|
+      key = "stress_#{i}"
+      object[key] = JS.eval("return #{key.dump};")
+      assert_equal key, object[key].to_s
+    end
+  ensure
+    GC.stress = false
+  end
 end
