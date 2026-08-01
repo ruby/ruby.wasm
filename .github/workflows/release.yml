@@ -62,6 +62,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       publish: true
+      ref: ${{ needs.create-tag.outputs.tag-name }}
       prerel_name: ${{ needs.create-tag.outputs.tag-name }}
     secrets: inherit
 
@@ -77,7 +78,11 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       publish: true
-      prerel_name: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
+      # Stable releases publish the bumped version as-is, so no prerel_name here.
+      # The bump commit is created by create-tag, so build from the tag, not the
+      # ref the workflow was dispatched on.
+      ref: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
+      release_tag: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
     secrets: inherit
 
   release-tag-ruby_wasm-gem:
