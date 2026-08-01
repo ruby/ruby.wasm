@@ -23,7 +23,7 @@ Create and save an `index.html` page with the following contents:
 
 ```html
 <html>
-  <script src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.9.4/dist/browser.script.iife.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ruby/4.0-wasm-wasi@2.10.0/dist/browser.script.iife.js"></script>
   <script type="text/ruby">
     require "js"
 

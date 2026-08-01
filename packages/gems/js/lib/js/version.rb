@@ -1,3 +1,3 @@
 module JS
-  VERSION = "2.9.4"
+  VERSION = "2.10.0"
 end
