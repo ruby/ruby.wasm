@@ -1,13 +1,13 @@
 PATH
   remote: ../../..
   specs:
-    ruby_wasm (2.10.0)
+    ruby_wasm (2.10.1)
       logger
 
 PATH
   remote: ../../gems/js
   specs:
-    js (2.10.0)
+    js (2.10.1)
 
 GEM
   remote: https://rubygems.org/
