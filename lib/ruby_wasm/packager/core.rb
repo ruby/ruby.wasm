@@ -130,6 +130,9 @@ class RubyWasm::Packager::Core
         wasi_sdk_path = toolchain.wasi_sdk_path
         libraries << File.join(wasi_sdk_path, "share/wasi-sysroot/lib/wasm32-wasi", lib)
       end
+      libyaml_so = File.join(build.libyaml.install_root, "lib", "libyaml.so")
+      libraries << libyaml_so if File.exist?(libyaml_so)
+
       dl_openable_libs = [] #: Array[[string, Array[String]]]
       dl_openable_libs << [File.dirname(ruby_root), Dir.glob(File.join(ruby_root, "lib", "ruby", "**", "*.so"))]
       dl_openable_libs << [gem_home, Dir.glob(File.join(gem_home, "**", "*.so"))]
