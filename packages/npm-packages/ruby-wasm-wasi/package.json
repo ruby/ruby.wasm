@@ -42,6 +42,7 @@
     "test:run": "npm run test:unit && npm run test:vitest -- --run && npm run test:e2e",
     "test:vitest": "vitest ./test/",
     "test:unit": "./tools/run-test-unit.mjs",
+    "test:node-examples": "vitest ./test-node-examples/ --run",
     "test:e2e": "playwright install && npm run test:e2e:examples && npm run test:e2e:integrations",
     "test:e2e:examples": "playwright test -c test-e2e/playwright.examples.config.ts",
     "test:e2e:integrations": "playwright test -c test-e2e/playwright.integrations.config.ts",
