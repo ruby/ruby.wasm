@@ -17,4 +17,5 @@ $ # Open http://localhost:8000/script-src
 ```console
 $ npm install
 $ node index.node.js
+$ node preopens.node.js
 ```
