@@ -23,13 +23,37 @@ $ rake build:download_prebuilt
 # Build Ruby (if you need to build Ruby by yourself)
 $ rake build:head-wasm32-unknown-wasip1-full
 
-# Build npm package
+# Build and test the WASI Preview 1 npm package
+$ rake npm:ruby-head-wasm-wasi:build
+$ rake npm:ruby-head-wasm-wasi:check
+
+# Build and test the WASI Preview 2 npm package
 $ rake npm:ruby-head-wasm-wasip2:build
-# Test npm package
 $ rake npm:ruby-head-wasm-wasip2:check
 ```
 
 If you need to re-build Ruby, please clean `./rubies` directory, and run `rake npm:ruby-head-wasm-wasi` again.
+
+### npm package test structure
+
+The `ruby-wasm-wasi` package contains the shared JavaScript bindings and test suites, but it does not contain a Ruby WebAssembly binary. Version-specific packages provide the binary and invoke the shared tests with `RUBY_NPM_PACKAGE_ROOT`:
+
+```text
+ruby-head-wasm-wasi
+└─ test
+   ├─ ruby-wasm-wasi:test:run
+   └─ ruby-wasm-wasi:test:node-examples
+
+ruby-4.0-wasm-wasi, ruby-3.x-wasm-wasi
+└─ test
+   └─ ruby-wasm-wasi:test:run
+
+ruby-head-wasm-wasip2
+└─ test
+   └─ ruby-wasm-wasi:test:run
+```
+
+The shared `test:run` script runs the unit, Vitest, and browser E2E suites. The `test:node-examples` script is invoked separately and only by `ruby-head-wasm-wasi` because the Node.js examples use `@ruby/head-wasm-wasi`.
 
 ## Building CRuby from source
 
