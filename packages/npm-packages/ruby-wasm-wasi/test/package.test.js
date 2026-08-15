@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs/promises";
+import * as os from "os";
 import { WASI } from "wasi";
 import { RubyVM } from "../src/index";
 import { DefaultRubyVM } from "../src/node";
@@ -57,6 +58,52 @@ describe("Packaging validation", () => {
     const mod = await loadWasmModule(`ruby+stdlib.wasm`);
     const { vm } = await DefaultRubyVM(mod);
     vm.eval(`require "stringio"`);
+  });
+
+  test("DefaultRubyVM WASI preopens with require_relative", async () => {
+    const mod = await loadWasmModule(`ruby+stdlib.wasm`);
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ruby-wasm-preopen-"));
+    const nestedDir = path.join(tempDir, "nested");
+    const entryFile = path.join(tempDir, "entry.rb");
+    const helperFile = path.join(nestedDir, "helper.rb");
+
+    try {
+      await fs.mkdir(nestedDir);
+      await fs.writeFile(entryFile, [
+        "PREOPEN_ENTRY_FILE = __FILE__",
+        "require_relative './nested/helper'",
+      ].join("\n"));
+      await fs.writeFile(helperFile, "PREOPEN_HELPER_FILE = __FILE__\n");
+
+      const { vm } = await DefaultRubyVM(mod, {
+        preopens: { "/app": tempDir },
+      });
+      expect(vm.eval(`require "/app/entry"`).toString()).toBe("true");
+      expect(vm.eval(`require "/app/entry"`).toString()).toBe("false");
+
+      expect(vm.eval("PREOPEN_ENTRY_FILE").toString()).toBe("/app/entry.rb");
+      expect(vm.eval("PREOPEN_HELPER_FILE").toString()).toBe(
+        "/app/nested/helper.rb",
+      );
+      expect(
+        vm.eval('$LOADED_FEATURES.include?("/app/entry.rb")').toString(),
+      ).toBe("true");
+      expect(
+        vm
+          .eval('$LOADED_FEATURES.include?("/app/nested/helper.rb")')
+          .toString(),
+      ).toBe("true");
+      expect(
+        vm
+          .eval(`$LOADED_FEATURES.include?(${JSON.stringify(entryFile)})`)
+          .toString(),
+      ).toBe("false");
+      expect(vm.eval(`File.file?(${JSON.stringify(entryFile)})`).toString()).toBe(
+        "false",
+      );
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
   });
 
   test.each([
