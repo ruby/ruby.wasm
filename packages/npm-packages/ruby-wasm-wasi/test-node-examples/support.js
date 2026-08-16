@@ -21,10 +21,16 @@ export const setupNodeExampleTest = async () => {
     temporaryDir,
     "node_modules/@ruby/head-wasm-wasi",
   );
+  const requireRelativeLink = path.join(temporaryDir, "require_relative");
 
   try {
     await fs.mkdir(path.dirname(packageLink), { recursive: true });
     await fs.symlink(rubyPackageRoot, packageLink, "dir");
+    await fs.symlink(
+      path.join(exampleDir, "require_relative"),
+      requireRelativeLink,
+      "dir",
+    );
   } catch (error) {
     await fs.rm(temporaryDir, { recursive: true, force: true });
     throw error;
