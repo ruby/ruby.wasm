@@ -169,7 +169,7 @@ impl ComponentEncode {
 
     fn encode(&self) -> Result<bytes::Bytes, Error> {
         // Take the encoder out of the cell and consume it
-        let encoder = self
+        let mut encoder = self
             .0
             .borrow_mut()
             .take()
