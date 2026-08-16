@@ -1,7 +1,11 @@
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 
-const typescriptOptions = { tsconfig: "./tsconfig.json", declaration: false };
+const typescriptOptions = {
+  tsconfig: "./tsconfig.json",
+  declaration: false,
+  ignoreDeprecations: "5.0",
+};
 
 function config({ basename }) {
   return {
