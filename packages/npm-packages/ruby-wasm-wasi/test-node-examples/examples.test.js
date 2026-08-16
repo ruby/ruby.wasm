@@ -21,6 +21,8 @@ describe("Node.js examples", () => {
   }, 70_000);
 
   test("preopens.node.js is healthy", async () => {
-    await context.run("preopens.node.js");
+    const { stdout } = await context.run("preopens.node.js");
+
+    expect(stdout).toBe("Hello, world!\n");
   }, 70_000);
 });

@@ -15,3 +15,4 @@ const { vm } = await DefaultRubyVM(module, {
 
 // /app/main.rb uses require_relative to load /app/greeting.rb.
 vm.eval('require "/app/main"');
+vm.eval("$stdout.flush");
