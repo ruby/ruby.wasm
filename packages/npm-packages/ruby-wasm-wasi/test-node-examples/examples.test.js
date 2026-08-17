@@ -19,4 +19,10 @@ describe("Node.js examples", () => {
     expect(stdout).toContain("NoMethodError");
     expect(stdout).toContain("RuntimeError");
   }, 70_000);
+
+  test("preopens.node.js is healthy", async () => {
+    const { stdout } = await context.run("preopens.node.js");
+
+    expect(stdout).toBe("Hello, world!\n");
+  }, 70_000);
 });

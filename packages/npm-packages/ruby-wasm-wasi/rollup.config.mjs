@@ -5,6 +5,7 @@ const typescriptOptions = {
   tsconfig: "./tsconfig.json",
   declaration: false,
   ignoreDeprecations: "5.0",
+  outDir: "./dist",
 };
 
 function config({ basename }) {
