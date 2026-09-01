@@ -38,7 +38,7 @@ jobs:
       matrix:
         ruby-platform: ${{ fromJSON(needs.ci-data.outputs.result).supported-ruby-platforms }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
 
@@ -80,7 +80,7 @@ jobs:
           path: ${{ steps.cross-gem.outputs.gem-path }}
           if-no-files-found: error
 
-      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
         if: ${{ inputs.publish }}
 
       - run: gem push "${{ steps.cross-gem.outputs.gem-path }}"
@@ -91,12 +91,12 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.publish }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
-      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
       - run: gem build
       - run: gem push ruby_wasm-*.gem

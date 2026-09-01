@@ -28,7 +28,7 @@ jobs:
     outputs:
       tag-name: ${{ steps.generate-tag.outputs.TAG_NAME }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: git config
         run: |
           git config --local user.email "action@github.com"
@@ -109,13 +109,13 @@ jobs:
       id-token: write
       packages: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.create-tag.outputs.tag-name || github.ref_name }}
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
-      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
       - run: |
           cd packages/gems/js
           gem build
