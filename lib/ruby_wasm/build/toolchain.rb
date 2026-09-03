@@ -8,6 +8,12 @@ module RubyWasm
       @tools = {}
     end
 
+    # If this toolchain compiles against wasi-libc, it needs
+    # wasi-libc's emulation feature flags.
+    def wasi_sysroot?
+      false
+    end
+
     def find_tool(name)
       raise "not implemented"
     end
@@ -88,6 +94,10 @@ module RubyWasm
       }
       @wasi_sdk_path = wasi_sdk_path
       @name = "wasi-sdk"
+    end
+
+    def wasi_sysroot?
+      true
     end
 
     def find_tool(name)

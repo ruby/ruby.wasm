@@ -42,7 +42,7 @@ module RubyWasm
         --libdir=lib
         -Wl,--allow-undefined
       ]
-      if @target.triple.start_with?("wasm32-unknown-wasi")
+      if @toolchain.wasi_sysroot?
         args.concat %w[
                       -D_WASI_EMULATED_SIGNAL
                       -D_WASI_EMULATED_PROCESS_CLOCKS
