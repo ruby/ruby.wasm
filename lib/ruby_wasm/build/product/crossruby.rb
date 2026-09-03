@@ -344,8 +344,7 @@ module RubyWasm
       # target-side wasm dump_ast while generating .rbinc files.
       args << %Q(--with-dump-ast=#{dump_ast_path})
 
-      case target
-      when /^wasm32-unknown-wasi/
+      if @toolchain.wasi_sysroot?
         xldflags << @wasi_vfs.lib_wasi_vfs_a if @wasi_vfs
         # TODO: Find a way to force cast or update API
         # @type var wasi_sdk_path: untyped
@@ -363,6 +362,9 @@ module RubyWasm
         # it broke Kernel#require on @bjorn3/browser_wasi_shim setup for some
         # reason. So we disable it for now.
         args << %Q(ac_cv_func_realpath=no)
+      end
+
+      case target
       when "wasm32-unknown-emscripten"
         ldflags.concat(%w[-s MODULARIZE=1])
         env_emcc_ldflags = ENV["RUBY_WASM_EMCC_LDFLAGS"] || ""
@@ -370,7 +372,7 @@ module RubyWasm
           ldflags << env_emcc_ldflags
         end
       else
-        raise "unknown target: #{target}"
+        raise "unknown target: #{target}" unless @toolchain.wasi_sysroot?
       end
 
       args.concat(self.tools_args)
