@@ -251,6 +251,7 @@ module RubyWasm
     def ar: -> String
 
     def install: (_CommandExecutor executor) -> void
+    def wasi_sysroot?: -> bool
   end
 
   class WASISDK < Toolchain
@@ -268,6 +269,11 @@ module RubyWasm
     def download_url: () -> String
     def install_wasi_sdk: (_CommandExecutor executor) -> void
     def install: (_CommandExecutor executor) -> void
+    def wasi_sysroot?: -> bool
+  end
+
+  class Icp < WASISDK
+    def name: -> String
   end
 
   class Binaryen

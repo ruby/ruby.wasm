@@ -8,6 +8,12 @@ module RubyWasm
       @tools = {}
     end
 
+    # If this toolchain compiles against wasi-libc, it needs
+    # wasi-libc's emulation feature flags.
+    def wasi_sysroot?
+      false
+    end
+
     def find_tool(name)
       raise "not implemented"
     end
@@ -27,6 +33,13 @@ module RubyWasm
         )
       when "wasm32-unknown-emscripten"
         return RubyWasm::Emscripten.new
+      when "wasm32-unknown-icp"
+        return(
+          RubyWasm::Icp.new(
+            build_dir: build_dir,
+            version: options[:wasi_sdk_version]
+          )
+        )
       else
         raise "unknown target: #{target}"
       end
@@ -88,6 +101,10 @@ module RubyWasm
       }
       @wasi_sdk_path = wasi_sdk_path
       @name = "wasi-sdk"
+    end
+
+    def wasi_sysroot?
+      true
     end
 
     def find_tool(name)
@@ -283,6 +300,12 @@ module RubyWasm
     def find_tool(name)
       Toolchain.check_executable(@tools[name])
       @tools[name]
+    end
+  end
+
+  class Icp < WASISDK
+    def name
+      "icp"
     end
   end
 end
