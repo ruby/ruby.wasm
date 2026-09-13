@@ -1,3 +1,5 @@
+**This fork is the ongoing development of an IC deployable ruby build and discussion around what, if any, belongs in the upstream branch. Active development is on the `release` branch**
+
 # ruby.wasm
 
 [![Build ruby.wasm](https://github.com/ruby/ruby.wasm/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ruby/ruby.wasm/actions/workflows/build.yml)

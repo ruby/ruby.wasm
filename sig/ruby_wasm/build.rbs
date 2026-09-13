@@ -272,6 +272,10 @@ module RubyWasm
     def wasi_sysroot?: -> bool
   end
 
+  class Icp < WASISDK
+    def name: -> String
+  end
+
   class Binaryen
     @need_fetch_binaryen: bool
     @binaryen_path: String
