@@ -43,8 +43,10 @@ require_relative "js/nil_class.rb"
 #   end
 #
 module JS
-  Undefined = JS.eval("return undefined")
-  Null = JS.eval("return null")
+  # These constants avoid JS.eval so that `require "js"` works under a
+  # Content-Security-Policy without 'unsafe-eval'.
+  Undefined = JS.global[:undefined]
+  Null = JS.global[:JSON].call(:parse, "null")
 
   # A boolean value in JavaScript is always a JS::Object instance from Ruby's point of view.
   # If we use the boolean value returned by a JavaScript function as the condition for an if expression in Ruby,
@@ -67,8 +69,8 @@ module JS
   #   if searchParams.has('phrase') == JS::True
   #     ...
   #   end
-  True = JS.eval("return true;")
-  False = JS.eval("return false;")
+  True = true.to_js
+  False = false.to_js
 
   class PromiseScheduler
     def initialize(loop)
