@@ -4,6 +4,7 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 const typescriptOptions = {
   tsconfig: "./tsconfig.json",
   declaration: false,
+  ignoreDeprecations: "5.0",
   outDir: "./dist",
 };
 

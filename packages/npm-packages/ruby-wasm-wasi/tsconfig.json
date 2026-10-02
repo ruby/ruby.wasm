@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "strict": false,
+    "skipLibCheck": true,
     "importHelpers": true,
     "allowJs": true,
+    "rootDir": "./src",
     "module": "ES2015",
     "target": "es2017",
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
     "resolveJsonModule": true
   },
   "include": ["src/**/*.ts", "./src/bindgen/**/*"],
