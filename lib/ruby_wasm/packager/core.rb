@@ -1,5 +1,6 @@
 require "forwardable"
 require "pathname"
+require_relative "extension_cache"
 
 class RubyWasm::Packager::Core
   def initialize(packager)
@@ -281,22 +282,23 @@ class RubyWasm::Packager::Core
   class StaticLinking < BuildStrategy
     def build(executor, options)
       build = derive_build
+      cache =
+        RubyWasm::Packager::ExtensionCache.new(
+          build.crossruby.artifact,
+          build.crossruby.user_exts
+        )
       force_rebuild =
         options[:remake] || options[:clean] || options[:reconfigure]
-      if File.exist?(build.crossruby.artifact) && !force_rebuild
-        return build.crossruby.artifact
+      cache.fetch(force: force_rebuild) do
+        build.crossruby.clean(executor) if options[:clean]
+        with_unbundled_env do
+          build.crossruby.build(
+            executor,
+            remake: true,
+            reconfigure: options[:reconfigure]
+          )
+        end
       end
-      build.crossruby.clean(executor) if options[:clean]
-
-      self.with_unbundled_env do
-        build.crossruby.build(
-          executor,
-          remake: options[:remake],
-          reconfigure: options[:reconfigure]
-        )
-      end
-
-      build.crossruby.artifact
     end
 
     def cache_key(digest)

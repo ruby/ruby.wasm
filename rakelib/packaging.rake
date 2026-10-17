@@ -105,7 +105,7 @@ def build_ruby(pkg, base_dir, pkg_dir, binaryen, clean: false)
         sh env,
            "bundle", "exec",
            *build_command,
-           "--no-stdlib", "--remake",
+           "--no-stdlib",
            *(clean ? ["--clean"] : []),
            "-o",
            File.join(dist_dir, "ruby.wasm")

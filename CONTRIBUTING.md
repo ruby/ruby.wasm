@@ -34,6 +34,12 @@ $ rake npm:ruby-head-wasm-wasip2:check
 
 If you need to re-build Ruby, please clean `./rubies` directory, and run `rake npm:ruby-head-wasm-wasi` again.
 
+`rake npm:ruby-head-wasm-wasi` reuses Ruby unless its statically linked gem
+extensions change.
+
+After changing the compiler or build settings, also discard intermediate
+objects with `rake npm:ruby-head-wasm-wasi:clean-build`.
+
 ### npm package test structure
 
 The `ruby-wasm-wasi` package contains the shared JavaScript bindings and test suites, but it does not contain a Ruby WebAssembly binary. Version-specific packages provide the binary and invoke the shared tests with `RUBY_NPM_PACKAGE_ROOT`:

@@ -94,6 +94,16 @@ class RubyWasm::Packager
     end
   end
 
+  class ExtensionCache
+    @artifact: String
+    @extensions: Array[RubyWasm::CrossRubyExtProduct]
+    @record: String
+    def initialize: (String artifact, Array[RubyWasm::CrossRubyExtProduct] extensions) -> void
+    def fetch: (?force: bool?) { () -> void } -> String
+    private def reusable?: (String key) -> bool
+    private def key: () -> String
+  end
+
   class FileSystem
     @dest_dir: string
     @packager: RubyWasm::Packager
