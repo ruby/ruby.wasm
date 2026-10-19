@@ -25,7 +25,7 @@ jobs:
         id: fetch
         with:
           supported-ruby-platforms: |
-            exclude: [arm-linux, x64-mingw32, aarch64-mingw-ucrt]
+            exclude: [arm-linux, arm-linux-musl, x64-mingw32, aarch64-mingw-ucrt]
           stable-ruby-versions: |
             exclude: [head]
 
