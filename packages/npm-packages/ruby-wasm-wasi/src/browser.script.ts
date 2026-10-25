@@ -105,6 +105,17 @@ const deriveEvalStyle = (tag: Element): "async" | "sync" => {
   return rawEvalStyle;
 };
 
+/**
+ * Parses data-ruby-wasm-url on the loader script to select a custom Ruby WASM
+ * binary, for example one built with additional gems:
+ * data-ruby-wasm-url="./ruby-with-custom-gems.wasm"
+ *
+ * This replaces ruby+stdlib.wasm for WASI Preview 1. Absolute URLs are accepted;
+ * relative URLs are resolved against the HTML page's URL, ignoring <base>.
+ * Omitting the attribute returns undefined so the caller uses the default CDN.
+ * An empty value or leading/trailing whitespace throws an error; values are
+ * not trimmed. Loading or compilation failures do not fall back to the CDN.
+ */
 const parseDataRubyWasmUrl = (tag: Element | null): string | undefined => {
   const rawUrl = tag?.getAttribute("data-ruby-wasm-url");
   if (rawUrl == null) {
