@@ -33,6 +33,22 @@ Create and save an `index.html` page with the following contents:
 </html>
 ```
 
+To use a custom Ruby WASM binary containing additional gems, set
+`data-ruby-wasm-url` on the loader script (WASI Preview 1 only):
+
+```html
+<script
+  src="./browser.script.iife.js"
+  data-ruby-wasm-url="./ruby-with-custom-gems.wasm"
+></script>
+<script type="text/ruby">
+  require "my_custom_gem"
+</script>
+```
+
+Relative URLs are resolved against the HTML page's URL. Omitting the attribute
+uses the default CDN binary.
+
 ## Quick Example: How to package your Ruby application as a WASI application
 
 Dependencies: [wasmtime](https://github.com/bytecodealliance/wasmtime)

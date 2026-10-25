@@ -8,10 +8,12 @@ export const main = async (
   pkg: { name: string; version: string },
   options?: Parameters<typeof DefaultRubyVM>[1],
 ) => {
-  const scriptEnv = parseDataEnv(document.currentScript);
-  const response = fetch(
-    `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`,
-  );
+  const script = document.currentScript;
+  const scriptEnv = parseDataEnv(script);
+  const rubyWasmUrl =
+    parseDataRubyWasmUrl(script) ??
+    `https://cdn.jsdelivr.net/npm/${pkg.name}@${pkg.version}/dist/ruby+stdlib.wasm`;
+  const response = fetch(rubyWasmUrl);
   const module = await compileWebAssemblyModule(response);
   const { vm } = await DefaultRubyVM(module, {
     ...options,
@@ -101,6 +103,32 @@ const deriveEvalStyle = (tag: Element): "async" | "sync" => {
     return "sync";
   }
   return rawEvalStyle;
+};
+
+/**
+ * Parses data-ruby-wasm-url on the loader script to select a custom Ruby WASM
+ * binary, for example one built with additional gems:
+ * data-ruby-wasm-url="./ruby-with-custom-gems.wasm"
+ *
+ * This replaces ruby+stdlib.wasm for WASI Preview 1. Absolute URLs are accepted;
+ * relative URLs are resolved against the HTML page's URL, ignoring <base>.
+ * Omitting the attribute returns undefined so the caller uses the default CDN.
+ * An empty value or leading/trailing whitespace throws an error; values are
+ * not trimmed. Loading or compilation failures do not fall back to the CDN.
+ */
+const parseDataRubyWasmUrl = (tag: Element | null): string | undefined => {
+  const rawUrl = tag?.getAttribute("data-ruby-wasm-url");
+  if (rawUrl == null) {
+    return undefined;
+  }
+
+  // Validate before URL parsing can silently strip surrounding whitespace.
+  if (rawUrl === "" || /^\s|\s$/.test(rawUrl)) {
+    throw new Error(
+      "data-ruby-wasm-url must be non-empty and must not have leading or trailing whitespace.",
+    );
+  }
+  return new URL(rawUrl, location.href).href;
 };
 
 /**
