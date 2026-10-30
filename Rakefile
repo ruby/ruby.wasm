@@ -17,7 +17,9 @@ BUILDS =
     .product(BUILD_PROFILES)
     .map { |src, profile| [src, "wasm32-unknown-wasip1", profile] } +
     BUILD_SOURCES.map { |src| [src, "wasm32-unknown-emscripten", "full"] } +
-    BUILD_SOURCES.map { |src| [src, "wasm32-unknown-icp", "minimal"] }
+    BUILD_SOURCES
+      .product(BUILD_PROFILES)
+      .map { |src, profile| [src, "wasm32-unknown-icp", profile] }
 
 NPM_PACKAGES = [
   {
