@@ -53,12 +53,16 @@ def rake_task_matrix
   BUILD_TASKS.each { |build| ruby_cache_keys[build.name] = build.hexdigest }
   build_entries =
     BUILD_TASKS.map do |build|
+      # wasm32-unknown-icp is an alias of wasm32-unknown-wasip1 (same host,
+      # toolchain and flags), so it builds in the same image.
+      builder = build.target
+      builder = "wasm32-unknown-wasip1" if builder == "wasm32-unknown-icp"
       {
         task: "build:#{build.name}",
         artifact:
           Pathname.new(build.artifact).relative_path_from(LIB_ROOT).to_s,
         artifact_name: File.basename(build.artifact, ".tar.gz"),
-        builder: build.target,
+        builder: builder,
         rubies_cache_key: ruby_cache_keys[build.name]
       }
     end

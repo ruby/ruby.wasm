@@ -17,6 +17,8 @@ module RubyWasm
         args.concat(%W[--host wasm32-wasi])
       when "wasm32-unknown-emscripten"
         args.concat(%W[--host wasm32-emscripten])
+      when "wasm32-unknown-icp"
+        args.concat(%W[--host wasm32-wasi])
       else
         raise "unknown target: #{@target.triple}"
       end

@@ -33,6 +33,13 @@ module RubyWasm
         )
       when "wasm32-unknown-emscripten"
         return RubyWasm::Emscripten.new
+      when "wasm32-unknown-icp"
+        return(
+          RubyWasm::Icp.new(
+            build_dir: build_dir,
+            version: options[:wasi_sdk_version]
+          )
+        )
       else
         raise "unknown target: #{target}"
       end
@@ -293,6 +300,12 @@ module RubyWasm
     def find_tool(name)
       Toolchain.check_executable(@tools[name])
       @tools[name]
+    end
+  end
+
+  class Icp < WASISDK
+    def name
+      "icp"
     end
   end
 end
